@@ -82,29 +82,71 @@ cd Build
 
 ### 3.1 查看 `add` 子命令帮助
 
+在 Linux/macOS 和 Windows 上，`add` 命令参数相同：
+
 ```bash
 cd Build
 ./builder add -h
+```
+
+如果你在 Windows 下使用可执行文件，命令也一致，只是改为：
+
+```powershell
+cd Build
+./builder.exe add -h
 ```
 
 该帮助会显示 `add` 命令的使用方法和可选参数。
 
 ### 3.2 创建新库模板
 
+创建新库模板时，Linux/macOS 和 Windows 的命令写法相同：
+
 ```bash
 cd Build
-./builder add -n mylib -d "My PRAM3 library" --interactive=false
+./builder add -n keyDerivation -d "Used to derive encryption keys from user credentials" --interactive=false
 ```
 
-- `-n`, `--name`：库名称
-- `-d`, `--desc`：库描述
-- `--interactive=false`：非交互模式
+Windows 下也可以这样写：
+
+```powershell
+cd Build
+./builder.exe add -n keyDerivation -d "Used to derive encryption keys from user credentials" --interactive=false
+```
+
+如果你希望使用交互模式，可以添加 `-i=true`：
+
+```bash
+cd Build
+./builder add -i=true
+```
+
+交互模式会逐步询问：
+
+- Library name
+- Export path
+- Description
+- Version
+- Build for client?
+- Build for server?
+- Global variables
+- Dependencies
+- Target directory
 
 ### 3.3 构建项目
+
+构建当前库时，Linux/macOS 和 Windows 的命令也是相同的：
 
 ```bash
 cd Build
 ./builder build
+```
+
+或在 Windows 下：
+
+```powershell
+cd Build
+./builder.exe build
 ```
 
 ## 4. 使用建议
