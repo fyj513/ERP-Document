@@ -1,0 +1,822 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Job 配置 - MES Prototype</title>
+<link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+<style>
+/* ===== Reset & Base ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; font-size: 14px; color: #333; background: #fff; min-width: 1200px; }
+input, select, textarea, button { font-family: inherit; font-size: inherit; }
+button { cursor: pointer; border: none; background: none; }
+ul, ol { list-style: none; }
+
+/* ===== Layout ===== */
+.page-wrapper { display: flex; flex-direction: column; height: 100vh; }
+.top-header { height: 56px; background: #fff; border-bottom: 1px solid #e8e8e8; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; flex-shrink: 0; }
+.page-body { display: flex; flex: 1; overflow: hidden; }
+.left-sidebar { width: 380px; background: #f5f5f5; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; }
+.right-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
+
+/* ===== Header ===== */
+.header-left { display: flex; align-items: center; gap: 12px; }
+.header-left h1 { font-size: 16px; font-weight: 600; color: #262626; }
+.job-id-badge { background: #e6f7ff; color: #1890ff; padding: 2px 10px; border-radius: 4px; font-size: 13px; font-weight: 500; border: 1px solid #91d5ff; }
+.header-right { display: flex; align-items: center; gap: 10px; }
+.btn { padding: 6px 16px; border-radius: 4px; font-size: 14px; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+.btn-primary { background: #1890ff; color: #fff; border: 1px solid #1890ff; }
+.btn-primary:hover { background: #40a9ff; }
+.btn-default { background: #fff; color: #595959; border: 1px solid #d9d9d9; }
+.btn-default:hover { color: #1890ff; border-color: #1890ff; }
+.btn-success { background: #52c41a; color: #fff; border: 1px solid #52c41a; }
+.btn-success:hover { background: #73d13d; }
+.btn:disabled { opacity: 0.5; cursor: not-allowed; }
+
+/* ===== Sidebar ===== */
+.sidebar-title { padding: 16px 20px 12px; font-size: 15px; font-weight: 600; color: #262626; border-bottom: 1px solid #e0e0e0; }
+.sidebar-form { padding: 16px 20px; overflow-y: auto; flex: 1; }
+.form-row { margin-bottom: 14px; }
+.form-label { display: block; font-size: 13px; color: #595959; margin-bottom: 6px; font-weight: 500; }
+.form-label .required::after { content: " *"; color: #ff4d4f; }
+.form-input, .form-select, .form-textarea { width: 100%; padding: 6px 10px; border: 1px solid #d9d9d9; border-radius: 4px; outline: none; transition: border-color 0.2s; background: #fff; }
+.form-input:focus, .form-select:focus, .form-textarea:focus { border-color: #1890ff; }
+.form-input:read-only { background: #f5f5f5; color: #8c8c8c; }
+.form-textarea { resize: vertical; min-height: 60px; }
+.form-row-inline { display: flex; gap: 12px; }
+.form-row-inline .form-row { flex: 1; margin-bottom: 0; }
+.sidebar-footer { padding: 12px 20px 16px; border-top: 1px solid #e0e0e0; }
+.sidebar-footer .btn { width: 100%; justify-content: center; }
+
+/* ===== Step Indicator ===== */
+.step-bar { display: flex; align-items: center; padding: 16px 24px; border-bottom: 1px solid #e8e8e8; background: #fafafa; flex-shrink: 0; gap: 8px; }
+.step-item { display: flex; align-items: center; gap: 8px; cursor: pointer; padding: 4px 0; transition: opacity 0.2s; }
+.step-item:not(.active):not(.completed) { opacity: 0.5; pointer-events: none; }
+.step-item.completed { cursor: pointer; opacity: 1; }
+.step-circle { width: 28px; height: 28px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; flex-shrink: 0; }
+.step-item.active .step-circle { background: #1890ff; color: #fff; }
+.step-item.completed .step-circle { background: #52c41a; color: #fff; }
+.step-item.pending .step-circle { background: #f0f0f0; color: #8c8c8c; border: 1px solid #d9d9d9; }
+.step-label { font-size: 14px; color: #595959; font-weight: 500; }
+.step-item.active .step-label { color: #1890ff; font-weight: 600; }
+.step-item.completed .step-label { color: #52c41a; }
+.step-arrow { color: #bfbfbf; font-size: 16px; margin: 0 4px; }
+.progress-hint { margin-left: auto; font-size: 13px; color: #8c8c8c; background: #f0f0f0; padding: 4px 12px; border-radius: 4px; }
+.progress-hint .progress-num { color: #1890ff; font-weight: 600; }
+
+/* ===== Content Area ===== */
+.content-scroll { flex: 1; overflow-y: auto; padding: 20px 24px; }
+.step-title { font-size: 18px; font-weight: 600; color: #262626; margin-bottom: 6px; }
+.step-desc { font-size: 13px; color: #8c8c8c; margin-bottom: 20px; }
+.step-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 24px; padding-top: 16px; border-top: 1px solid #e8e8e8; }
+.view-toggle { margin-left: auto; display: flex; gap: 0; }
+.view-toggle .btn { border-radius: 0; }
+.view-toggle .btn:first-child { border-radius: 4px 0 0 4px; }
+.view-toggle .btn:last-child { border-radius: 0 4px 4px 0; }
+.view-toggle .btn.active { background: #e6f7ff; color: #1890ff; border-color: #1890ff; z-index: 1; }
+
+/* ===== BOM Tree ===== */
+.bom-tree { background: #fafafa; border: 1px solid #e8e8e8; border-radius: 6px; padding: 16px; }
+.tree-node { display: flex; align-items: center; padding: 8px 12px; border-radius: 4px; cursor: pointer; transition: background 0.15s; position: relative; }
+.tree-node:hover { background: #e6f7ff; }
+.tree-node-content { display: flex; align-items: center; gap: 8px; flex: 1; }
+.tree-toggle { width: 18px; height: 18px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; color: #8c8c8c; transition: transform 0.2s; }
+.tree-toggle.expanded { transform: rotate(90deg); }
+.tree-toggle-placeholder { width: 18px; flex-shrink: 0; }
+.tree-icon { width: 16px; height: 16px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+.tree-icon.blue { background: #1890ff; }
+.tree-icon.gray { background: #bfbfbf; }
+.tree-icon .dot { width: 6px; height: 6px; background: #fff; border-radius: 50%; }
+.tree-icon .square { width: 8px; height: 8px; background: #fff; border-radius: 1px; }
+.tree-text { font-size: 14px; color: #262626; }
+.tree-code { font-family: "SFMono-Regular", Consolas, monospace; font-size: 12px; color: #8c8c8c; margin-left: 4px; }
+.tree-tag { font-size: 11px; padding: 1px 6px; border-radius: 3px; margin-left: 6px; }
+.tree-tag.raw { background: #f5f5f5; color: #8c8c8c; border: 1px solid #d9d9d9; }
+.tree-children { padding-left: 20px; overflow: hidden; transition: max-height 0.3s ease; }
+.tree-node.selected { background: #e6f7ff; border-left: 3px solid #1890ff; padding-left: 9px; }
+.tree-node .config-icon { color: #52c41a; font-size: 16px; margin-left: 8px; flex-shrink: 0; }
+
+/* ===== Recipe Panel ===== */
+.recipe-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 100; display: flex; align-items: center; justify-content: center; opacity: 0; pointer-events: none; transition: opacity 0.3s; }
+.recipe-overlay.active { opacity: 1; pointer-events: auto; }
+.recipe-panel { background: #fff; border-radius: 8px; width: 720px; max-width: 90vw; max-height: 85vh; display: flex; flex-direction: column; box-shadow: 0 8px 32px rgba(0,0,0,0.15); transform: translateY(20px); transition: transform 0.3s; }
+.recipe-overlay.active .recipe-panel { transform: translateY(0); }
+.recipe-panel-header { padding: 16px 20px; border-bottom: 1px solid #e8e8e8; display: flex; align-items: center; justify-content: space-between; }
+.recipe-panel-header h3 { font-size: 16px; font-weight: 600; }
+.recipe-panel-header .close-btn { width: 32px; height: 32px; border-radius: 4px; display: flex; align-items: center; justify-content: center; color: #8c8c8c; transition: all 0.2s; }
+.recipe-panel-header .close-btn:hover { background: #f5f5f5; color: #ff4d4f; }
+.recipe-panel-body { padding: 16px 20px; overflow-y: auto; flex: 1; }
+.recipe-panel-footer { padding: 12px 20px; border-top: 1px solid #e8e8e8; display: flex; justify-content: flex-end; gap: 10px; }
+
+.node-info { background: #f6ffed; border: 1px solid #b7eb8f; border-radius: 6px; padding: 12px 16px; margin-bottom: 16px; display: flex; align-items: center; gap: 12px; }
+.node-info .node-icon { width: 36px; height: 36px; background: #52c41a; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-size: 18px; }
+.node-info .node-title { font-size: 15px; font-weight: 600; color: #262626; }
+.node-info .node-code { font-size: 12px; color: #8c8c8c; font-family: monospace; }
+
+.recipe-cards { display: flex; flex-direction: column; gap: 12px; }
+.recipe-card { border: 2px solid #e8e8e8; border-radius: 8px; padding: 16px; cursor: pointer; transition: all 0.2s; background: #fff; }
+.recipe-card:hover { border-color: #1890ff; }
+.recipe-card.selected { border-color: #1890ff; background: #e6f7ff; }
+.recipe-card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.recipe-card-title { font-size: 15px; font-weight: 600; color: #262626; }
+.recipe-card-code { font-size: 12px; color: #8c8c8c; font-family: monospace; background: #f5f5f5; padding: 2px 6px; border-radius: 3px; }
+.recipe-meta { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+.team-tag { padding: 3px 10px; border-radius: 4px; font-size: 12px; font-weight: 500; color: #fff; }
+.est-hours { font-size: 13px; color: #595959; display: flex; align-items: center; gap: 4px; }
+
+/* Task Timeline */
+.task-timeline { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; padding: 8px 0; }
+.task-step { display: flex; align-items: center; gap: 4px; }
+.task-name { font-size: 12px; color: #595959; background: #f5f5f5; padding: 4px 8px; border-radius: 4px; white-space: nowrap; }
+.task-arrow { color: #bfbfbf; font-size: 12px; }
+
+/* ===== Step 3: Summary ===== */
+.team-group { margin-bottom: 20px; }
+.team-group-header { display: flex; align-items: center; gap: 8px; padding: 8px 12px; background: #fafafa; border-radius: 4px; margin-bottom: 10px; font-weight: 600; font-size: 14px; }
+.team-group-header .team-dot { width: 10px; height: 10px; border-radius: 50%; }
+.summary-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+.summary-table th { text-align: left; padding: 10px 12px; background: #fafafa; border-bottom: 2px solid #e8e8e8; color: #595959; font-weight: 600; }
+.summary-table td { padding: 10px 12px; border-bottom: 1px solid #f0f0f0; vertical-align: top; }
+.summary-table tr:hover td { background: #fafafa; }
+.summary-tasks { display: flex; flex-wrap: wrap; gap: 4px; }
+.summary-tasks span { font-size: 11px; padding: 2px 6px; background: #f5f5f5; border-radius: 3px; color: #595959; }
+.process-preview { background: #f6ffed; border: 1px solid #b7eb8f; border-radius: 6px; padding: 16px 20px; margin-top: 20px; }
+.process-preview h4 { font-size: 14px; color: #52c41a; margin-bottom: 10px; display: flex; align-items: center; gap: 6px; }
+.process-flow { display: flex; align-items: center; flex-wrap: wrap; gap: 6px; }
+.process-block { background: #fff; border: 1px solid #b7eb8f; border-radius: 6px; padding: 8px 14px; font-size: 13px; color: #262626; }
+.process-arrow { color: #52c41a; font-size: 18px; }
+
+/* ===== Empty / Info States ===== */
+.empty-state { text-align: center; padding: 40px 20px; color: #8c8c8c; }
+.empty-state i { font-size: 48px; color: #d9d9d9; margin-bottom: 12px; }
+
+/* ===== Scrollbar ===== */
+::-webkit-scrollbar { width: 6px; height: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: #bfbfbf; border-radius: 3px; }
+::-webkit-scrollbar-thumb:hover { background: #8c8c8c; }
+
+/* ===== Animations ===== */
+@keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+.step-content { animation: fadeIn 0.3s ease; }
+
+/* ===== Right header row ===== */
+.right-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; }
+.right-header .step-title { margin-bottom: 0; }
+</style>
+</head>
+<body>
+<div class="page-wrapper">
+  <!-- Top Header -->
+  <header class="top-header">
+    <div class="header-left">
+      <i class="ri-settings-3-line" style="font-size:20px;color:#1890ff;"></i>
+      <h1>Job 配置</h1>
+      <span class="job-id-badge" id="jobIdBadge">JOB-2024001</span>
+      <span style="color:#8c8c8c;font-size:13px;">发动机总成生产任务</span>
+    </div>
+    <div class="header-right">
+      <button class="btn btn-default" onclick="saveDraft()"><i class="ri-save-line"></i> 保存草稿</button>
+      <button class="btn btn-primary" id="submitBtn" onclick="submitJob()" disabled><i class="ri-calendar-check-line"></i> 提交排程</button>
+    </div>
+  </header>
+
+  <!-- Page Body -->
+  <div class="page-body">
+    <!-- Left Sidebar -->
+    <aside class="left-sidebar">
+      <div class="sidebar-title"><i class="ri-file-list-line" style="margin-right:6px;"></i>Job 基础信息</div>
+      <div class="sidebar-form">
+        <div class="form-row">
+          <label class="form-label">Job ID</label>
+          <input type="text" class="form-input" value="JOB-2024001" readonly>
+        </div>
+        <div class="form-row">
+          <label class="form-label required">Part Number</label>
+          <select class="form-select" id="partNumber">
+            <option value="ENG-001">ENG-001 发动机总成</option>
+            <option value="SHA-001">SHA-001 传动轴</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label required">生产数量</label>
+          <input type="number" class="form-input" value="100" min="1">
+        </div>
+        <div class="form-row-inline">
+          <div class="form-row">
+            <label class="form-label">Make to Stock</label>
+            <input type="number" class="form-input" value="60" min="0">
+          </div>
+          <div class="form-row">
+            <label class="form-label">Make to Order</label>
+            <input type="number" class="form-input" value="40" min="0">
+          </div>
+        </div>
+        <div class="form-row">
+          <label class="form-label">优先级</label>
+          <select class="form-select">
+            <option value="high">高</option>
+            <option value="medium" selected>中</option>
+            <option value="low">低</option>
+          </select>
+        </div>
+        <div class="form-row">
+          <label class="form-label">计划开始日期</label>
+          <input type="date" class="form-input" value="2024-03-01">
+        </div>
+        <div class="form-row">
+          <label class="form-label">计划完成日期</label>
+          <input type="date" class="form-input" value="2024-03-15">
+        </div>
+        <div class="form-row">
+          <label class="form-label">备注</label>
+          <textarea class="form-textarea" placeholder="请输入备注信息..."></textarea>
+        </div>
+      </div>
+      <div class="sidebar-footer">
+        <button class="btn btn-primary" id="sidebarNextBtn" onclick="goStep(1)">
+          <span>下一步：选择 BOM</span><i class="ri-arrow-right-line"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Right Content -->
+    <main class="right-content">
+      <!-- Step Indicator -->
+      <div class="step-bar">
+        <div class="step-item active" data-step="0" onclick="goStep(0)">
+          <div class="step-circle">1</div>
+          <span class="step-label">选择 BOM</span>
+        </div>
+        <div class="step-arrow"><i class="ri-arrow-right-s-line"></i></div>
+        <div class="step-item pending" data-step="1" onclick="goStep(1)">
+          <div class="step-circle">2</div>
+          <span class="step-label">配置 Recipe</span>
+        </div>
+        <div class="step-arrow"><i class="ri-arrow-right-s-line"></i></div>
+        <div class="step-item pending" data-step="2" onclick="goStep(2)">
+          <div class="step-circle">3</div>
+          <span class="step-label">总览确认</span>
+        </div>
+        <div class="progress-hint" id="progressHint" style="display:none;">
+          已配置 <span class="progress-num" id="progressNum">0</span> / <span id="progressTotal">0</span> 个节点
+        </div>
+        <div class="view-toggle" id="viewToggle" style="display:none;">
+          <button class="btn btn-default active" data-view="config" onclick="toggleView('config')">配置视图</button>
+          <button class="btn btn-default" data-view="preview" onclick="toggleView('preview')">预览视图</button>
+        </div>
+      </div>
+
+      <!-- Step Contents -->
+      <div class="content-scroll" id="contentArea">
+        <!-- Step 1 -->
+        <div class="step-content" id="step1">
+          <div class="right-header">
+            <div>
+              <div class="step-title">步骤 1：选择 BOM 结构</div>
+              <div class="step-desc">请确认并展开 BOM 结构，检查所有子节点是否完整</div>
+            </div>
+          </div>
+          <div class="bom-tree" id="bomTree"></div>
+          <div class="step-actions">
+            <button class="btn btn-primary" onclick="confirmBOM()">确认 BOM，进入 Recipe 配置 <i class="ri-arrow-right-line"></i></button>
+          </div>
+        </div>
+
+        <!-- Step 2 -->
+        <div class="step-content" id="step2" style="display:none;">
+          <div class="right-header">
+            <div>
+              <div class="step-title">步骤 2：配置工艺路线</div>
+              <div class="step-desc">请从底层子节点开始，逐步向上配置每个需要 Recipe 的节点（点击蓝色圆圈节点）</div>
+            </div>
+          </div>
+          <div class="bom-tree" id="bomTreeReverse"></div>
+          <div id="summaryContainerStep2" style="display:none;"></div>
+          <div class="step-actions">
+            <button class="btn btn-default" onclick="goStep(0)"><i class="ri-arrow-left-line"></i> 返回 BOM 选择</button>
+            <button class="btn btn-primary" id="step2NextBtn" onclick="goStep(2)" disabled>进入总览确认 <i class="ri-arrow-right-line"></i></button>
+          </div>
+        </div>
+
+        <!-- Step 3 -->
+        <div class="step-content" id="step3" style="display:none;">
+          <div class="right-header">
+            <div>
+              <div class="step-title">步骤 3：工艺路线总览</div>
+              <div class="step-desc">按 Team 分组的 Recipe 汇总及 Process 预览</div>
+            </div>
+          </div>
+          <div id="summaryContainer"></div>
+          <div class="process-preview">
+            <h4><i class="ri-flow-chart"></i> Process 分组预览</h4>
+            <div class="process-flow" id="processFlow"></div>
+          </div>
+          <div class="step-actions">
+            <button class="btn btn-default" onclick="goStep(1)"><i class="ri-arrow-left-line"></i> 返回 Recipe 配置</button>
+            <button class="btn btn-success" onclick="submitJob()"><i class="ri-calendar-check-line"></i> 确认并提交排程</button>
+          </div>
+        </div>
+      </div>
+    </main>
+  </div>
+</div>
+
+<!-- Recipe Panel Overlay -->
+<div class="recipe-overlay" id="recipeOverlay">
+  <div class="recipe-panel">
+    <div class="recipe-panel-header">
+      <div>
+        <h3><i class="ri-settings-line" style="margin-right:6px;color:#1890ff;"></i>选择 Recipe</h3>
+      </div>
+      <button class="close-btn" onclick="closeRecipePanel()"><i class="ri-close-line"></i></button>
+    </div>
+    <div class="recipe-panel-body">
+      <div class="node-info" id="nodeInfo"></div>
+      <div style="font-size:13px;color:#595959;margin-bottom:10px;font-weight:500;">可用 Recipe 列表：</div>
+      <div class="recipe-cards" id="recipeCards"></div>
+    </div>
+    <div class="recipe-panel-footer">
+      <button class="btn btn-default" onclick="closeRecipePanel()">取消</button>
+      <button class="btn btn-primary" id="confirmRecipeBtn" onclick="confirmRecipe()" disabled>确认选择</button>
+    </div>
+  </div>
+</div>
+
+<script>
+// ===== Mock Data =====
+const bomData = {
+  id: "ENG-001",
+  name: "发动机总成",
+  isRaw: false,
+  children: [
+    {
+      id: "BLK-001", name: "缸体组件", isRaw: false,
+      children: [
+        { id: "BLK-CAST-001", name: "缸体铸件", isRaw: true },
+        { id: "SLV-001", name: "气缸套", isRaw: true },
+        { id: "SEAL-001", name: "水套密封圈", isRaw: true }
+      ]
+    },
+    {
+      id: "CRK-001", name: "曲轴组件", isRaw: false,
+      children: [
+        { id: "CRK-RUF-001", name: "曲轴毛坯", isRaw: true },
+        { id: "BRG-001", name: "曲轴轴承", isRaw: true }
+      ]
+    },
+    {
+      id: "PST-001", name: "活塞连杆组", isRaw: false,
+      children: [
+        {
+          id: "PST-BDY-001", name: "活塞", isRaw: false,
+          children: [
+            { id: "PST-CAST-001", name: "活塞铸件", isRaw: true },
+            { id: "PIN-001", name: "活塞销", isRaw: true }
+          ]
+        },
+        {
+          id: "ROD-001", name: "连杆", isRaw: false,
+          children: [
+            { id: "ROD-RUF-001", name: "连杆毛坯", isRaw: true },
+            { id: "ROD-BRG-001", name: "连杆轴承", isRaw: true }
+          ]
+        },
+        { id: "RNG-001", name: "活塞环", isRaw: true }
+      ]
+    },
+    { id: "ASS-MAT-001", name: "装配辅料", isRaw: true }
+  ]
+};
+
+const recipeDB = {
+  "BLK-001": [
+    { id: "RCP-BLK-001", name: "缸体标准机加", team: "机加组-A", teamColor: "#1890ff",
+      tasks: ["领料", "粗铣", "精铣", "钻孔", "攻丝", "清洗", "质检"], estHours: 8.5 },
+    { id: "RCP-BLK-002", name: "缸体快速机加", team: "机加组-B", teamColor: "#52c41a",
+      tasks: ["领料", "CNC一次成型", "清洗", "质检"], estHours: 5.0 }
+  ],
+  "CRK-001": [
+    { id: "RCP-CRK-001", name: "曲轴精加工", team: "机加组-A", teamColor: "#1890ff",
+      tasks: ["领料", "车削", "磨削", "动平衡", "清洗", "质检"], estHours: 10.0 },
+    { id: "RCP-CRK-002", name: "曲轴磨削专线", team: "机加组-C", teamColor: "#722ed1",
+      tasks: ["领料", "粗磨", "精磨", "抛光", "质检"], estHours: 7.5 }
+  ],
+  "PST-001": [
+    { id: "RCP-PST-001A", name: "活塞连杆组装配", team: "装配组-A", teamColor: "#52c41a",
+      tasks: ["领料", "活塞组装", "连杆组装", "活塞环安装", "质检"], estHours: 4.0 }
+  ],
+  "PST-BDY-001": [
+    { id: "RCP-PST-001", name: "活塞铸造+机加", team: "铸造组", teamColor: "#fa8c16",
+      tasks: ["领料", "熔炼", "浇筑", "脱模", "去毛刺", "机加", "质检"], estHours: 12.0 },
+    { id: "RCP-PST-002", name: "活塞锻造+机加", team: "锻造组", teamColor: "#eb2f96",
+      tasks: ["领料", "锻造", "热处理", "机加", "质检"], estHours: 9.0 }
+  ],
+  "ROD-001": [
+    { id: "RCP-ROD-001", name: "连杆标准机加", team: "机加组-B", teamColor: "#52c41a",
+      tasks: ["领料", "铣削", "钻孔", "去毛刺", "质检"], estHours: 6.0 }
+  ],
+  "ENG-001": [
+    { id: "RCP-ENG-001", name: "发动机总装", team: "装配组-A", teamColor: "#52c41a",
+      tasks: ["领料", "缸体装配", "曲轴装配", "活塞连杆装配", "缸盖装配", "调试", "质检"], estHours: 16.0 },
+    { id: "RCP-ENG-002", name: "发动机快速装配", team: "装配组-B", teamColor: "#13c2c2",
+      tasks: ["领料", "预组装", "总装", "调试", "质检"], estHours: 10.0 }
+  ]
+};
+
+// ===== State =====
+let currentStep = 0;
+let expandedNodes = new Set(["ENG-001", "BLK-001", "CRK-001", "PST-001", "PST-BDY-001", "ROD-001"]);
+let selectedBOM = new Set();
+let recipeSelections = {}; // nodeId -> recipeId
+let currentRecipeNode = null;
+let selectedRecipeId = null;
+let currentView = "config";
+
+// ===== Helpers =====
+function getAllNodes(node, list=[]) {
+  list.push(node);
+  if (node.children) node.children.forEach(c => getAllNodes(c, list));
+  return list;
+}
+function getRecipeNodes(node, list=[]) {
+  if (!node.isRaw) list.push(node);
+  if (node.children) node.children.forEach(c => getRecipeNodes(c, list));
+  return list;
+}
+const allNodes = getAllNodes(bomData);
+const recipeNodes = getRecipeNodes(bomData);
+const recipeNodeIds = new Set(recipeNodes.map(n => n.id));
+
+function getDepth(node) {
+  let d = 0, p = node;
+  while (p._parent) { d++; p = p._parent; }
+  return d;
+}
+
+// Build parent references
+function buildParentRefs(node, parent=null) {
+  node._parent = parent;
+  if (node.children) node.children.forEach(c => buildParentRefs(c, node));
+}
+buildParentRefs(bomData);
+
+// ===== Tree Rendering =====
+function renderTree(node, container, reversed=false, depth=0) {
+  const hasChildren = node.children && node.children.length > 0;
+  const isRaw = node.isRaw;
+  const isExpanded = expandedNodes.has(node.id);
+  const isSelected = selectedBOM.has(node.id);
+  const configuredRecipe = recipeSelections[node.id];
+
+  const el = document.createElement("div");
+  el.className = "tree-node" + (isSelected ? " selected" : "") + (configuredRecipe ? " configured" : "");
+  el.style.paddingLeft = (12 + depth * 18) + "px";
+  el.dataset.id = node.id;
+
+  let iconHtml = "";
+  if (!isRaw) {
+    iconHtml = `<div class="tree-icon blue"><div class="dot"></div></div>`;
+  } else {
+    iconHtml = `<div class="tree-icon gray"><div class="square"></div></div>`;
+  }
+
+  let toggleHtml = "";
+  if (hasChildren) {
+    toggleHtml = `<div class="tree-toggle ${isExpanded ? "expanded" : ""}" data-toggle="${node.id}"><i class="ri-arrow-right-s-line"></i></div>`;
+  } else {
+    toggleHtml = `<div class="tree-toggle-placeholder"></div>`;
+  }
+
+  let tagHtml = isRaw ? `<span class="tree-tag raw">原材料</span>` : "";
+  let checkHtml = configuredRecipe ? `<span class="config-icon"><i class="ri-checkbox-circle-line"></i></span><span style="margin-left:4px;font-size:12px;color:#52c41a;font-weight:500;">${configuredRecipe}</span>` : "";
+
+  el.innerHTML = `
+    ${toggleHtml}
+    <div class="tree-node-content">
+      ${iconHtml}
+      <span class="tree-text">${node.name}</span>
+      <span class="tree-code">(${node.id})</span>
+      ${tagHtml}
+      ${checkHtml}
+    </div>
+  `;
+
+  // Toggle expand
+  const toggleBtn = el.querySelector("[data-toggle]");
+  if (toggleBtn) {
+    toggleBtn.addEventListener("click", (e) => {
+      e.stopPropagation();
+      if (expandedNodes.has(node.id)) expandedNodes.delete(node.id);
+      else expandedNodes.add(node.id);
+      refreshTree();
+    });
+  }
+
+  // Node click
+  el.addEventListener("click", () => {
+    if (!isRaw && currentStep === 1) {
+      openRecipePanel(node);
+    } else {
+      if (hasChildren) {
+        if (expandedNodes.has(node.id)) expandedNodes.delete(node.id);
+        else expandedNodes.add(node.id);
+        refreshTree();
+      }
+    }
+  });
+
+  container.appendChild(el);
+
+  if (hasChildren && isExpanded) {
+    const childrenContainer = document.createElement("div");
+    childrenContainer.className = "tree-children";
+    container.appendChild(childrenContainer);
+    if (reversed) {
+      [...node.children].reverse().forEach(c => renderTree(c, childrenContainer, reversed, depth + 1));
+    } else {
+      node.children.forEach(c => renderTree(c, childrenContainer, reversed, depth + 1));
+    }
+  }
+}
+
+function refreshTree() {
+  const t1 = document.getElementById("bomTree");
+  const t2 = document.getElementById("bomTreeReverse");
+  if (t1) { t1.innerHTML = ""; renderTree(bomData, t1, false, 0); }
+  if (t2) { t2.innerHTML = ""; renderTree(bomData, t2, true, 0); }
+}
+
+// ===== Recipe Panel =====
+function openRecipePanel(node) {
+  currentRecipeNode = node;
+  selectedRecipeId = recipeSelections[node.id] || null;
+  const overlay = document.getElementById("recipeOverlay");
+  const nodeInfo = document.getElementById("nodeInfo");
+  const cards = document.getElementById("recipeCards");
+
+  nodeInfo.innerHTML = `
+    <div class="node-icon"><i class="ri-settings-3-line"></i></div>
+    <div>
+      <div class="node-title">${node.name}</div>
+      <div class="node-code">${node.id} · ${node.isRaw ? "原材料" : "需要配置 Recipe"}</div>
+    </div>
+  `;
+
+  const recipes = recipeDB[node.id] || [];
+  cards.innerHTML = "";
+  recipes.forEach(r => {
+    const card = document.createElement("div");
+    card.className = "recipe-card" + (selectedRecipeId === r.id ? " selected" : "");
+    card.dataset.rid = r.id;
+    card.innerHTML = `
+      <div class="recipe-card-header">
+        <div style="display:flex;align-items:center;gap:8px;">
+          <span class="recipe-card-title">${r.name}</span>
+          <span class="recipe-card-code">${r.id}</span>
+        </div>
+      </div>
+      <div class="recipe-meta">
+        <span class="team-tag" style="background:${r.teamColor};">${r.team}</span>
+        <span class="est-hours"><i class="ri-time-line"></i> 预估 ${r.estHours} 小时</span>
+      </div>
+      <div class="task-timeline">
+        ${r.tasks.map((t, i) => `
+          <div class="task-step">
+            <span class="task-name">${t}</span>
+            ${i < r.tasks.length - 1 ? `<span class="task-arrow"><i class="ri-arrow-right-line"></i></span>` : ""}
+          </div>
+        `).join("")}
+      </div>
+    `;
+    card.addEventListener("click", () => {
+      selectedRecipeId = r.id;
+      cards.querySelectorAll(".recipe-card").forEach(c => c.classList.remove("selected"));
+      card.classList.add("selected");
+      document.getElementById("confirmRecipeBtn").disabled = false;
+    });
+    cards.appendChild(card);
+  });
+
+  document.getElementById("confirmRecipeBtn").disabled = !selectedRecipeId;
+  overlay.classList.add("active");
+}
+
+function closeRecipePanel() {
+  document.getElementById("recipeOverlay").classList.remove("active");
+  currentRecipeNode = null;
+  selectedRecipeId = null;
+}
+
+function confirmRecipe() {
+  if (!currentRecipeNode || !selectedRecipeId) return;
+  recipeSelections[currentRecipeNode.id] = selectedRecipeId;
+  closeRecipePanel();
+  refreshTree();
+  updateProgress();
+  checkStep2Complete();
+}
+
+// ===== Step Navigation =====
+function goStep(step) {
+  if (step === 2 && !checkAllConfigured()) return;
+  currentStep = step;
+
+  // Update step indicator
+  document.querySelectorAll(".step-item").forEach(el => {
+    const s = parseInt(el.dataset.step);
+    el.classList.remove("active", "completed", "pending");
+    if (s === step) el.classList.add("active");
+    else if (s < step) el.classList.add("completed");
+    else el.classList.add("pending");
+  });
+  document.querySelectorAll(".step-circle").forEach((el, i) => {
+    const s = parseInt(el.parentElement.dataset.step);
+    if (s < step) el.innerHTML = '<i class="ri-check-line"></i>';
+    else el.textContent = s + 1;
+  });
+
+  // Show/hide contents
+  document.getElementById("step1").style.display = step === 0 ? "block" : "none";
+  document.getElementById("step2").style.display = step === 1 ? "block" : "none";
+  document.getElementById("step3").style.display = step === 2 ? "block" : "none";
+
+  // Sidebar button
+  const sbBtn = document.getElementById("sidebarNextBtn");
+  if (step === 0) {
+    sbBtn.innerHTML = '<span>下一步：选择 BOM</span><i class="ri-arrow-right-line"></i>';
+    sbBtn.onclick = () => goStep(1);
+    sbBtn.disabled = false;
+  } else if (step === 1) {
+    sbBtn.innerHTML = '<span>返回基础信息</span><i class="ri-arrow-left-line"></i>';
+    sbBtn.onclick = () => goStep(0);
+    sbBtn.disabled = false;
+  } else {
+    sbBtn.innerHTML = '<span>返回 Recipe 配置</span><i class="ri-arrow-left-line"></i>';
+    sbBtn.onclick = () => goStep(1);
+    sbBtn.disabled = false;
+  }
+
+  // Progress hint
+  const ph = document.getElementById("progressHint");
+  const vt = document.getElementById("viewToggle");
+  if (step === 1) {
+    ph.style.display = "block";
+    vt.style.display = "flex";
+    updateProgress();
+    checkStep2Complete();
+  } else if (step === 2) {
+    ph.style.display = "none";
+    vt.style.display = "none";
+    renderSummary();
+    renderProcessFlow();
+    document.getElementById("submitBtn").disabled = false;
+  } else {
+    ph.style.display = "none";
+    vt.style.display = "none";
+  }
+
+  if (step === 1) refreshTree();
+}
+
+function confirmBOM() {
+  // Mark all nodes as selected
+  allNodes.forEach(n => selectedBOM.add(n.id));
+  refreshTree();
+  goStep(1);
+}
+
+function updateProgress() {
+  const configured = Object.keys(recipeSelections).length;
+  document.getElementById("progressNum").textContent = configured;
+  document.getElementById("progressTotal").textContent = recipeNodes.length;
+}
+
+function checkAllConfigured() {
+  return recipeNodes.every(n => recipeSelections[n.id]);
+}
+
+function checkStep2Complete() {
+  const btn = document.getElementById("step2NextBtn");
+  btn.disabled = !checkAllConfigured();
+  if (!btn.disabled) btn.innerHTML = '进入总览确认 <i class="ri-arrow-right-line"></i>';
+  else btn.innerHTML = '进入总览确认 <i class="ri-arrow-right-line"></i>';
+}
+
+// ===== View Toggle =====
+function toggleView(view) {
+  currentView = view;
+  document.querySelectorAll(".view-toggle .btn").forEach(b => {
+    b.classList.toggle("active", b.dataset.view === view);
+  });
+  const tree = document.getElementById("bomTreeReverse");
+  if (view === "preview") {
+    tree.style.display = "none";
+    const sc = document.getElementById("summaryContainerStep2");
+    if (sc) { sc.style.display = "block"; sc.innerHTML = document.getElementById("summaryContainer").innerHTML; }
+  } else {
+    tree.style.display = "block";
+    const sc = document.getElementById("summaryContainerStep2");
+    if (sc) sc.style.display = "none";
+  }
+}
+
+// ===== Summary / Step 3 =====
+function renderSummary() {
+  const container = document.getElementById("summaryContainer");
+  const teamMap = {};
+  recipeNodes.forEach(node => {
+    const rid = recipeSelections[node.id];
+    if (!rid) return;
+    const recipes = recipeDB[node.id] || [];
+    const r = recipes.find(x => x.id === rid);
+    if (!r) return;
+    if (!teamMap[r.team]) teamMap[r.team] = { color: r.teamColor, items: [] };
+    teamMap[r.team].items.push({ node, recipe: r });
+  });
+
+  let html = "";
+  Object.entries(teamMap).forEach(([team, data]) => {
+    html += `
+      <div class="team-group">
+        <div class="team-group-header">
+          <span class="team-dot" style="background:${data.color};"></span>
+          <span>${team}</span>
+          <span style="margin-left:auto;font-size:12px;color:#8c8c8c;">${data.items.length} 个节点 · 合计 ${data.items.reduce((s, i) => s + i.recipe.estHours, 0).toFixed(1)} 小时</span>
+        </div>
+        <table class="summary-table">
+          <thead>
+            <tr><th>Part Number</th><th>名称</th><th>Recipe</th><th>Tasks</th><th>工时</th></tr>
+          </thead>
+          <tbody>
+            ${data.items.map(it => `
+              <tr>
+                <td><code style="font-size:12px;color:#595959;background:#f5f5f5;padding:2px 6px;border-radius:3px;">${it.node.id}</code></td>
+                <td>${it.node.name}</td>
+                <td><span style="font-weight:500;">${it.recipe.name}</span><br><span style="font-size:11px;color:#8c8c8c;">${it.recipe.id}</span></td>
+                <td>
+                  <div class="summary-tasks">
+                    ${it.recipe.tasks.map(t => `<span>${t}</span>`).join("")}
+                  </div>
+                </td>
+                <td>${it.recipe.estHours}h</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>
+    `;
+  });
+  container.innerHTML = html;
+}
+
+function renderProcessFlow() {
+  const flow = document.getElementById("processFlow");
+  const teamMap = {};
+  recipeNodes.forEach(node => {
+    const rid = recipeSelections[node.id];
+    if (!rid) return;
+    const recipes = recipeDB[node.id] || [];
+    const r = recipes.find(x => x.id === rid);
+    if (!r) return;
+    if (!teamMap[r.team]) teamMap[r.team] = { color: r.teamColor, nodes: [] };
+    teamMap[r.team].nodes.push(node.name);
+  });
+
+  const teams = Object.entries(teamMap);
+  let html = "";
+  teams.forEach(([team, data], i) => {
+    const names = data.nodes.join(" + ");
+    html += `
+      <div class="process-block">
+        <div style="font-weight:600;margin-bottom:4px;color:${data.color};">${team}</div>
+        <div style="font-size:12px;color:#595959;">${names}</div>
+      </div>
+    `;
+    if (i < teams.length - 1) {
+      html += `<span class="process-arrow"><i class="ri-arrow-right-line"></i></span>`;
+    }
+  });
+  flow.innerHTML = html;
+}
+
+// ===== Global Actions =====
+function saveDraft() {
+  alert("草稿已保存！");
+}
+function submitJob() {
+  if (!checkAllConfigured()) {
+    alert("请先完成所有 Recipe 配置！");
+    return;
+  }
+  alert("Job 已提交排程！");
+}
+
+// ===== Init =====
+document.addEventListener("DOMContentLoaded", () => {
+  refreshTree();
+});
+</script>
+</body>
+</html>
