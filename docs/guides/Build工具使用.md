@@ -1,3 +1,143 @@
+## 1. 进入 Build 目录
+
+bash
+
+运行
+
+```
+cd Build
+```
+
+## 2. 运行帮助命令，检查是否正常
+
+bash
+
+运行
+
+```
+./builder -h
+```
+
+出现以下内容说明 build 工具正常：
+
+plaintext
+
+```
+builder
+Usage:
+[options] COMMAND
+
+Commands:
+add      Setup scaffolding for a new library
+build    PRAM3 library builder, handles building the client and server libraries for PRAM
+update   Check for updates to this tool and apply them if one is found
+
+Options:
+-h,--help
+```
+
+## 3. 进入 Source 目录（按实际路径修改）
+
+bash
+
+运行
+
+```
+cd /workspaces/pram3_corelibs/Source
+```
+
+## 4. 运行交互式创建命令
+
+bash
+
+运行
+
+```
+../Build/builder add -i=true
+```
+
+## 5. 按提示输入信息
+
+- Library name：输入库名，如 `HashFunctions`
+- Export path：直接回车（使用默认）
+- Description：功能描述，如 `cryptographic hash function implementations`
+- Version：直接回车（默认 `0.1.0`）
+- Build for client?：输入 `y`
+- Build for server?：输入 `n`（按项目需求选择）
+- Global variables：直接回车
+- Dependencies：直接回车
+- Target directory：直接回车
+
+执行后会在 `Source/HashFunctions` 自动生成完整库模板。
+
+## 6. 开始写代码
+
+在生成的模板目录中编写业务代码。
+
+## 7. 写完代码后编译（生成成品）
+
+bash
+
+运行
+
+```
+cd Build
+./build.sh
+```
+
+## 8. 提交并推送到远程仓库
+
+bash
+
+运行
+
+```
+# 保存所有修改
+git add .
+
+# 提交版本
+git commit -m "完成哈希函数开发"
+
+# 推送到云端保存
+git push
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 # Build 工具使用指南
 
 > 本文档说明项目根目录下 `Build/` 目录中的构建工具使用方式。
