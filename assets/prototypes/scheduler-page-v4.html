@@ -1,0 +1,1033 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scheduler — 需求中枢 v4</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-0: #090b10;
+  --bg-1: #0f1117;
+  --bg-2: #161922;
+  --bg-3: #1e212b;
+  --bg-4: #272d3a;
+  --bg-5: #32384a;
+  --border: #1e222e;
+  --border-light: #2a2f3e;
+  --text-1: #e8eaf0;
+  --text-2: #8b92a8;
+  --text-3: #5a6078;
+  --accent: #e85d04;
+  --accent-dim: #c44a00;
+  --blue: #4cc9f0;
+  --green: #2dc653;
+  --yellow: #f4d03f;
+  --red: #e63946;
+  --purple: #a855f7;
+  --cyan: #22d3ee;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-body: 'DM Sans', -apple-system, sans-serif;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; }
+body { font-family: var(--font-body); background: var(--bg-0); color: var(--text-1); font-size: 12.5px; line-height: 1.5; overflow: hidden; }
+
+/* Header */
+.header { height: 48px; background: var(--bg-1); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; flex-shrink: 0; }
+.header-left { display:flex; align-items:center; gap:16px; }
+.logo { font-family:var(--font-mono); font-weight:700; font-size:14px; color:var(--accent); }
+.header-right { display:flex; align-items:center; gap:8px; }
+.btn { padding: 5px 12px; border-radius: 5px; border: none; font-family: var(--font-body); font-weight: 600; font-size: 11.5px; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; gap: 5px; }
+.btn-primary { background: var(--accent); color:#fff; }
+.btn-primary:hover { background: var(--accent-dim); }
+.btn-secondary { background: var(--bg-3); color: var(--text-1); border:1px solid var(--border-light); }
+.btn-secondary:hover { background: var(--bg-4); }
+.btn-sm { padding: 4px 10px; font-size: 11px; }
+.btn-ghost { background: transparent; color: var(--text-2); border: 1px solid transparent; }
+.btn-ghost:hover { background: var(--bg-3); color: var(--text-1); }
+
+/* Batch Action Bar */
+.batch-bar { display: none; align-items: center; gap: 10px; padding: 8px 16px; background: var(--bg-2); border-bottom: 1px solid var(--border); font-size: 12px; }
+.batch-bar.open { display: flex; }
+.batch-count { font-weight: 700; color: var(--accent); }
+.batch-divider { width: 1px; height: 16px; background: var(--border-light); margin: 0 4px; }
+
+/* Main Layout */
+.main { display:flex; height: calc(100vh - 48px); }
+
+/* Filter Panel (Left) */
+.filter-panel { width: 200px; background: var(--bg-1); border-right: 1px solid var(--border); padding: 12px 0; overflow-y: auto; flex-shrink: 0; }
+.filter-group { margin-bottom: 4px; }
+.filter-group-header { padding: 8px 12px; font-size: 10px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; user-select: none; }
+.filter-group-header:hover { color: var(--text-2); }
+.filter-group-header .arrow { font-size: 10px; transition: transform .2s; }
+.filter-group-header.open .arrow { transform: rotate(90deg); }
+.filter-group-body { padding: 4px 10px 8px; display: none; }
+.filter-group-body.open { display: block; }
+.filter-option { padding: 5px 8px; border-radius: 5px; cursor: pointer; color: var(--text-2); font-size: 12px; display: flex; align-items: center; gap: 8px; transition: all .12s; margin-bottom: 1px; }
+.filter-option:hover { background: var(--bg-2); color: var(--text-1); }
+.filter-option.active { background: var(--bg-3); color: var(--accent); }
+.filter-option .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.filter-option .count { margin-left: auto; font-family: var(--font-mono); font-size: 10px; color: var(--text-3); }
+.filter-option.active .count { color: var(--accent); }
+.filter-reset { padding: 6px 12px; font-size: 11px; color: var(--text-3); cursor: pointer; text-align: center; border-top: 1px solid var(--border); margin-top: 4px; }
+.filter-reset:hover { color: var(--accent); }
+
+/* Content (Right) */
+.content { flex: 1; overflow-y: auto; padding: 12px 16px 40px; }
+
+/* Merge Section */
+.merge-section { margin-bottom: 12px; }
+.merge-header { font-size: 10px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; display: flex; justify-content: space-between; align-items: center; }
+.merge-card { background: var(--bg-1); border: 1px solid var(--border); border-radius: 8px; padding: 10px 12px; margin-bottom: 6px; display: flex; align-items: center; gap: 10px; transition: all .15s; }
+.merge-card:hover { border-color: var(--yellow); }
+.merge-icon { font-size: 18px; width: 30px; height: 30px; display:flex; align-items:center; justify-content:center; background: rgba(244,208,63,0.1); border-radius: 6px; flex-shrink:0; }
+.merge-content { flex:1; min-width:0; }
+.merge-title { font-weight: 600; color: var(--yellow); font-size: 11.5px; margin-bottom: 3px; }
+.merge-detail { color: var(--text-2); font-size: 11px; line-height: 1.5; }
+.merge-tag { display:inline-block; padding:1px 5px; border-radius: 3px; background:var(--bg-3); margin-right:4px; font-family:var(--font-mono); font-size:10px; }
+.merge-actions { display:flex; gap:5px; flex-shrink:0; }
+
+/* Table */
+.schedule-table { background: var(--bg-1); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
+.table-header { display: grid; grid-template-columns: 28px 28px 28px 85px 100px 1fr 65px 65px 65px 65px 80px 80px 130px; padding: 7px 10px; background: var(--bg-2); font-size: 9px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); align-items: center; }
+.table-header .th { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.table-header .th-right { text-align: right; }
+
+/* SO Row */
+.so-row { border-bottom: 1px solid var(--border); transition: background .12s; position: relative; }
+.so-row:hover { background: var(--bg-2); }
+.so-row.selected-so { background: rgba(232,93,4,0.05); }
+.so-row.dragging { opacity: 0.35; }
+
+.so-main { display: grid; grid-template-columns: 28px 28px 28px 85px 100px 1fr 65px 65px 65px 65px 80px 80px 130px; padding: 8px 10px; align-items: center; gap: 3px; cursor: pointer; }
+.so-check { display:flex; align-items:center; justify-content:center; }
+.so-check input { width: 13px; height: 13px; accent-color: var(--accent); cursor:pointer; }
+.so-grip { display:flex; align-items:center; justify-content:center; cursor: grab; color: var(--text-3); font-size: 12px; opacity: 0; transition: opacity .15s; }
+.so-row:hover .so-grip { opacity: 1; }
+.so-grip:active { cursor: grabbing; }
+.so-expand { display:flex; align-items:center; justify-content:center; color: var(--text-3); font-size: 10px; transition: transform .2s; cursor:pointer; }
+.so-expand.open { transform: rotate(90deg); color: var(--accent); }
+.so-number { font-family: var(--font-mono); font-weight: 600; font-size: 11.5px; color: var(--text-1); overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.so-customer { color: var(--text-2); font-size: 11.5px; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; }
+.so-items { color: var(--text-3); font-size: 10.5px; }
+.so-items .pn { color: var(--text-2); font-weight: 500; }
+.so-items .desc { color: var(--text-3); }
+.so-qty, .so-oh, .so-demand, .so-supply { font-family: var(--font-mono); font-size: 11px; text-align: right; padding-right: 3px; }
+.so-demand.shortage { color: var(--red); font-weight: 700; }
+.so-supply.surplus { color: var(--green); font-weight: 700; }
+.so-ddl { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-2); }
+.so-ddl.urgent { color: var(--red); font-weight: 600; }
+.so-linked { display: flex; gap: 3px; flex-wrap: wrap; }
+
+/* Line Items */
+.line-items { display: none; padding: 0 10px 6px 48px; }
+.line-items.open { display: block; }
+.line-item { display: grid; grid-template-columns: 28px 28px 28px 85px 100px 1fr 65px 65px 65px 65px 80px 80px 130px; padding: 6px 0; align-items: center; gap: 3px; border-bottom: 1px solid rgba(255,255,255,0.02); transition: background .1s; }
+.line-item:hover { background: var(--bg-2); }
+.line-item.selected { box-shadow: inset 2px 0 0 var(--accent); background: rgba(232,93,4,0.04); }
+.li-line { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); }
+.li-pn { font-weight: 600; font-size: 11px; color: var(--text-1); }
+.li-desc { color: var(--text-3); font-size: 10.5px; }
+.li-qty, .li-oh, .li-demand, .li-supply { font-family: var(--font-mono); font-size: 10.5px; text-align: right; padding-right: 3px; }
+.li-demand.shortage { color: var(--red); font-weight: 700; }
+.li-supply.surplus { color: var(--green); font-weight: 700; }
+.li-ddl { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-3); }
+
+/* Badges */
+.badge { display: inline-flex; align-items: center; gap: 2px; padding: 1px 5px; border-radius: 3px; font-size: 9.5px; font-weight: 600; font-family: var(--font-mono); border: 1px solid; cursor: pointer; }
+.badge-job { background: rgba(168,85,247,0.12); color: var(--purple); border-color: rgba(168,85,247,0.3); }
+.badge-po { background: rgba(76,201,240,0.12); color: var(--blue); border-color: rgba(76,201,240,0.3); }
+.badge-mo { background: rgba(244,208,63,0.12); color: var(--yellow); border-color: rgba(244,208,63,0.3); }
+.badge-more { background: var(--bg-3); color: var(--text-3); border-color: var(--border); }
+
+/* Context Menu */
+.ctx-menu { position: fixed; background: var(--bg-2); border: 1px solid var(--border-light); border-radius: 6px; padding: 3px; min-width: 150px; box-shadow: 0 8px 24px rgba(0,0,0,0.5); z-index: 1000; display: none; }
+.ctx-menu.open { display: block; }
+.ctx-item { padding: 6px 10px; border-radius: 4px; cursor: pointer; display: flex; align-items: center; gap: 7px; font-size: 11.5px; color: var(--text-1); transition: background .1s; }
+.ctx-item:hover { background: var(--bg-3); }
+.ctx-item .ctx-icon { font-size: 12px; width: 14px; text-align:center; }
+.ctx-divider { height: 1px; background: var(--border); margin: 3px 0; }
+
+/* Dialog */
+.dialog-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 2000; display: none; align-items: center; justify-content: center; }
+.dialog-overlay.open { display: flex; }
+.dialog { background: var(--bg-1); border: 1px solid var(--border); border-radius: 10px; width: 480px; max-width: 90vw; max-height: 85vh; overflow: hidden; display: flex; flex-direction: column; }
+.dialog-header { padding: 14px 16px; border-bottom: 1px solid var(--border); font-weight: 700; font-size: 14px; }
+.dialog-body { padding: 16px; overflow-y: auto; flex: 1; }
+.dialog-footer { padding: 12px 16px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+.form-row { margin-bottom: 12px; }
+.form-label { font-size: 11px; font-weight: 600; color: var(--text-2); margin-bottom: 4px; display: block; }
+.form-input, .form-select { width: 100%; background: var(--bg-2); border: 1px solid var(--border); border-radius: 5px; padding: 7px 10px; color: var(--text-1); font-family: var(--font-body); font-size: 12px; }
+.form-input:focus, .form-select:focus { outline: none; border-color: var(--accent); }
+.form-input::placeholder { color: var(--text-3); }
+
+.split-row { display: flex; gap: 8px; align-items: center; margin-bottom: 8px; }
+.split-row .form-input { flex: 1; }
+.split-remove { color: var(--red); cursor: pointer; font-size: 16px; padding: 4px; }
+.split-remove:hover { background: rgba(230,57,70,0.1); border-radius: 4px; }
+
+/* Toast */
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg-2); border: 1px solid var(--border-light); border-radius: 8px; padding: 12px 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 3000; transform: translateY(100px); opacity: 0; transition: all .3s; font-size: 12px; max-width: 320px; }
+.toast.open { transform: translateY(0); opacity: 1; }
+.toast-title { font-weight: 700; margin-bottom: 3px; }
+.toast-body { color: var(--text-2); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg-4); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div class="header-left">
+    <div class="logo">◈ SCHEDULER</div>
+  </div>
+  <div class="header-right">
+    <button class="btn btn-secondary" id="btn-merge" style="display:none;" onclick="batchMerge()">🔗 合并到Job</button>
+    <button class="btn btn-secondary" id="btn-split" style="display:none;" onclick="batchSplit()">✂️ 拆分</button>
+    <button class="btn btn-secondary" id="btn-assign-site" style="display:none;" onclick="batchAssignSite()">📍 分配Site</button>
+    <button class="btn btn-primary" onclick="showCreateJobDialog()">+ 新建Job</button>
+  </div>
+</div>
+
+<!-- Batch Action Bar -->
+<div class="batch-bar" id="batch-bar">
+  <span class="batch-count" id="batch-count">0</span> 个Line Item 已选择
+  <div class="batch-divider"></div>
+  <button class="btn btn-primary btn-sm" onclick="batchMerge()">🔗 合并到Job</button>
+  <button class="btn btn-secondary btn-sm" onclick="batchSplit()">✂️ 拆分数量</button>
+  <button class="btn btn-secondary btn-sm" onclick="batchAssignSite()">📍 分配Site</button>
+  <button class="btn btn-ghost btn-sm" onclick="batchCreateJob()">💼 创建Job</button>
+  <button class="btn btn-ghost btn-sm" onclick="batchCreatePO()">🛒 创建PO</button>
+  <div style="flex:1"></div>
+  <button class="btn btn-ghost btn-sm" onclick="clearSelection()">清除</button>
+</div>
+
+<!-- Main -->
+<div class="main">
+  <!-- Filter Panel (Left) -->
+  <div class="filter-panel">
+    <div class="filter-group">
+      <div class="filter-group-header open" onclick="toggleFilterGroup(this)">
+        <span>工厂 Site</span><span class="arrow">▶</span>
+      </div>
+      <div class="filter-group-body open">
+        <div class="filter-option active" data-filter="site" data-value="all" onclick="setFilter('site','all',this)">
+          <span style="font-size:11px;">◈</span><span>全部工厂</span><span class="count">26</span>
+        </div>
+        <div class="filter-option" data-filter="site" data-value="A" onclick="setFilter('site','A',this)">
+          <span class="dot" style="background:var(--blue)"></span><span>A厂 · 深圳</span><span class="count">10</span>
+        </div>
+        <div class="filter-option" data-filter="site" data-value="B" onclick="setFilter('site','B',this)">
+          <span class="dot" style="background:var(--green)"></span><span>B厂 · 东莞</span><span class="count">8</span>
+        </div>
+        <div class="filter-option" data-filter="site" data-value="C" onclick="setFilter('site','C',this)">
+          <span class="dot" style="background:var(--yellow)"></span><span>C厂 · 苏州</span><span class="count">5</span>
+        </div>
+        <div class="filter-option" data-filter="site" data-value="unassigned" onclick="setFilter('site','unassigned',this)">
+          <span style="color:var(--red);font-size:10px;font-weight:700;">⚠</span><span>未分配</span><span class="count">3</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-group-header open" onclick="toggleFilterGroup(this)">
+        <span>状态 Status</span><span class="arrow">▶</span>
+      </div>
+      <div class="filter-group-body open">
+        <div class="filter-option active" data-filter="status" data-value="all" onclick="setFilter('status','all',this)">
+          <span style="font-size:11px;">◈</span><span>全部状态</span><span class="count">26</span>
+        </div>
+        <div class="filter-option" data-filter="status" data-value="draft" onclick="setFilter('status','draft',this)">
+          <span class="dot" style="background:var(--text-3)"></span><span>草稿</span><span class="count">9</span>
+        </div>
+        <div class="filter-option" data-filter="status" data-value="hold" onclick="setFilter('status','hold',this)">
+          <span class="dot" style="background:var(--text-3)"></span><span>暂停</span><span class="count">2</span>
+        </div>
+        <div class="filter-option" data-filter="status" data-value="scheduled" onclick="setFilter('status','scheduled',this)">
+          <span class="dot" style="background:var(--blue)"></span><span>已排程</span><span class="count">8</span>
+        </div>
+        <div class="filter-option" data-filter="status" data-value="executing" onclick="setFilter('status','executing',this)">
+          <span class="dot" style="background:var(--yellow)"></span><span>执行中</span><span class="count">5</span>
+        </div>
+        <div class="filter-option" data-filter="status" data-value="partial" onclick="setFilter('status','partial',this)">
+          <span class="dot" style="background:var(--accent)"></span><span>部分完成</span><span class="count">2</span>
+        </div>
+        <div class="filter-option" data-filter="status" data-value="completed" onclick="setFilter('status','completed',this)">
+          <span class="dot" style="background:var(--green)"></span><span>已完成</span><span class="count">1</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-group-header open" onclick="toggleFilterGroup(this)">
+        <span>类型 Type</span><span class="arrow">▶</span>
+      </div>
+      <div class="filter-group-body open">
+        <div class="filter-option active" data-filter="type" data-value="all" onclick="setFilter('type','all',this)">
+          <span style="font-size:11px;">◈</span><span>全部类型</span><span class="count">26</span>
+        </div>
+        <div class="filter-option" data-filter="type" data-value="SO" onclick="setFilter('type','SO',this)">
+          <span class="dot" style="background:var(--yellow)"></span><span>客户订单 SO</span><span class="count">15</span>
+        </div>
+        <div class="filter-option" data-filter="type" data-value="MTO" onclick="setFilter('type','MTO',this)">
+          <span class="dot" style="background:var(--red)"></span><span>Make to Order</span><span class="count">3</span>
+        </div>
+        <div class="filter-option" data-filter="type" data-value="TRANSFER" onclick="setFilter('type','TRANSFER',this)">
+          <span class="dot" style="background:var(--blue)"></span><span>调拨 Transfer</span><span class="count">2</span>
+        </div>
+        <div class="filter-option" data-filter="type" data-value="REPLENISH" onclick="setFilter('type','REPLENISH',this)">
+          <span class="dot" style="background:var(--green)"></span><span>补货 Replenish</span><span class="count">4</span>
+        </div>
+        <div class="filter-option" data-filter="type" data-value="REWORK" onclick="setFilter('type','REWORK',this)">
+          <span class="dot" style="background:#ff2e63"></span><span>返工 Rework</span><span class="count">2</span>
+        </div>
+        <div class="filter-option" data-filter="type" data-value="SAMPLE" onclick="setFilter('type','SAMPLE',this)">
+          <span class="dot" style="background:var(--purple)"></span><span>样品 Sample</span><span class="count">2</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-group">
+      <div class="filter-group-header open" onclick="toggleFilterGroup(this)">
+        <span>交期 Due Date</span><span class="arrow">▶</span>
+      </div>
+      <div class="filter-group-body open">
+        <div class="filter-option active" data-filter="date" data-value="all" onclick="setFilter('date','all',this)">
+          <span style="font-size:11px;">◈</span><span>全部</span><span class="count">26</span>
+        </div>
+        <div class="filter-option" data-filter="date" data-value="week" onclick="setFilter('date','week',this)">
+          <span style="font-size:11px;">📅</span><span>本周</span><span class="count">8</span>
+        </div>
+        <div class="filter-option" data-filter="date" data-value="nextweek" onclick="setFilter('date','nextweek',this)">
+          <span style="font-size:11px;">📅</span><span>下周</span><span class="count">10</span>
+        </div>
+        <div class="filter-option" data-filter="date" data-value="month" onclick="setFilter('date','month',this)">
+          <span style="font-size:11px;">📅</span><span>本月</span><span class="count">18</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-reset" onclick="resetAllFilters()">↺ 重置所有筛选</div>
+  </div>
+
+  <!-- Content (Right) -->
+  <div class="content">
+    <!-- Merge Suggestions -->
+    <div class="merge-section" id="merge-section">
+      <div class="merge-header">
+        <span>系统合并建议</span>
+        <button class="btn btn-ghost btn-sm" onclick="refreshMerge()">🔄 刷新</button>
+      </div>
+      <div id="merge-cards"></div>
+    </div>
+
+    <!-- Table -->
+    <div class="schedule-table" id="schedule-table">
+      <div class="table-header">
+        <div class="th"></div><div class="th"></div><div class="th"></div>
+        <div class="th">SO#</div><div class="th">Customer</div><div class="th">P/N & Description</div>
+        <div class="th th-right">Qty</div><div class="th th-right">On Hand</div>
+        <div class="th th-right">Demand</div><div class="th th-right">Supply</div>
+        <div class="th">Site</div><div class="th">DDL</div><div class="th">Linked</div>
+      </div>
+      <div id="table-body"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Context Menu -->
+<div class="ctx-menu" id="ctx-menu">
+  <div class="ctx-item" onclick="ctxCreateJob()"><span class="ctx-icon">💼</span>创建 Job</div>
+  <div class="ctx-item" onclick="ctxCreatePO()"><span class="ctx-icon">🛒</span>创建 PO</div>
+  <div class="ctx-divider"></div>
+  <div class="ctx-item" onclick="ctxSplit()"><span class="ctx-icon">✂️</span>拆分数量</div>
+  <div class="ctx-divider"></div>
+  <div class="ctx-item" onclick="ctxViewDetail()"><span class="ctx-icon">👁</span>查看详情</div>
+</div>
+
+<!-- Create Job Dialog -->
+<div class="dialog-overlay" id="dialog-create-job">
+  <div class="dialog">
+    <div class="dialog-header">创建 Job</div>
+    <div class="dialog-body">
+      <div class="form-row"><label class="form-label">Part Number</label><input class="form-input" id="cj-part" readonly></div>
+      <div class="form-row"><label class="form-label">数量</label><input class="form-input" id="cj-qty" type="number"></div>
+      <div class="form-row"><label class="form-label">Site</label>
+        <select class="form-select" id="cj-site">
+          <option value="A">A厂 · 深圳</option>
+          <option value="B">B厂 · 东莞</option>
+          <option value="C">C厂 · 苏州</option>
+        </select>
+      </div>
+      <div class="form-row"><label class="form-label">策略</label>
+        <select class="form-select" id="cj-strategy">
+          <option value="MAKE">生产 MAKE</option>
+          <option value="BUY">采购 BUY</option>
+          <option value="TRANSFER">调拨 TRANSFER</option>
+          <option value="SUBCONTRACT">委外 SUBCONTRACT</option>
+        </select>
+      </div>
+      <div class="form-row"><label class="form-label">计划交期</label><input class="form-input" id="cj-ddl" type="date"></div>
+      <div class="form-row" style="background:var(--bg-2);padding:10px;border-radius:6px;margin-top:12px;">
+        <div style="font-size:11px;font-weight:600;color:var(--text-2);margin-bottom:6px;">BOM 展开预览</div>
+        <div id="cj-bom-preview" style="font-size:11px;color:var(--text-3);line-height:1.6;">
+          Level 0: FG-001 成品<br>
+          ├─ Level 1: SFG-A 半成品 → MO<br>
+          │  ├─ Level 2: RM-001 原材料 → PO<br>
+          │  └─ Level 2: RM-002 原材料 → PO<br>
+          └─ Level 1: PKG-001 包装物 → PO
+        </div>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-secondary" onclick="closeDialog('dialog-create-job')">取消</button>
+      <button class="btn btn-primary" onclick="confirmCreateJob()">创建 Job</button>
+    </div>
+  </div>
+</div>
+
+<!-- Split Dialog -->
+<div class="dialog-overlay" id="dialog-split">
+  <div class="dialog" style="width:420px;">
+    <div class="dialog-header">拆分数量</div>
+    <div class="dialog-body">
+      <div style="background:var(--bg-2);padding:10px;border-radius:6px;margin-bottom:12px;">
+        <div style="font-size:11px;color:var(--text-3);">Part</div>
+        <div style="font-weight:600;font-size:13px;" id="split-part">RS1234 - Steel Bracket Assembly</div>
+        <div style="font-size:11px;color:var(--text-3);margin-top:4px;">总数量: <span style="color:var(--text-1);font-weight:600;" id="split-total">500</span></div>
+      </div>
+      <div class="form-row"><label class="form-label">拆分方式</label>
+        <select class="form-select" id="split-mode" onchange="onSplitModeChange()">
+          <option value="manual">手动拆分</option>
+          <option value="average">平均拆分</option>
+        </select>
+      </div>
+      <div id="split-manual">
+        <div id="split-rows">
+          <div class="split-row"><input class="form-input" type="number" placeholder="数量 1" value="200"><span class="split-remove" onclick="this.parentElement.remove()">×</span></div>
+          <div class="split-row"><input class="form-input" type="number" placeholder="数量 2" value="300"><span class="split-remove" onclick="this.parentElement.remove()">×</span></div>
+        </div>
+        <button class="btn btn-ghost btn-sm" onclick="addSplitRow()" style="margin-top:4px;">+ 添加一行</button>
+      </div>
+      <div id="split-average" style="display:none;">
+        <div class="form-row"><label class="form-label">分成几份</label><input class="form-input" type="number" id="split-parts" value="2" oninput="updateAveragePreview()"></div>
+        <div id="split-average-preview" style="font-size:11px;color:var(--text-2);margin-top:8px;">每份: 250</div>
+      </div>
+      <div style="margin-top:12px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--text-3);display:flex;justify-content:space-between;">
+        <span>已输入: <span id="split-entered" style="color:var(--text-1);font-weight:600;">500</span></span>
+        <span>剩余: <span id="split-remaining" style="color:var(--green);font-weight:600;">0</span></span>
+      </div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-secondary" onclick="closeDialog('dialog-split')">取消</button>
+      <button class="btn btn-primary" onclick="confirmSplit()">确认拆分</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast">
+  <div class="toast-title" id="toast-title">操作成功</div>
+  <div class="toast-body" id="toast-body">Job 已创建</div>
+</div>
+
+<script>
+// ==================== DATA ====================
+const allData = [
+  { id:'SO-1001', customer:'ACME Corp', status:'draft', site:'A', ddl:'2026-05-18', lines:[
+    { line:1, pn:'RS1234', desc:'Steel Bracket Assembly', qty:500, oh:200, demand:600, supply:700, ddl:'May 15', linked:[{type:'job',no:'JOB-111'}] },
+    { line:2, pn:'RS5678', desc:'Aluminum Housing', qty:300, oh:150, demand:450, supply:400, ddl:'May 18', linked:[{type:'po',no:'PO-456'}] },
+  ]},
+  { id:'SO-1002', customer:'TechCorp Industries', status:'draft', site:'A', ddl:'2026-05-20', lines:[
+    { line:1, pn:'RS9012', desc:'Power Supply Unit 24V', qty:800, oh:320, demand:850, supply:900, ddl:'May 20', linked:[] },
+  ]},
+  { id:'SO-1003', customer:'StartUp Inc', status:'draft', site:'A', ddl:'2026-05-22', lines:[
+    { line:1, pn:'RS3456', desc:'Sensor Module V2', qty:250, oh:80, demand:300, supply:280, ddl:'May 22', linked:[{type:'job',no:'JOB-222'}] },
+    { line:2, pn:'RS7890', desc:'Connector Kit 10pin', qty:400, oh:200, demand:420, supply:450, ddl:'May 22', linked:[{type:'po',no:'PO-789'}] },
+    { line:3, pn:'RS4321', desc:'PCB Controller Board', qty:150, oh:50, demand:180, supply:160, ddl:'May 22', linked:[] },
+  ]},
+  { id:'SO-1004', customer:'Global Manufacturing', status:'scheduled', site:'A', ddl:'2026-05-25', lines:[
+    { line:1, pn:'RS8765', desc:'Valve Component 3/4"', qty:600, oh:250, demand:700, supply:650, ddl:'May 25', linked:[{type:'job',no:'JOB-333'}] },
+    { line:2, pn:'RS5432', desc:'Rubber Seal Gasket', qty:1200, oh:800, demand:1300, supply:1400, ddl:'May 25', linked:[] },
+  ]},
+  { id:'SO-1005', customer:'MegaCorp Ltd', status:'scheduled', site:'B', ddl:'2026-05-28', lines:[
+    { line:1, pn:'RS2468', desc:'Hydraulic Pump Assembly', qty:100, oh:20, demand:120, supply:110, ddl:'May 28', linked:[{type:'po',no:'PO-967'}] },
+  ]},
+  { id:'SO-1006', customer:'Precision Tools Co', status:'executing', site:'A', ddl:'2026-05-15', lines:[
+    { line:1, pn:'RS1357', desc:'Titanium Fastener M8', qty:2000, oh:1500, demand:2100, supply:2200, ddl:'May 15', linked:[{type:'job',no:'JOB-444'}] },
+    { line:2, pn:'RS9753', desc:'Carbon Fiber Sheet 2mm', qty:100, oh:30, demand:120, supply:100, ddl:'May 15', linked:[{type:'po',no:'PO-625'}] },
+  ]},
+  { id:'SO-1007', customer:'Nova Electronics', status:'executing', site:'B', ddl:'2026-05-30', lines:[
+    { line:1, pn:'RS8642', desc:'LED Driver Module', qty:500, oh:200, demand:550, supply:600, ddl:'May 30', linked:[{type:'job',no:'JOB-555'}] },
+    { line:2, pn:'RS3579', desc:'Heat Sink Aluminum', qty:300, oh:100, demand:350, supply:320, ddl:'May 30', linked:[] },
+    { line:3, pn:'RS7410', desc:'Power Cable 18AWG', qty:800, oh:500, demand:900, supply:850, ddl:'May 30', linked:[] },
+  ]},
+  { id:'SO-1008', customer:'GreenEnergy Solutions', status:'partial', site:'A', ddl:'2026-06-05', lines:[
+    { line:1, pn:'RS2580', desc:'Solar Panel Frame', qty:150, oh:50, demand:180, supply:160, ddl:'Jun 5', linked:[{type:'job',no:'JOB-666'}] },
+  ]},
+  { id:'SO-1009', customer:'AeroSpace Dynamics', status:'completed', site:'A', ddl:'2026-05-10', lines:[
+    { line:1, pn:'RS3690', desc:'Turbine Blade Casting', qty:50, oh:0, demand:50, supply:50, ddl:'May 10', linked:[{type:'job',no:'JOB-777'},{type:'po',no:'PO-888'}] },
+  ]},
+  { id:'SO-1010', customer:'MediTech Devices', status:'hold', site:'A', ddl:'2026-06-10', lines:[
+    { line:1, pn:'RS1593', desc:'Stainless Steel Tray', qty:80, oh:20, demand:100, supply:90, ddl:'Jun 10', linked:[] },
+    { line:2, pn:'RS7531', desc:'Silicone Tubing 4mm', qty:200, oh:80, demand:250, supply:220, ddl:'Jun 10', linked:[] },
+  ]},
+  { id:'SO-1011', customer:'AutoParts Global', status:'draft', site:'B', ddl:'2026-06-15', lines:[
+    { line:1, pn:'RS4826', desc:'Brake Pad Ceramic', qty:1200, oh:600, demand:1400, supply:1300, ddl:'Jun 15', linked:[] },
+    { line:2, pn:'RS9173', desc:'Rotor Disc 300mm', qty:400, oh:150, demand:500, supply:480, ddl:'Jun 15', linked:[] },
+  ]},
+  { id:'SO-1012', customer:'Oceanic Marine', status:'scheduled', site:'C', ddl:'2026-06-20', lines:[
+    { line:1, pn:'RS6284', desc:'Propeller Shaft SS316', qty:30, oh:5, demand:40, supply:35, ddl:'Jun 20', linked:[{type:'po',no:'PO-999'}] },
+  ]},
+  { id:'SO-1013', customer:'BuildRight Construction', status:'draft', site:'A', ddl:'2026-06-25', lines:[
+    { line:1, pn:'RS3847', desc:'Steel Beam H-200', qty:80, oh:30, demand:100, supply:90, ddl:'Jun 25', linked:[] },
+    { line:2, pn:'RS7291', desc:'Concrete Anchor M16', qty:500, oh:300, demand:600, supply:550, ddl:'Jun 25', linked:[] },
+  ]},
+  { id:'SO-1014', customer:'FoodPack Systems', status:'scheduled', site:'B', ddl:'2026-06-28', lines:[
+    { line:1, pn:'RS1056', desc:'Food Grade Conveyor Belt', qty:40, oh:15, demand:50, supply:45, ddl:'Jun 28', linked:[{type:'job',no:'JOB-101'}] },
+  ]},
+  { id:'SO-1015', customer:'CloudData Centers', status:'executing', site:'C', ddl:'2026-07-01', lines:[
+    { line:1, pn:'RS4932', desc:'Server Rack 42U', qty:20, oh:5, demand:25, supply:22, ddl:'Jul 1', linked:[{type:'po',no:'PO-202'}] },
+    { line:2, pn:'RS8473', desc:'Cable Management Panel', qty:60, oh:25, demand:70, supply:65, ddl:'Jul 1', linked:[] },
+  ]},
+  // Site未分配的SO
+  { id:'SO-1016', customer:'Unassigned Corp A', status:'draft', site:null, ddl:'2026-06-22', lines:[
+    { line:1, pn:'RS9991', desc:'Motor Housing XL', qty:120, oh:40, demand:150, supply:130, ddl:'Jun 22', linked:[] },
+  ]},
+  { id:'SO-1017', customer:'Unassigned Corp B', status:'draft', site:null, ddl:'2026-06-25', lines:[
+    { line:1, pn:'RS9992', desc:'Gearbox Assembly', qty:80, oh:20, demand:100, supply:90, ddl:'Jun 25', linked:[] },
+    { line:2, pn:'RS9993', desc:'Bearing Set 6204', qty:300, oh:150, demand:350, supply:320, ddl:'Jun 25', linked:[] },
+  ]},
+  { id:'SO-1018', customer:'Pending Systems', status:'scheduled', site:null, ddl:'2026-06-28', lines:[
+    { line:1, pn:'RS9994', desc:'Control Panel Enclosure', qty:50, oh:10, demand:60, supply:55, ddl:'Jun 28', linked:[] },
+  ]},
+];
+
+const specialDemands = [
+  { id:'MTO-001', type:'mto', part:'A-001', desc:'Custom PCB for Huawei', qty:100, site:'A', ddl:'2026-05-15', priority:85, so:'SO-2025002', customer:'VIP-华为', status:'draft' },
+  { id:'MTO-002', type:'mto', part:'F-006', desc:'Titanium Enclosure Apple Spec', qty:250, site:'B', ddl:'2026-05-28', priority:82, so:'SO-2025008', customer:'VIP-Apple', status:'scheduled' },
+  { id:'MTO-003', type:'mto', part:'G-007', desc:'Galaxy S30 Frame', qty:180, site:'A', ddl:'2026-06-01', priority:78, so:'SO-2025010', customer:'VIP-Samsung', status:'draft' },
+  { id:'TR-001', type:'transfer', part:'C-003', desc:'Steel Coil Transfer', qty:200, site:'C→B', ddl:'2026-05-20', priority:72, so:'Site B厂申请', status:'draft' },
+  { id:'TR-002', type:'transfer', part:'H-008', desc:'Aluminum Sheet Transfer', qty:150, site:'A→C', ddl:'2026-05-25', priority:68, so:'Site C厂申请', status:'scheduled' },
+  { id:'RP-001', type:'replenish', part:'D-004', desc:'Safety Stock - Bolt M8', qty:500, site:'C', ddl:'2026-05-25', priority:60, status:'draft' },
+  { id:'RP-002', type:'replenish', part:'E-005', desc:'Safety Stock - Washer SS', qty:300, site:'A', ddl:'2026-05-22', priority:55, status:'draft' },
+  { id:'RP-003', type:'replenish', part:'K-011', desc:'Safety Stock - Spring 5mm', qty:800, site:null, ddl:'2026-06-15', priority:52, status:'draft' },
+  { id:'RP-004', type:'replenish', part:'L-012', desc:'Safety Stock - Nut M10', qty:600, site:null, ddl:'2026-06-18', priority:50, status:'draft' },
+  { id:'RW-001', type:'rework', part:'A-001', desc:'QC Failed - Dimension Out', qty:20, site:'A', ddl:'ASAP', priority:99, so:'JB-001返工', status:'executing' },
+  { id:'RW-002', type:'rework', part:'B-002', desc:'Surface Scratch Rework', qty:15, site:'B', ddl:'ASAP', priority:98, so:'CJ-001返工', status:'hold' },
+  { id:'SAM-001', type:'sample', part:'B-002', desc:'R&D Prototype Sample', qty:10, site:'B', ddl:'2026-05-20', priority:50, so:'研发部申请', status:'draft' },
+  { id:'SAM-002', type:'sample', part:'J-010', desc:'Customer Trial Sample', qty:5, site:'A', ddl:'2026-05-30', priority:48, so:'销售部申请', status:'scheduled' },
+];
+
+let filters = { site:'all', status:'all', type:'all', date:'all' };
+let expandedRows = new Set();
+let selectedLines = new Set();
+let ctxTarget = null;
+
+// ==================== FILTER LOGIC ====================
+function toggleFilterGroup(header) {
+  header.classList.toggle('open');
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+function setFilter(category, value, el) {
+  // Update filter state
+  filters[category] = value;
+  // Update UI
+  document.querySelectorAll(`[data-filter="${category}"]`).forEach(opt => opt.classList.remove('active'));
+  el.classList.add('active');
+  // Re-render
+  renderTable();
+}
+
+function resetAllFilters() {
+  filters = { site:'all', status:'all', type:'all', date:'all' };
+  document.querySelectorAll('.filter-option').forEach(opt => {
+    opt.classList.toggle('active', opt.dataset.value === 'all');
+  });
+  renderTable();
+}
+
+function matchesFilters(item) {
+  // Site filter
+  if (filters.site !== 'all') {
+    if (filters.site === 'unassigned') {
+      if (item.site) return false;
+    } else {
+      if (!item.site || !item.site.includes(filters.site)) return false;
+    }
+  }
+  // Status filter
+  if (filters.status !== 'all' && item.status !== filters.status) return false;
+  // Type filter
+  if (filters.type !== 'all') {
+    const itemType = item.id.startsWith('SO') ? 'SO' : (item.id.split('-')[0]);
+    if (itemType !== filters.type) return false;
+  }
+  // Date filter (simplified)
+  if (filters.date !== 'all') {
+    // For demo, just allow all
+  }
+  return true;
+}
+
+// ==================== RENDER ====================
+function renderTable() {
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = '';
+
+  // Filter SO data
+  let soData = allData.filter(s => matchesFilters(s));
+  // Filter special demands
+  let spData = specialDemands.filter(s => matchesFilters(s));
+
+  // Combine and sort by priority/DDL
+  let allItems = [];
+  soData.forEach(so => {
+    allItems.push({ kind:'so', data:so, sortKey: so.ddl });
+  });
+  spData.forEach(sp => {
+    allItems.push({ kind:'special', data:sp, sortKey: sp.ddl });
+  });
+
+  // Render
+  allItems.forEach(item => {
+    if (item.kind === 'so') {
+      renderSORow(tbody, item.data);
+    } else {
+      renderSpecialRow(tbody, item.data);
+    }
+  });
+
+  if (allItems.length === 0) {
+    tbody.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-3);font-size:12px;">📭 无匹配记录<br><span style="font-size:11px;">调整左侧筛选条件</span></div>';
+  }
+
+  renderMergeSuggestions();
+  updateBatchBar();
+}
+
+function renderSORow(tbody, so) {
+  const isOpen = expandedRows.has(so.id);
+  const lineCount = so.lines.length;
+  const firstLine = so.lines[0];
+  const hasShortage = so.lines.some(l => l.demand > l.supply);
+  const hasSurplus = so.lines.some(l => l.supply > l.demand);
+  const allSelected = so.lines.every(l => selectedLines.has(`${so.id}:${l.line}`));
+  const someSelected = so.lines.some(l => selectedLines.has(`${so.id}:${l.line}`));
+
+  const row = document.createElement('div');
+  row.className = 'so-row' + (someSelected ? ' selected-so' : '');
+  row.draggable = true;
+  row.dataset.id = so.id;
+
+  row.innerHTML = `
+    <div class="so-main" onclick="toggleExpand('${so.id}')">
+      <div class="so-check" onclick="event.stopPropagation();toggleSelectSO('${so.id}')">
+        <input type="checkbox" ${allSelected?'checked':''} ${someSelected&&!allSelected?'indeterminate':''}>
+      </div>
+      <div class="so-grip" onclick="event.stopPropagation()">⋮⋮</div>
+      <div class="so-expand ${isOpen?'open':''}">▶</div>
+      <div class="so-number">${so.id}</div>
+      <div class="so-customer">${so.customer}</div>
+      <div class="so-items">${lineCount===1?`<span class="pn">${firstLine.pn}</span> <span class="desc">${firstLine.desc}</span>`:`${lineCount} line items`}</div>
+      <div class="so-qty">${sum(so.lines,'qty')}</div>
+      <div class="so-oh">${sum(so.lines,'oh')}</div>
+      <div class="so-demand ${hasShortage?'shortage':''}">${sum(so.lines,'demand')}</div>
+      <div class="so-supply ${hasSurplus?'surplus':''}">${sum(so.lines,'supply')}</div>
+      <div>${renderSiteCell(so.id, so.site, 'so')}</div>
+      <div class="so-ddl ${isUrgent(so.ddl)?'urgent':''}">${fmtDate(so.ddl)}</div>
+      <div class="so-linked">${renderLinked(so.linked)}</div>
+    </div>
+    <div class="line-items ${isOpen?'open':''}">
+      ${so.lines.map(l => {
+        const sel = selectedLines.has(`${so.id}:${l.line}`);
+        return `
+        <div class="line-item ${sel?'selected':''}" data-so="${so.id}" data-line="${l.line}" oncontextmenu="showCtxMenu(event,'${so.id}',${l.line})" onclick="toggleSelectLine(event,'${so.id}',${l.line})">
+          <div class="so-check"><input type="checkbox" ${sel?'checked':''} onclick="event.stopPropagation();toggleSelectLine(null,'${so.id}',${l.line})"></div>
+          <div></div><div></div>
+          <div class="li-line">Line ${l.line}</div>
+          <div></div>
+          <div><span class="li-pn">${l.pn}</span> <span class="li-desc">${l.desc}</span></div>
+          <div class="li-qty">${l.qty}</div>
+          <div class="li-oh">${l.oh}</div>
+          <div class="li-demand ${l.demand>l.supply?'shortage':''}">${l.demand}</div>
+          <div class="li-supply ${l.supply>l.demand?'surplus':''}">${l.supply}</div>
+          <div class="li-ddl">-</div>
+          <div class="li-ddl">${l.ddl}</div>
+          <div class="so-linked">${renderLinked(l.linked)}</div>
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+  tbody.appendChild(row);
+  addDragEvents(row);
+}
+
+function renderSpecialRow(tbody, sd) {
+  const colorMap = {mto:'var(--red)', transfer:'var(--blue)', replenish:'var(--green)', rework:'#ff2e63', sample:'var(--purple)'};
+  const labelMap = {mto:'MTO', transfer:'TRANSFER', replenish:'REPLENISH', rework:'REWORK', sample:'SAMPLE'};
+  const sel = selectedLines.has(`${sd.id}:0`);
+
+  const div = document.createElement('div');
+  div.className = 'so-row' + (sel ? ' selected-so' : '');
+  div.draggable = true;
+  div.dataset.id = sd.id;
+  div.innerHTML = `
+    <div class="so-main" style="position:relative;" oncontextmenu="showCtxMenu(event,'${sd.id}',0)">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${colorMap[sd.type]};border-radius:0 2px 2px 0;"></div>
+      <div class="so-check" onclick="event.stopPropagation();toggleSelectSpecial('${sd.id}')">
+        <input type="checkbox" ${sel?'checked':''}>
+      </div>
+      <div class="so-grip" onclick="event.stopPropagation()">⋮⋮</div>
+      <div></div>
+      <div style="font-family:var(--font-mono);font-weight:600;font-size:11.5px;"><span style="display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background:${colorMap[sd.type]}22;color:${colorMap[sd.type]};border:1px solid ${colorMap[sd.type]}44;margin-right:5px;">${labelMap[sd.type]}</span>${sd.id}</div>
+      <div style="color:var(--text-2);font-size:11.5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${sd.customer||sd.so||''}</div>
+      <div><span class="li-pn">${sd.part}</span> <span class="li-desc">${sd.desc}</span></div>
+      <div class="so-qty">${sd.qty}</div>
+      <div class="so-oh">-</div>
+      <div class="so-qty">-</div>
+      <div class="so-qty">-</div>
+      <div>${renderSiteCell(sd.id, sd.site, 'special')}</div>
+      <div class="so-ddl ${sd.ddl==='ASAP'?'urgent':''}">${sd.ddl==='ASAP'?'ASAP':fmtDate(sd.ddl)}</div>
+      <div style="display:flex;gap:4px;">
+        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();scheduleSpecial('${sd.id}')">排程</button>
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showSpecialDetail('${sd.id}')">详情</button>
+      </div>
+    </div>
+  `;
+  tbody.appendChild(div);
+  addDragEvents(div);
+}
+
+function sum(lines, key) { return lines.reduce((a,l)=>a+l[key],0); }
+function renderLinked(linked) {
+  if (!linked?.length) return '<span style="color:var(--text-3);font-size:10px;">-</span>';
+  let html = linked.slice(0,2).map(l => {
+    const cls = l.type==='job'?'badge-job':(l.type==='mo'?'badge-mo':'badge-po');
+    const icon = l.type==='job'?'💼':(l.type==='mo'?'🔧':'🛒');
+    return `<span class="badge ${cls}">${icon} ${l.no}</span>`;
+  }).join('');
+  if (linked.length>2) html += `<span class="badge badge-more">+${linked.length-2}</span>`;
+  return html;
+}
+function fmtDate(d) {
+  const date = new Date(d);
+  return date.toLocaleDateString('en-US',{month:'short',day:'numeric'});
+}
+function isUrgent(ddl) {
+  const d=new Date(ddl), now=new Date();
+  return (d-now)/(1000*60*60*24) <= 3;
+}
+
+function renderSiteCell(id, site, type) {
+  if (site) {
+    return `<span style="font-family:var(--font-mono);font-size:11px;color:var(--text-2);">${site==='A'?'A厂':(site==='B'?'B厂':(site==='C'?'C厂':site))}</span>`;
+  }
+  return `
+    <div style="display:flex;align-items:center;gap:4px;">
+      <span style="color:var(--red);font-size:10px;font-weight:700;">⚠</span>
+      <select class="form-select" style="width:80px;padding:2px 4px;font-size:10px;background:var(--bg-2);" onchange="assignSite(event,'${id}','${type}')" onclick="event.stopPropagation()">
+        <option value="">分配Site</option>
+        <option value="A">A厂 · 65%</option>
+        <option value="B">B厂 · 82%</option>
+        <option value="C">C厂 · 35%</option>
+      </select>
+    </div>
+  `;
+}
+
+function assignSite(e, id, type) {
+  const site = e.target.value;
+  if (!site) return;
+  if (type === 'so') {
+    const so = allData.find(s=>s.id===id);
+    if (so) so.site = site;
+  } else {
+    const sp = specialDemands.find(s=>s.id===id);
+    if (sp) sp.site = site;
+  }
+  showToast('Site 已分配', `${id} 已分配到 ${site==='A'?'A厂':(site==='B'?'B厂':'C厂')}`);
+  renderTable();
+}
+
+// ==================== MERGE SUGGESTIONS ====================
+function renderMergeSuggestions() {
+  const container = document.getElementById('merge-cards');
+  container.innerHTML = `
+    <div class="merge-card">
+      <div class="merge-icon">⚠️</div>
+      <div class="merge-content">
+        <div class="merge-title">Candidate Job #CJ-001 — 建议合并 3 个Demand</div>
+        <div class="merge-detail">
+          <span class="merge-tag">SO-1001</span> MTS 80件 (ACME Corp)
+          <span class="merge-tag">SO-1003</span> MTS 50件 (StartUp Inc)
+          <span class="merge-tag">RP-001</span> Replenish 30件
+          <br>→ 合并后: <strong style="color:var(--text-1)">160件</strong> | Part: <strong style="color:var(--text-1)">RS1234</strong> | Site: <strong style="color:var(--text-1)">A厂</strong>
+        </div>
+      </div>
+      <div class="merge-actions">
+        <button class="btn btn-primary btn-sm" onclick="confirmMerge('CJ-001')">确认合并</button>
+        <button class="btn btn-ghost btn-sm" onclick="ignoreMerge('CJ-001')">忽略</button>
+      </div>
+    </div>
+  `;
+}
+function confirmMerge(id) { showToast('合并成功', `Candidate ${id} 已合并为 Job JB-999`); event.target.closest('.merge-card').remove(); }
+function ignoreMerge(id) { event.target.closest('.merge-card').remove(); }
+function refreshMerge() { renderMergeSuggestions(); showToast('已刷新', '合并建议已更新'); }
+
+// ==================== SELECTION ====================
+function toggleSelectLine(e, soId, lineNo) {
+  if (e) e.stopPropagation();
+  const key = `${soId}:${lineNo}`;
+  if (selectedLines.has(key)) selectedLines.delete(key);
+  else selectedLines.add(key);
+  renderTable();
+}
+function toggleSelectSO(soId) {
+  const so = allData.find(s=>s.id===soId);
+  const allSelected = so.lines.every(l=>selectedLines.has(`${soId}:${l.line}`));
+  so.lines.forEach(l=>{
+    const key=`${soId}:${l.line}`;
+    if (allSelected) selectedLines.delete(key);
+    else selectedLines.add(key);
+  });
+  renderTable();
+}
+function toggleSelectSpecial(id) {
+  const key = `${id}:0`;
+  if (selectedLines.has(key)) selectedLines.delete(key);
+  else selectedLines.add(key);
+  renderTable();
+}
+function updateBatchBar() {
+  const bar = document.getElementById('batch-bar');
+  const count = document.getElementById('batch-count');
+  const mergeBtn = document.getElementById('btn-merge');
+  const splitBtn = document.getElementById('btn-split');
+  const assignBtn = document.getElementById('btn-assign-site');
+  count.textContent = selectedLines.size;
+  if (selectedLines.size > 0) {
+    bar.classList.add('open');
+    mergeBtn.style.display = '';
+    splitBtn.style.display = '';
+    assignBtn.style.display = '';
+  } else {
+    bar.classList.remove('open');
+    mergeBtn.style.display = 'none';
+    splitBtn.style.display = 'none';
+    assignBtn.style.display = 'none';
+  }
+}
+function clearSelection() { selectedLines.clear(); renderTable(); }
+
+// ==================== BATCH ACTIONS ====================
+function batchMerge() {
+  if (selectedLines.size < 2) { showToast('无法合并', '请至少选择 2 个 Line Item'); return; }
+  showToast('合并到Job', `已将 ${selectedLines.size} 个Line Item合并为新Job`);
+  selectedLines.clear();
+  renderTable();
+}
+function batchSplit() {
+  if (selectedLines.size === 0) return;
+  const first = Array.from(selectedLines)[0];
+  const [id,line] = first.split(':');
+  const so = allData.find(s=>s.id===id);
+  if (so) {
+    ctxTarget = {soId:id, line: parseInt(line)};
+    showSplitDialog();
+  } else {
+    const sp = specialDemands.find(s=>s.id===id);
+    if (sp) {
+      ctxTarget = {soId:id, line:0, special:true};
+      document.getElementById('split-part').textContent = `${sp.part} - ${sp.desc}`;
+      document.getElementById('split-total').textContent = sp.qty;
+      openDialog('dialog-split');
+      updateSplitStats();
+    }
+  }
+}
+function batchAssignSite() {
+  if (selectedLines.size === 0) return;
+  const sites = ['A','B','C'];
+  const site = sites[Math.floor(Math.random()*sites.length)];
+  Array.from(selectedLines).forEach(k=>{
+    const [id,line]=k.split(':');
+    const so=allData.find(s=>s.id===id);
+    if (so) so.site = site;
+    else {
+      const sp=specialDemands.find(s=>s.id===id);
+      if (sp) sp.site = site;
+    }
+  });
+  showToast('批量分配Site', `已将 ${selectedLines.size} 个Demand分配到 ${site==='A'?'A厂':(site==='B'?'B厂':'C厂')}`);
+  selectedLines.clear();
+  renderTable();
+}
+function batchCreateJob() {
+  if (selectedLines.size === 0) return;
+  showToast('创建Job', `已为 ${selectedLines.size} 个Line Item创建Job`);
+  selectedLines.clear();
+  renderTable();
+}
+function batchCreatePO() {
+  if (selectedLines.size === 0) return;
+  showToast('创建PO', `已为 ${selectedLines.size} 个Line Item创建PO`);
+  selectedLines.clear();
+  renderTable();
+}
+
+// ==================== INTERACTIONS ====================
+function toggleExpand(soId) {
+  expandedRows.has(soId) ? expandedRows.delete(soId) : expandedRows.add(soId);
+  renderTable();
+}
+function scheduleSpecial(id) {
+  const sd = specialDemands.find(s=>s.id===id);
+  showToast('排程成功', `${sd.id} (${sd.part}) 已创建为 Job，BOM 自动展开`);
+}
+function showSpecialDetail(id) {
+  const sd = specialDemands.find(s=>s.id===id);
+  showToast('详情', `${sd.id} | ${sd.part} - ${sd.desc} | 数量:${sd.qty} | 优先级:${sd.priority}`);
+}
+
+// ==================== DRAG & DROP ====================
+function addDragEvents(row) {
+  row.addEventListener('dragstart', e=>{
+    row.classList.add('dragging');
+    e.dataTransfer.setData('text/plain', row.dataset.id);
+    e.dataTransfer.effectAllowed = 'move';
+  });
+  row.addEventListener('dragend', ()=>{
+    row.classList.remove('dragging');
+  });
+}
+
+// ==================== CONTEXT MENU ====================
+function showCtxMenu(e, soId, lineNo) {
+  e.preventDefault();
+  e.stopPropagation();
+  ctxTarget = {soId, lineNo};
+  const menu = document.getElementById('ctx-menu');
+  menu.style.left = e.pageX+'px';
+  menu.style.top = e.pageY+'px';
+  menu.classList.add('open');
+}
+document.addEventListener('click', ()=>document.getElementById('ctx-menu').classList.remove('open'));
+
+function ctxCreateJob() {
+  const so = allData.find(s=>s.id===ctxTarget.soId);
+  if (so) {
+    const line = so.lines.find(l=>l.line===ctxTarget.lineNo);
+    document.getElementById('cj-part').value = `${line.pn} - ${line.desc}`;
+    document.getElementById('cj-qty').value = line.qty;
+  } else {
+    const sp = specialDemands.find(s=>s.id===ctxTarget.soId);
+    if (sp) {
+      document.getElementById('cj-part').value = `${sp.part} - ${sp.desc}`;
+      document.getElementById('cj-qty').value = sp.qty;
+    }
+  }
+  document.getElementById('cj-ddl').value = new Date().toISOString().split('T')[0];
+  openDialog('dialog-create-job');
+}
+function ctxCreatePO() { showToast('创建PO', `为 ${ctxTarget.soId} 创建采购订单`); }
+function ctxSplit() {
+  const so = allData.find(s=>s.id===ctxTarget.soId);
+  if (so) {
+    const line = so.lines.find(l=>l.line===ctxTarget.lineNo);
+    document.getElementById('split-part').textContent = `${line.pn} - ${line.desc}`;
+    document.getElementById('split-total').textContent = line.qty;
+  } else {
+    const sp = specialDemands.find(s=>s.id===ctxTarget.soId);
+    if (sp) {
+      document.getElementById('split-part').textContent = `${sp.part} - ${sp.desc}`;
+      document.getElementById('split-total').textContent = sp.qty;
+    }
+  }
+  openDialog('dialog-split');
+  updateSplitStats();
+}
+function ctxViewDetail() {
+  const so = allData.find(s=>s.id===ctxTarget.soId);
+  if (so) {
+    showToast('查看详情', `${ctxTarget.soId} Line ${ctxTarget.lineNo}`);
+  } else {
+    const sp = specialDemands.find(s=>s.id===ctxTarget.soId);
+    if (sp) showToast('查看详情', `${sp.id} | ${sp.part} - ${sp.desc}`);
+  }
+}
+
+// ==================== DIALOGS ====================
+function openDialog(id) { document.getElementById(id).classList.add('open'); }
+function closeDialog(id) { document.getElementById(id).classList.remove('open'); }
+
+function showCreateJobDialog() {
+  document.getElementById('cj-part').value = '';
+  document.getElementById('cj-qty').value = '';
+  openDialog('dialog-create-job');
+}
+function confirmCreateJob() {
+  const part = document.getElementById('cj-part').value;
+  const qty = document.getElementById('cj-qty').value;
+  closeDialog('dialog-create-job');
+  showToast('Job 已创建', `${part} × ${qty} 的 Job 已生成，BOM已自动展开`);
+}
+
+function onSplitModeChange() {
+  const mode = document.getElementById('split-mode').value;
+  document.getElementById('split-manual').style.display = mode==='manual'?'block':'none';
+  document.getElementById('split-average').style.display = mode==='average'?'block':'none';
+  updateSplitStats();
+}
+function addSplitRow() {
+  const div = document.createElement('div');
+  div.className = 'split-row';
+  div.innerHTML = `<input class="form-input" type="number" placeholder="数量" oninput="updateSplitStats()"><span class="split-remove" onclick="this.parentElement.remove();updateSplitStats()">×</span>`;
+  document.getElementById('split-rows').appendChild(div);
+}
+function updateAveragePreview() {
+  const total = parseInt(document.getElementById('split-total').textContent);
+  const parts = parseInt(document.getElementById('split-parts').value)||1;
+  document.getElementById('split-average-preview').textContent = `每份: ${Math.floor(total/parts)} (余 ${total%parts})`;
+}
+function updateSplitStats() {
+  const total = parseInt(document.getElementById('split-total').textContent);
+  const mode = document.getElementById('split-mode').value;
+  let entered = 0;
+  if (mode==='manual') {
+    document.querySelectorAll('#split-rows input').forEach(i=>{ entered += parseInt(i.value)||0; });
+  } else {
+    entered = total;
+  }
+  document.getElementById('split-entered').textContent = entered;
+  document.getElementById('split-remaining').textContent = total - entered;
+}
+function confirmSplit() {
+  closeDialog('dialog-split');
+  showToast('拆分成功', `${ctxTarget.soId} 已拆分`);
+}
+
+// ==================== TOAST ====================
+function showToast(title, body) {
+  const toast = document.getElementById('toast');
+  document.getElementById('toast-title').textContent = title;
+  document.getElementById('toast-body').textContent = body;
+  toast.classList.add('open');
+  setTimeout(()=>toast.classList.remove('open'), 3000);
+}
+
+// ==================== INIT ====================
+renderTable();
+</script>
+</body>
+</html>
