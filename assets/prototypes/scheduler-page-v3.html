@@ -247,13 +247,13 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 <div class="main">
   <div class="sidebar">
     <div class="sidebar-title">需求来源</div>
-    <div class="sidebar-item active" onclick="filterSource('all',this)"><span>◈</span><span>全部</span><span class="sidebar-badge">24</span></div>
-    <div class="sidebar-item" onclick="filterSource('SO',this)"><span style="color:var(--yellow)">●</span><span>客户订单</span><span class="sidebar-badge">12</span></div>
+    <div class="sidebar-item active" onclick="filterSource('all',this)"><span>◈</span><span>全部</span><span class="sidebar-badge">26</span></div>
+    <div class="sidebar-item" onclick="filterSource('SO',this)"><span style="color:var(--yellow)">●</span><span>客户订单</span><span class="sidebar-badge">15</span></div>
     <div class="sidebar-item" onclick="filterSource('MTO',this)"><span style="color:var(--red)">●</span><span>Make to Order</span><span class="sidebar-badge">3</span></div>
-    <div class="sidebar-item" onclick="filterSource('REPLENISH',this)"><span style="color:var(--green)">●</span><span>补货</span><span class="sidebar-badge">4</span></div>
+    <div class="sidebar-item" onclick="filterSource('REPLENISH',this)"><span style="color:var(--green)">●</span><span>补货</span><span class="sidebar-badge">2</span></div>
     <div class="sidebar-item" onclick="filterSource('TRANSFER',this)"><span style="color:var(--blue)">●</span><span>调拨</span><span class="sidebar-badge">2</span></div>
     <div class="sidebar-item" onclick="filterSource('REWORK',this)"><span style="color:#ff2e63">●</span><span>返工</span><span class="sidebar-badge">2</span></div>
-    <div class="sidebar-item" onclick="filterSource('SAMPLE',this)"><span style="color:var(--purple)">●</span><span>样品</span><span class="sidebar-badge">1</span></div>
+    <div class="sidebar-item" onclick="filterSource('SAMPLE',this)"><span style="color:var(--purple)">●</span><span>样品</span><span class="sidebar-badge">2</span></div>
 
     <div class="sidebar-title">操作</div>
     <div class="sidebar-item" onclick="showMergeConfig()"><span>⚙</span><span>合并规则</span></div>
@@ -461,6 +461,20 @@ const allData = [
   ]},
 ];
 
+const specialDemands = [
+  { id:'MTO-001', type:'mto', part:'A-001', desc:'Custom PCB for Huawei', qty:100, site:'A', ddl:'2026-05-15', priority:85, so:'SO-2025002', customer:'VIP-华为', status:'draft' },
+  { id:'MTO-002', type:'mto', part:'F-006', desc:'Titanium Enclosure Apple Spec', qty:250, site:'B', ddl:'2026-05-28', priority:82, so:'SO-2025008', customer:'VIP-Apple', status:'scheduled' },
+  { id:'MTO-003', type:'mto', part:'G-007', desc:'Galaxy S30 Frame', qty:180, site:'A', ddl:'2026-06-01', priority:78, so:'SO-2025010', customer:'VIP-Samsung', status:'draft' },
+  { id:'TR-001', type:'transfer', part:'C-003', desc:'Steel Coil Transfer', qty:200, site:'C→B', ddl:'2026-05-20', priority:72, so:'Site B厂申请', status:'draft' },
+  { id:'TR-002', type:'transfer', part:'H-008', desc:'Aluminum Sheet Transfer', qty:150, site:'A→C', ddl:'2026-05-25', priority:68, so:'Site C厂申请', status:'scheduled' },
+  { id:'RP-001', type:'replenish', part:'D-004', desc:'Safety Stock - Bolt M8', qty:500, site:'C', ddl:'2026-05-25', priority:60, status:'draft' },
+  { id:'RP-002', type:'replenish', part:'E-005', desc:'Safety Stock - Washer SS', qty:300, site:'A', ddl:'2026-05-22', priority:55, status:'draft' },
+  { id:'RW-001', type:'rework', part:'A-001', desc:'QC Failed - Dimension Out', qty:20, site:'A', ddl:'ASAP', priority:99, so:'JB-001返工', status:'executing' },
+  { id:'RW-002', type:'rework', part:'B-002', desc:'Surface Scratch Rework', qty:15, site:'B', ddl:'ASAP', priority:98, so:'CJ-001返工', status:'hold' },
+  { id:'SAM-001', type:'sample', part:'B-002', desc:'R&D Prototype Sample', qty:10, site:'B', ddl:'2026-05-20', priority:50, so:'研发部申请', status:'draft' },
+  { id:'SAM-002', type:'sample', part:'J-010', desc:'Customer Trial Sample', qty:5, site:'A', ddl:'2026-05-30', priority:48, so:'销售部申请', status:'scheduled' },
+];
+
 let currentStatus = 'draft';
 let currentSite = 'A';
 let expandedRows = new Set();
@@ -533,7 +547,56 @@ function renderTable() {
     addDragEvents(row);
   });
 
-  if (data.length === 0) {
+  // Render special demands interspersed
+  const visibleSpecial = specialDemands.filter(s => currentStatus === 'all' || s.status === currentStatus);
+  if (currentSite !== 'all') {
+    // filter by site (simplified)
+  }
+  visibleSpecial.forEach((sd, idx) => {
+    const colorMap = {mto:'var(--red)', transfer:'var(--blue)', replenish:'var(--green)', rework:'#ff2e63', sample:'var(--purple)'};
+    const labelMap = {mto:'MTO', transfer:'TRANSFER', replenish:'REPLENISH', rework:'REWORK', sample:'SAMPLE'};
+    const typeClass = {mto:'type-mto', transfer:'type-transfer', replenish:'type-replenish', rework:'type-rework', sample:'type-sample'};
+    const sel = selectedLines.has(`${sd.id}:0`);
+
+    const div = document.createElement('div');
+    div.className = 'so-row' + (sel ? ' selected-so' : '');
+    div.draggable = true;
+    div.dataset.id = sd.id;
+    div.dataset.status = sd.status;
+    div.dataset.special = 'true';
+    div.innerHTML = `
+      <div class="so-main" style="position:relative;" oncontextmenu="showCtxMenu(event,'${sd.id}',0)">
+        <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${colorMap[sd.type]};border-radius:0 2px 2px 0;"></div>
+        <div class="so-check" onclick="event.stopPropagation();toggleSelectSpecial('${sd.id}')">
+          <input type="checkbox" ${sel?'checked':''}>
+        </div>
+        <div class="so-grip" onclick="event.stopPropagation()">⋮⋮</div>
+        <div></div>
+        <div style="font-family:var(--font-mono);font-weight:600;font-size:11.5px;"><span style="display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background:${colorMap[sd.type]}22;color:${colorMap[sd.type]};border:1px solid ${colorMap[sd.type]}44;margin-right:5px;">${labelMap[sd.type]}</span>${sd.id}</div>
+        <div style="color:var(--text-2);font-size:11.5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${sd.customer||sd.so||''}</div>
+        <div><span class="li-pn">${sd.part}</span> <span class="li-desc">${sd.desc}</span></div>
+        <div class="so-qty">${sd.qty}</div>
+        <div class="so-oh">-</div>
+        <div class="so-qty">-</div>
+        <div class="so-qty">-</div>
+        <div class="so-ddl ${sd.ddl==='ASAP'?'urgent':''}">${sd.ddl==='ASAP'?'ASAP':fmtDate(sd.ddl)}</div>
+        <div style="display:flex;gap:4px;">
+          <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();scheduleSpecial('${sd.id}')">排程</button>
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showSpecialDetail('${sd.id}')">详情</button>
+        </div>
+      </div>
+    `;
+    // Insert at appropriate position (after every 2-3 SO rows)
+    const insertPos = Math.min((idx + 1) * 2, tbody.children.length);
+    if (insertPos < tbody.children.length) {
+      tbody.insertBefore(div, tbody.children[insertPos]);
+    } else {
+      tbody.appendChild(div);
+    }
+    addDragEvents(div);
+  });
+
+  if (data.length === 0 && visibleSpecial.length === 0) {
     tbody.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-3);font-size:12px;">📭 此状态下暂无记录<br><span style="font-size:11px;color:var(--text-3);">拖动项目到这里以添加</span></div>';
   }
 
@@ -625,6 +688,20 @@ function toggleSelectSO(soId) {
   });
   renderTable();
 }
+function toggleSelectSpecial(id) {
+  const key = `${id}:0`;
+  if (selectedLines.has(key)) selectedLines.delete(key);
+  else selectedLines.add(key);
+  renderTable();
+}
+function scheduleSpecial(id) {
+  const sd = specialDemands.find(s=>s.id===id);
+  showToast('排程成功', `${sd.id} (${sd.part}) 已创建为 Job，BOM 自动展开`);
+}
+function showSpecialDetail(id) {
+  const sd = specialDemands.find(s=>s.id===id);
+  showToast('详情', `${sd.id} | ${sd.part} - ${sd.desc} | 数量:${sd.qty} | 优先级:${sd.priority}`);
+}
 function updateBatchBar() {
   const bar = document.getElementById('batch-bar');
   const count = document.getElementById('batch-count');
@@ -647,21 +724,38 @@ function clearSelection() { selectedLines.clear(); renderTable(); }
 function batchMerge() {
   if (selectedLines.size < 2) { showToast('无法合并', '请至少选择 2 个 Line Item'); return; }
   const items = Array.from(selectedLines).map(k=>{
-    const [soId,line]=k.split(':');
-    const so=allData.find(s=>s.id===soId);
-    const l=so.lines.find(x=>x.line==line);
-    return `${soId} Line ${line} (${l.pn})`;
+    const [id,line]=k.split(':');
+    const so=allData.find(s=>s.id===id);
+    if (so) {
+      const l=so.lines.find(x=>x.line==line);
+      return `${id} Line ${line} (${l.pn})`;
+    }
+    const sp=specialDemands.find(s=>s.id===id);
+    if (sp) return `${id} (${sp.part})`;
+    return id;
   });
-  showToast('合并到Job', `已将 ${selectedLines.size} 个Line Item合并为新Job:\n${items.join(', ')}`);
+  showToast('合并到Job', `已将 ${selectedLines.size} 个Line Item合并为新Job`);
   selectedLines.clear();
   renderTable();
 }
 function batchSplit() {
   if (selectedLines.size === 0) return;
   const first = Array.from(selectedLines)[0];
-  const [soId,line] = first.split(':');
-  ctxTarget = {soId, line: parseInt(line)};
-  showSplitDialog();
+  const [id,line] = first.split(':');
+  const so = allData.find(s=>s.id===id);
+  if (so) {
+    ctxTarget = {soId:id, line: parseInt(line)};
+    showSplitDialog();
+  } else {
+    const sp = specialDemands.find(s=>s.id===id);
+    if (sp) {
+      ctxTarget = {soId:id, line:0, special:true};
+      document.getElementById('split-part').textContent = `${sp.part} - ${sp.desc}`;
+      document.getElementById('split-total').textContent = sp.qty;
+      openDialog('dialog-split');
+      updateSplitStats();
+    }
+  }
 }
 function batchCreateJob() {
   if (selectedLines.size === 0) return;
@@ -696,9 +790,63 @@ function switchSite(el, site) {
 function filterSource(source, el) {
   document.querySelectorAll('.sidebar-item').forEach(i=>i.classList.remove('active'));
   el.classList.add('active');
-  // For demo, just toggle between all and SO-only
-  if (source === 'all') currentSite = 'A';
-  renderTable();
+  // Filter logic: if not 'all', only show special demands of that type
+  if (source === 'all') {
+    currentSite = 'A';
+    renderTable();
+  } else if (source === 'SO') {
+    // Only show SO rows, hide special demands
+    // For demo: we still render table but special demands are hidden via a flag
+    showToast('过滤', '显示客户订单 (SO)');
+    renderTable();
+  } else {
+    // Show only special demands of this type
+    showToast('过滤', `显示 ${source} 类型需求`);
+    renderTableFiltered(source);
+  }
+}
+
+function renderTableFiltered(sourceType) {
+  const tbody = document.getElementById('table-body');
+  tbody.innerHTML = '';
+  const filtered = specialDemands.filter(s => s.type === sourceType.toLowerCase());
+  filtered.forEach(sd => {
+    const colorMap = {mto:'var(--red)', transfer:'var(--blue)', replenish:'var(--green)', rework:'#ff2e63', sample:'var(--purple)'};
+    const labelMap = {mto:'MTO', transfer:'TRANSFER', replenish:'REPLENISH', rework:'REWORK', sample:'SAMPLE'};
+    const div = document.createElement('div');
+    div.className = 'so-row';
+    div.draggable = true;
+    div.dataset.id = sd.id;
+    div.dataset.status = sd.status;
+    div.dataset.special = 'true';
+    div.innerHTML = `
+      <div class="so-main" style="position:relative;" oncontextmenu="showCtxMenu(event,'${sd.id}',0)">
+        <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${colorMap[sd.type]};border-radius:0 2px 2px 0;"></div>
+        <div class="so-check" onclick="event.stopPropagation();toggleSelectSpecial('${sd.id}')"><input type="checkbox"></div>
+        <div class="so-grip" onclick="event.stopPropagation()">⋮⋮</div>
+        <div></div>
+        <div style="font-family:var(--font-mono);font-weight:600;font-size:11.5px;"><span style="display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background:${colorMap[sd.type]}22;color:${colorMap[sd.type]};border:1px solid ${colorMap[sd.type]}44;margin-right:5px;">${labelMap[sd.type]}</span>${sd.id}</div>
+        <div style="color:var(--text-2);font-size:11.5px;">${sd.customer||sd.so||''}</div>
+        <div><span class="li-pn">${sd.part}</span> <span class="li-desc">${sd.desc}</span></div>
+        <div class="so-qty">${sd.qty}</div>
+        <div class="so-oh">-</div>
+        <div class="so-qty">-</div>
+        <div class="so-qty">-</div>
+        <div class="so-ddl ${sd.ddl==='ASAP'?'urgent':''}">${sd.ddl==='ASAP'?'ASAP':fmtDate(sd.ddl)}</div>
+        <div style="display:flex;gap:4px;">
+          <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();scheduleSpecial('${sd.id}')">排程</button>
+          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showSpecialDetail('${sd.id}')">详情</button>
+        </div>
+      </div>
+    `;
+    tbody.appendChild(div);
+    addDragEvents(div);
+  });
+  if (filtered.length === 0) {
+    tbody.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-3);font-size:12px;">📭 此类型下暂无记录</div>';
+  }
+  renderMergeSuggestions();
+  updateBatchBar();
 }
 function showMergeConfig() { showToast('合并规则', '打开合并规则配置面板'); }
 function showCapacity() { showToast('产能报表', '打开产能报表'); }
@@ -729,8 +877,13 @@ function handleTabDrop(e, newStatus) {
   e.currentTarget.classList.remove('drag-over');
   const id = e.dataTransfer.getData('text/plain');
   const so = allData.find(s=>s.id===id);
+  const sp = specialDemands.find(s=>s.id===id);
   if (so && so.status !== newStatus) {
     so.status = newStatus;
+    showToast('状态变更', `${id} 已移动到 ${statusLabel(newStatus)}`);
+    renderTable();
+  } else if (sp && sp.status !== newStatus) {
+    sp.status = newStatus;
     showToast('状态变更', `${id} 已移动到 ${statusLabel(newStatus)}`);
     renderTable();
   }
@@ -754,15 +907,31 @@ document.addEventListener('click', ()=>document.getElementById('ctx-menu').class
 
 function ctxCreateJob() {
   const so = allData.find(s=>s.id===ctxTarget.soId);
-  const line = so.lines.find(l=>l.line===ctxTarget.lineNo);
-  document.getElementById('cj-part').value = `${line.pn} - ${line.desc}`;
-  document.getElementById('cj-qty').value = line.qty;
+  if (so) {
+    const line = so.lines.find(l=>l.line===ctxTarget.lineNo);
+    document.getElementById('cj-part').value = `${line.pn} - ${line.desc}`;
+    document.getElementById('cj-qty').value = line.qty;
+  } else {
+    const sp = specialDemands.find(s=>s.id===ctxTarget.soId);
+    if (sp) {
+      document.getElementById('cj-part').value = `${sp.part} - ${sp.desc}`;
+      document.getElementById('cj-qty').value = sp.qty;
+    }
+  }
   document.getElementById('cj-ddl').value = new Date().toISOString().split('T')[0];
   openDialog('dialog-create-job');
 }
-function ctxCreatePO() { showToast('创建PO', `为 ${ctxTarget.soId} Line ${ctxTarget.lineNo} 创建采购订单`); }
+function ctxCreatePO() { showToast('创建PO', `为 ${ctxTarget.soId} 创建采购订单`); }
 function ctxSplit() { showSplitDialog(); }
-function ctxViewDetail() { showToast('查看详情', `${ctxTarget.soId} Line ${ctxTarget.lineNo}`); }
+function ctxViewDetail() {
+  const so = allData.find(s=>s.id===ctxTarget.soId);
+  if (so) {
+    showToast('查看详情', `${ctxTarget.soId} Line ${ctxTarget.lineNo}`);
+  } else {
+    const sp = specialDemands.find(s=>s.id===ctxTarget.soId);
+    if (sp) showToast('查看详情', `${sp.id} | ${sp.part} - ${sp.desc}`);
+  }
+}
 
 // ==================== DIALOGS ====================
 function openDialog(id) { document.getElementById(id).classList.add('open'); }
@@ -782,9 +951,17 @@ function confirmCreateJob() {
 
 function showSplitDialog() {
   const so = allData.find(s=>s.id===ctxTarget.soId);
-  const line = so.lines.find(l=>l.line===ctxTarget.lineNo);
-  document.getElementById('split-part').textContent = `${line.pn} - ${line.desc}`;
-  document.getElementById('split-total').textContent = line.qty;
+  if (so) {
+    const line = so.lines.find(l=>l.line===ctxTarget.lineNo);
+    document.getElementById('split-part').textContent = `${line.pn} - ${line.desc}`;
+    document.getElementById('split-total').textContent = line.qty;
+  } else {
+    const sp = specialDemands.find(s=>s.id===ctxTarget.soId);
+    if (sp) {
+      document.getElementById('split-part').textContent = `${sp.part} - ${sp.desc}`;
+      document.getElementById('split-total').textContent = sp.qty;
+    }
+  }
   openDialog('dialog-split');
   updateSplitStats();
 }
@@ -820,7 +997,11 @@ function updateSplitStats() {
 }
 function confirmSplit() {
   closeDialog('dialog-split');
-  showToast('拆分成功', `${ctxTarget.soId} Line ${ctxTarget.lineNo} 已拆分`);
+  if (ctxTarget.special) {
+    showToast('拆分成功', `${ctxTarget.soId} (${ctxTarget.special?'特殊Demand':''}) 已拆分`);
+  } else {
+    showToast('拆分成功', `${ctxTarget.soId} Line ${ctxTarget.lineNo} 已拆分`);
+  }
 }
 
 // ==================== TOAST ====================
