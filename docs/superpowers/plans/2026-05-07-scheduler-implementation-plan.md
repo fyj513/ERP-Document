@@ -364,7 +364,43 @@ def schedule_job_from_demand(demand_id: str, scheduler_id: str) -> Job:
     )
     save_job(job)
     create_job_line(job.id, demand.id, demand.qty, "MTO" if demand.mto_qty > 0 else "MTS")
+    
+    # BOM完全展开：逐层生成制造子任务和采购子任务
+    explode_bom(job.id, demand.part_id, demand.qty, demand.site_id)
+    
     return job
+
+def explode_bom(job_id: str, part_id: str, qty: float, site_id: str, level: int = 0):
+    """递归展开BOM，逐层生成子任务"""
+    bom_lines = get_bom_lines(part_id)
+    for line in bom_lines:
+        required_qty = qty * line.bom_qty
+        on_hand = get_inventory(line.component_id, site_id).available_qty
+        net_demand = max(0, required_qty - on_hand)
+        
+        if line.component.is_purchased:
+            # 外购件 → 采购子任务
+            create_sub_task(
+                job_id=job_id,
+                task_type="PO",
+                part_id=line.component_id,
+                qty=net_demand,
+                team="采购部",
+                status="PENDING"
+            )
+        else:
+            # 自制件 → 制造子任务
+            create_sub_task(
+                job_id=job_id,
+                task_type="MO",
+                part_id=line.component_id,
+                qty=net_demand,
+                team="生产组",
+                status="PENDING"
+            )
+            # 递归展开下一层
+            if level < 10:  # 防止无限递归
+                explode_bom(job_id, line.component_id, net_demand, site_id, level + 1)
 ```
 
 - [ ] **Step 4: 运行测试，确认通过**

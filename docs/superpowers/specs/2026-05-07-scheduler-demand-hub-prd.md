@@ -27,7 +27,7 @@
 |------|------|
 | **Schedule 页面** | 公司级调度大脑。所有Demand在此汇聚，Scheduler决定：做不做、何时做、在哪个Site做、用什么策略（生产/采购/调拨/委外）。 |
 | **Site Plan 页面** | 工厂级执行面板。各Site在此查看分配给本Site的Job，标记执行状态、调整执行顺序（同步回Scheduler）。 |
-| **Job** | 通用执行单元。一旦Scheduler确认Demand，就生成Job。Job包含：采购子任务（告诉采购部买什么）、制造子任务（告诉生产组生产什么/BOM/工序）、调拨子任务（告诉仓库收/发多少）。 |
+| **Job** | BOM完全展开后的执行载体。一旦Scheduler确认Demand，就生成Job。Job自动将顶层产品的BOM逐层展开到底层原材料，每层半成品生成制造子任务（MO），每层原材料/外购件生成采购子任务（PO），并自动计算每层的净需求（需求数量 - 可用库存）。 |
 | **Demand** | 任何触发行动的原始需求。来源包括：SO、MTO、Transfer、Replenishment、Rework、Forecast、样品。 |
 
 ### 2.2 解决什么问题
