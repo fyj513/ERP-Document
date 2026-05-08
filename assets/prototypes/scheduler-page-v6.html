@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scheduler — Schedule Board v6</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-0: #090b10;
+  --bg-1: #0f1117;
+  --bg-2: #161922;
+  --bg-3: #1e212b;
+  --bg-4: #272d3a;
+  --bg-5: #32384a;
+  --border: #1e222e;
+  --border-light: #2a2f3e;
+  --text-1: #e8eaf0;
+  --text-2: #8b92a8;
+  --text-3: #5a6078;
+  --accent: #e85d04;
+  --accent-dim: #c44a00;
+  --blue: #4cc9f0;
+  --green: #2dc653;
+  --yellow: #f4d03f;
+  --red: #e63946;
+  --purple: #a855f7;
+  --cyan: #22d3ee;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-body: 'DM Sans', -apple-system, sans-serif;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; }
+body { font-family: var(--font-body); background: var(--bg-0); color: var(--text-1); font-size: 12.5px; line-height: 1.5; overflow: hidden; }
+
+/* ========== HEADER ========== */
+.header { height: 44px; background: var(--bg-1); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; flex-shrink: 0; }
+.logo { font-family:var(--font-mono); font-weight:700; font-size:14px; color:var(--accent); }
+.header-center { display:flex; align-items:center; gap:12px; font-size:11px; color:var(--text-2); }
+.today-badge { background:var(--bg-3); padding:3px 10px; border-radius:4px; font-family:var(--font-mono); font-size:11px; color:var(--accent); border:1px solid var(--border-light); }
+.btn { padding: 5px 12px; border-radius: 5px; border: none; font-family: var(--font-body); font-weight: 600; font-size: 11.5px; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; gap: 5px; }
+.btn-primary { background: var(--accent); color:#fff; }
+.btn-primary:hover { background: var(--accent-dim); }
+.btn-secondary { background: var(--bg-3); color: var(--text-1); border:1px solid var(--border-light); }
+.btn-secondary:hover { background: var(--bg-4); }
+.btn-ghost { background: transparent; color: var(--text-2); border: 1px solid transparent; }
+.btn-ghost:hover { background: var(--bg-3); color: var(--text-1); }
+
+/* ========== UNASSIGNED DEMAND POOL ========== */
+.demand-pool { background: var(--bg-1); border-bottom: 1px solid var(--border); padding: 10px 16px; flex-shrink: 0; }
+.pool-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.pool-title { font-size:10px; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:1px; }
+.pool-count { font-family:var(--font-mono); color:var(--accent); }
+.pool-scroll { display:flex; gap:8px; overflow-x:auto; padding-bottom:4px; }
+.demand-card { flex-shrink:0; width:160px; background:var(--bg-2); border:1px solid var(--border); border-radius:8px; padding:10px; cursor:pointer; transition:all .15s; position:relative; }
+.demand-card:hover { border-color:var(--accent); transform:translateY(-1px); }
+.demand-card.selected { border-color:var(--accent); box-shadow:0 0 0 2px rgba(232,93,4,0.2); }
+.demand-card.unassigned-site { border-left:3px solid var(--red); }
+.demand-card-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:6px; }
+.demand-card-id { font-family:var(--font-mono); font-weight:600; font-size:11px; }
+.demand-card-type { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; padding:1px 5px; border-radius:3px; }
+.type-so { background:rgba(244,208,63,0.12); color:var(--yellow); border:1px solid rgba(244,208,63,0.3); }
+.type-mto { background:rgba(230,57,70,0.12); color:var(--red); border:1px solid rgba(230,57,70,0.3); }
+.type-transfer { background:rgba(76,201,240,0.12); color:var(--blue); border:1px solid rgba(76,201,240,0.3); }
+.type-replenish { background:rgba(45,198,83,0.12); color:var(--green); border:1px solid rgba(45,198,83,0.3); }
+.type-rework { background:rgba(255,46,99,0.12); color:#ff2e63; border:1px solid rgba(255,46,99,0.3); }
+.type-sample { background:rgba(168,85,247,0.12); color:var(--purple); border:1px solid rgba(168,85,247,0.3); }
+.demand-card-desc { font-size:11px; color:var(--text-2); margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.demand-card-meta { display:flex; justify-content:space-between; font-size:10px; color:var(--text-3); font-family:var(--font-mono); }
+.demand-card-site { display:flex; align-items:center; gap:3px; }
+.demand-card-site.unassigned { color:var(--red); font-weight:600; }
+.demand-card-bar { margin-top:6px; height:3px; background:var(--bg-3); border-radius:2px; overflow:hidden; }
+.demand-card-bar-inner { height:100%; border-radius:2px; transition:width .3s; }
+
+/* ========== TIMELINE ========== */
+.timeline-container { flex:1; overflow:auto; display:flex; flex-direction:column; }
+.timeline-header { display:flex; background:var(--bg-1); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:10; }
+.timeline-site-label { width:110px; flex-shrink:0; padding:8px 12px; font-size:10px; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:1px; border-right:1px solid var(--border); display:flex; align-items:center; }
+.timeline-dates { flex:1; display:flex; min-width:700px; }
+.timeline-date { flex:1; padding:8px 0; text-align:center; font-family:var(--font-mono); font-size:10px; color:var(--text-3); border-right:1px solid var(--border); position:relative; }
+.timeline-date.today { background:rgba(232,93,4,0.08); color:var(--accent); font-weight:700; }
+.timeline-date.today::after { content:''; position:absolute; bottom:0; left:0; right:0; height:2px; background:var(--accent); }
+
+.timeline-row { display:flex; border-bottom:1px solid var(--border); min-height:70px; }
+.timeline-row:hover { background:rgba(255,255,255,0.01); }
+.timeline-site { width:110px; flex-shrink:0; padding:10px 12px; border-right:1px solid var(--border); display:flex; flex-direction:column; justify-content:center; }
+.timeline-site-name { font-weight:600; font-size:11px; color:var(--text-1); }
+.timeline-site-loc { font-size:10px; color:var(--text-3); margin-top:2px; }
+.timeline-site-cap { font-size:9px; color:var(--text-3); margin-top:4px; font-family:var(--font-mono); }
+.timeline-track { flex:1; display:flex; position:relative; min-width:700px; padding:10px 0; }
+.timeline-day { flex:1; border-right:1px dashed var(--border); position:relative; }
+.timeline-day:last-child { border-right:none; }
+
+/* Job Block */
+.job-block { position:absolute; top:8px; height:44px; background:var(--bg-3); border:1px solid var(--border-light); border-radius:6px; padding:5px 8px; cursor:pointer; transition:all .15s; overflow:hidden; min-width:60px; z-index:5; }
+.job-block:hover { border-color:var(--accent); z-index:20; box-shadow:0 4px 12px rgba(0,0,0,0.4); transform:translateY(-1px); }
+.job-block.selected { border-color:var(--accent); box-shadow:0 0 0 2px rgba(232,93,4,0.2); z-index:20; }
+.job-block-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:3px; }
+.job-block-id { font-family:var(--font-mono); font-weight:600; font-size:9.5px; }
+.job-block-qty { font-family:var(--font-mono); font-size:9px; color:var(--text-3); }
+.job-block-demand { font-size:9px; color:var(--text-2); white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.job-block-progress { position:absolute; bottom:0; left:0; height:3px; border-radius:0 0 0 6px; }
+.job-block-progress.completed { border-radius:0 0 6px 6px; }
+
+/* Status colors */
+.job-draft { border-left:3px solid var(--text-3); }
+.job-scheduled { border-left:3px solid var(--blue); }
+.job-executing { border-left:3px solid var(--yellow); }
+.job-completed { border-left:3px solid var(--green); opacity:0.7; }
+.job-hold { border-left:3px solid var(--red); }
+
+/* ========== DETAIL PANEL ========== */
+.detail-panel { height:0; background:var(--bg-1); border-top:1px solid var(--border); overflow:hidden; transition:height .25s; display:flex; }
+.detail-panel.open { height:180px; }
+.detail-left { width:280px; border-right:1px solid var(--border); padding:14px 16px; flex-shrink:0; }
+.detail-center { flex:1; padding:14px 16px; overflow-x:auto; }
+.detail-right { width:200px; border-left:1px solid var(--border); padding:14px 16px; flex-shrink:0; }
+
+.detail-title { font-size:11px; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:1px; margin-bottom:10px; }
+.detail-row { display:flex; justify-content:space-between; padding:4px 0; font-size:11px; }
+.detail-row .label { color:var(--text-3); }
+.detail-row .value { color:var(--text-1); font-weight:500; }
+.detail-row .value.mono { font-family:var(--font-mono); }
+
+.process-flow { display:flex; align-items:center; gap:8px; }
+.process-step { padding:5px 10px; border-radius:5px; background:var(--bg-2); border:1px solid var(--border); font-size:10px; white-space:nowrap; }
+.process-step.done { background:rgba(45,198,83,0.1); border-color:rgba(45,198,83,0.3); color:var(--green); }
+.process-step.active { background:rgba(232,93,4,0.1); border-color:rgba(232,93,4,0.3); color:var(--accent); }
+.process-step.pending { color:var(--text-3); }
+.process-arrow { color:var(--text-3); font-size:10px; }
+
+.demand-link { display:flex; align-items:center; gap:6px; padding:5px 8px; border-radius:4px; background:var(--bg-2); margin-bottom:4px; font-size:11px; }
+.demand-link .badge-mini { font-size:9px; padding:1px 4px; border-radius:3px; font-weight:600; }
+
+/* ========== TOOLTIP ========== */
+.tooltip { position:fixed; background:var(--bg-2); border:1px solid var(--border-light); border-radius:8px; padding:10px 12px; box-shadow:0 8px 24px rgba(0,0,0,0.5); z-index:1000; pointer-events:none; opacity:0; transition:opacity .15s; font-size:11px; max-width:260px; }
+.tooltip.open { opacity:1; }
+.tooltip-title { font-weight:700; margin-bottom:4px; color:var(--text-1); }
+.tooltip-row { display:flex; justify-content:space-between; padding:2px 0; color:var(--text-2); font-size:10px; }
+
+/* ========== SCROLLBAR ========== */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg-4); border-radius: 3px; }
+</style>
+</head>
+<body style="display:flex;flex-direction:column;height:100vh;">
+
+<!-- Header -->
+<div class="header">
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div class="logo">◈ SCHEDULER</div>
+    <div class="header-center">
+      <span>📅</span>
+      <span>2026年5月7日 周三</span>
+      <span class="today-badge">Week 19</span>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button class="btn btn-secondary">🔍 搜索Demand</button>
+    <button class="btn btn-primary">+ 新建Job</button>
+  </div>
+</div>
+
+<!-- Unassigned Demand Pool -->
+<div class="demand-pool">
+  <div class="pool-header">
+    <div>
+      <span class="pool-title">📥 待排程 Demand</span>
+      <span class="pool-count" id="pool-count"> 8</span>
+    </div>
+    <div style="font-size:10px;color:var(--text-3);">拖拽到时间轴进行排程 →</div>
+  </div>
+  <div class="pool-scroll" id="pool-scroll">
+    <!-- Filled by JS -->
+  </div>
+</div>
+
+<!-- Timeline -->
+<div class="timeline-container" id="timeline-container">
+  <!-- Timeline Header -->
+  <div class="timeline-header">
+    <div class="timeline-site-label">Site</div>
+    <div class="timeline-dates" id="timeline-dates">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+  
+  <!-- Timeline Rows -->
+  <div id="timeline-rows">
+    <!-- Filled by JS -->
+  </div>
+</div>
+
+<!-- Detail Panel -->
+<div class="detail-panel" id="detail-panel">
+  <div class="detail-left">
+    <div class="detail-title" id="detail-title">选择 Job 或 Demand</div>
+    <div id="detail-info"></div>
+  </div>
+  <div class="detail-center">
+    <div class="detail-title">📋 Process 执行链路</div>
+    <div class="process-flow" id="detail-process"></div>
+  </div>
+  <div class="detail-right">
+    <div class="detail-title">📎 关联 Demand</div>
+    <div id="detail-demands"></div>
+  </div>
+</div>
+
+<!-- Tooltip -->
+<div class="tooltip" id="tooltip">
+  <div class="tooltip-title" id="tooltip-title"></div>
+  <div id="tooltip-body"></div>
+</div>
+
+<script>
+// ==================== CONFIG ====================
+const DATE_START = new Date('2026-05-05');
+const DATE_END = new Date('2026-06-07');
+const DAY_MS = 24 * 60 * 60 * 1000;
+const TOTAL_DAYS = Math.round((DATE_END - DATE_START) / DAY_MS) + 1;
+
+function dayIndex(dateStr) {
+  const d = new Date(dateStr);
+  return Math.round((d - DATE_START) / DAY_MS);
+}
+function fmtDateShort(d) {
+  return (d.getMonth()+1) + '/' + d.getDate();
+}
+function fmtDateFull(dateStr) {
+  const d = new Date(dateStr);
+  return `${d.getMonth()+1}月${d.getDate()}日`;
+}
+
+// ==================== DATA ====================
+const sites = [
+  { code:'A', name:'A厂', location:'深圳', capacity:'85%' },
+  { code:'B', name:'B厂', location:'东莞', capacity:'72%' },
+  { code:'C', name:'C厂', location:'苏州', capacity:'45%' },
+];
+
+const jobs = [
+  // A厂
+  { id:'JOB-111', site:'A', start:'2026-05-05', end:'2026-05-12', status:'executing', progress:60, part:'RS1234', partName:'Steel Bracket', qty:530, demands:['SO-1001','RP-001'], processes:[
+    {code:'P-STAMP', name:'冲压', status:'completed'},
+    {code:'P-WELD', name:'焊接', status:'active'},
+    {code:'P-PACK', name:'包装', status:'pending'},
+  ]},
+  { id:'JOB-333', site:'A', start:'2026-05-13', end:'2026-05-20', status:'scheduled', progress:0, part:'RS8765', partName:'Valve Component', qty:600, demands:['SO-1004'], processes:[
+    {code:'P-CAST', name:'铸造', status:'pending'},
+    {code:'P-MC', name:'机加', status:'pending'},
+  ]},
+  { id:'JOB-444', site:'A', start:'2026-05-21', end:'2026-05-28', status:'scheduled', progress:0, part:'RS1357', partName:'Titanium Fastener', qty:2100, demands:['SO-1006','PO-625'], processes:[
+    {code:'P-FORGE', name:'锻造', status:'pending'},
+    {code:'P-MC', name:'机加', status:'pending'},
+    {code:'P-HT', name:'热处理', status:'pending'},
+  ]},
+  { id:'JOB-666', site:'A', start:'2026-05-29', end:'2026-06-05', status:'draft', progress:0, part:'RS2580', partName:'Solar Panel Frame', qty:180, demands:['SO-1008'], processes:[
+    {code:'P-CUT', name:'切割', status:'pending'},
+    {code:'P-WELD', name:'焊接', status:'pending'},
+  ]},
+  // B厂
+  { id:'JOB-555', site:'B', start:'2026-05-08', end:'2026-05-18', status:'executing', progress:40, part:'RS8642', partName:'LED Driver', qty:500, demands:['SO-1007'], processes:[
+    {code:'P-SMT', name:'SMT贴片', status:'completed'},
+    {code:'P-TEST', name:'功能测试', status:'active'},
+    {code:'P-PACK', name:'包装', status:'pending'},
+  ]},
+  { id:'JOB-889', site:'B', start:'2026-05-12', end:'2026-05-22', status:'scheduled', progress:0, part:'F-006', partName:'Titanium Enclosure', qty:250, demands:['MTO-002'], processes:[
+    {code:'P-CNC', name:'CNC加工', status:'pending'},
+    {code:'P-SURF', name:'表面处理', status:'pending'},
+  ]},
+  { id:'JOB-101', site:'B', start:'2026-05-23', end:'2026-05-27', status:'scheduled', progress:0, part:'RS1056', partName:'Conveyor Belt', qty:50, demands:['SO-1014'], processes:[
+    {code:'P-ASSY', name:'装配', status:'pending'},
+  ]},
+  { id:'JOB-902', site:'B', start:'2026-05-28', end:'2026-06-03', status:'hold', progress:10, part:'B-002', partName:'Surface Scratch Rework', qty:15, demands:['RW-002'], processes:[
+    {code:'P-REWORK', name:'返工', status:'hold'},
+    {code:'P-QC', name:'质检', status:'pending'},
+  ]},
+  // C厂
+  { id:'JOB-222', site:'C', start:'2026-05-06', end:'2026-05-12', status:'completed', progress:100, part:'RS3456', partName:'Sensor Module V2', qty:250, demands:['SO-1003'], processes:[
+    {code:'P-SMT', name:'SMT贴片', status:'completed'},
+    {code:'P-ASSY', name:'装配', status:'completed'},
+    {code:'P-TEST', name:'测试', status:'completed'},
+  ]},
+  { id:'JOB-888', site:'C', start:'2026-05-10', end:'2026-05-16', status:'executing', progress:75, part:'A-001', partName:'Custom PCB', qty:100, demands:['MTO-001'], processes:[
+    {code:'P-SMT', name:'SMT贴片', status:'completed'},
+    {code:'P-TEST', name:'功能测试', status:'active'},
+  ]},
+  { id:'JOB-202', site:'C', start:'2026-05-17', end:'2026-05-22', status:'scheduled', progress:0, part:'RS4932', partName:'Server Rack 42U', qty:25, demands:['SO-1015'], processes:[
+    {code:'P-CUT', name:'切割', status:'pending'},
+    {code:'P-BEND', name:'折弯', status:'pending'},
+    {code:'P-POWDER', name:'喷粉', status:'pending'},
+  ]},
+  { id:'JOB-901', site:'C', start:'2026-05-25', end:'2026-05-30', status:'executing', progress:30, part:'A-001', partName:'Dimension Rework', qty:20, demands:['RW-001'], processes:[
+    {code:'P-REWORK', name:'返工', status:'active'},
+    {code:'P-QC', name:'质检', status:'pending'},
+  ]},
+];
+
+const unassignedDemands = [
+  { id:'SO-1002', type:'SO', desc:'Power Supply Unit 24V', qty:800, site:'A', status:'draft', progress:0, customer:'TechCorp' },
+  { id:'SO-1010', type:'SO', desc:'Stainless Steel Tray + Silicone Tubing', qty:280, site:'A', status:'hold', progress:0, customer:'MediTech' },
+  { id:'SO-1011', type:'SO', desc:'Brake Pad + Rotor Disc', qty:1600, site:'B', status:'draft', progress:0, customer:'AutoParts' },
+  { id:'SO-1013', type:'SO', desc:'Steel Beam + Concrete Anchor', qty:580, site:'A', status:'draft', progress:0, customer:'BuildRight' },
+  { id:'SO-1016', type:'SO', desc:'Motor Housing XL', qty:120, site:null, status:'draft', progress:0, customer:'Unassigned A' },
+  { id:'SO-1017', type:'SO', desc:'Gearbox + Bearing Set', qty:380, site:null, status:'draft', progress:0, customer:'Unassigned B' },
+  { id:'SO-1018', type:'SO', desc:'Control Panel Enclosure', qty:50, site:null, status:'scheduled', progress:0, customer:'Pending' },
+  { id:'MTO-003', type:'MTO', desc:'Galaxy S30 Frame', qty:180, site:'A', status:'draft', progress:0, customer:'VIP-Samsung' },
+  { id:'RP-002', type:'REPLENISH', desc:'Safety Stock Washer SS', qty:300, site:'A', status:'draft', progress:0, customer:'库存补货' },
+  { id:'RP-003', type:'REPLENISH', desc:'Safety Stock Spring 5mm', qty:800, site:null, status:'draft', progress:0, customer:'库存补货' },
+  { id:'RP-004', type:'REPLENISH', desc:'Safety Stock Nut M10', qty:600, site:null, status:'draft', progress:0, customer:'库存补货' },
+];
+
+const demandMap = {
+  'SO-1001':{customer:'ACME Corp', qty:500, part:'RS1234'},
+  'SO-1003':{customer:'StartUp Inc', qty:250, part:'RS3456'},
+  'SO-1004':{customer:'Global Mfg', qty:600, part:'RS8765'},
+  'SO-1006':{customer:'Precision Tools', qty:2000, part:'RS1357'},
+  'SO-1007':{customer:'Nova Electronics', qty:500, part:'RS8642'},
+  'SO-1008':{customer:'GreenEnergy', qty:150, part:'RS2580'},
+  'SO-1014':{customer:'FoodPack', qty:50, part:'RS1056'},
+  'SO-1015':{customer:'CloudData', qty:25, part:'RS4932'},
+  'MTO-001':{customer:'VIP-华为', qty:100, part:'A-001'},
+  'MTO-002':{customer:'VIP-Apple', qty:250, part:'F-006'},
+  'RP-001':{customer:'库存补货', qty:30, part:'D-004'},
+  'PO-625':{customer:'采购', qty:100, part:'RS9753'},
+  'RW-001':{customer:'返工', qty:20, part:'A-001'},
+  'RW-002':{customer:'返工', qty:15, part:'B-002'},
+};
+
+let selectedJobId = null;
+let selectedDemandId = null;
+
+// ==================== RENDER ====================
+function render() {
+  renderDates();
+  renderTimeline();
+  renderPool();
+}
+
+function renderDates() {
+  const container = document.getElementById('timeline-dates');
+  let html = '';
+  const today = new Date('2026-05-07');
+  for (let i = 0; i < TOTAL_DAYS; i++) {
+    const d = new Date(DATE_START.getTime() + i * DAY_MS);
+    const isToday = d.toDateString() === today.toDateString();
+    const dayName = ['日','一','二','三','四','五','六'][d.getDay()];
+    html += `<div class="timeline-date ${isToday?'today':''}">${fmtDateShort(d)}<br>周${dayName}</div>`;
+  }
+  container.innerHTML = html;
+}
+
+function renderTimeline() {
+  const container = document.getElementById('timeline-rows');
+  let html = '';
+  
+  sites.forEach(site => {
+    const siteJobs = jobs.filter(j => j.site === site.code);
+    html += `
+      <div class="timeline-row">
+        <div class="timeline-site">
+          <div class="timeline-site-name">${site.name}</div>
+          <div class="timeline-site-loc">${site.location}</div>
+          <div class="timeline-site-cap">负荷 ${site.capacity}</div>
+        </div>
+        <div class="timeline-track">
+          ${renderDays()}
+          ${siteJobs.map(job => renderJobBlock(job)).join('')}
+        </div>
+      </div>
+    `;
+  });
+  
+  container.innerHTML = html;
+}
+
+function renderDays() {
+  let html = '';
+  for (let i = 0; i < TOTAL_DAYS; i++) {
+    html += `<div class="timeline-day"></div>`;
+  }
+  return html;
+}
+
+function renderJobBlock(job) {
+  const startIdx = dayIndex(job.start);
+  const endIdx = dayIndex(job.end);
+  const left = (startIdx / TOTAL_DAYS) * 100;
+  const width = ((endIdx - startIdx + 1) / TOTAL_DAYS) * 100;
+  const statusClass = 'job-' + job.status;
+  const isSelected = selectedJobId === job.id;
+  
+  // Color bar based on status
+  const barColor = job.status==='completed'? 'var(--green)' : (job.status==='executing'? 'var(--yellow)' : (job.status==='scheduled'? 'var(--blue)' : (job.status==='hold'? 'var(--red)' : 'var(--text-3)')));
+  
+  // Progress bar width
+  const progressWidth = job.progress + '%';
+  
+  return `
+    <div class="job-block ${statusClass} ${isSelected?'selected':''}"
+         style="left:${left}%;width:${width}%;"
+         onclick="selectJob('${job.id}')"
+         onmouseenter="showJobTooltip(event,'${job.id}')"
+         onmouseleave="hideTooltip()">
+      <div class="job-block-header">
+        <span class="job-block-id">${job.id}</span>
+        <span class="job-block-qty">${job.qty}件</span>
+      </div>
+      <div class="job-block-demand">${job.demands.slice(0,2).join(', ')}${job.demands.length>2?'...':''}</div>
+      <div class="job-block-progress" style="width:${progressWidth};background:${barColor};"></div>
+    </div>
+  `;
+}
+
+function renderPool() {
+  const container = document.getElementById('pool-scroll');
+  document.getElementById('pool-count').textContent = ' ' + unassignedDemands.length;
+  
+  container.innerHTML = unassignedDemands.map(d => {
+    const typeClass = 'type-' + d.type.toLowerCase();
+    const isUnassigned = !d.site;
+    const isSelected = selectedDemandId === d.id;
+    const barColor = d.status==='hold'? 'var(--red)' : (d.status==='scheduled'? 'var(--blue)' : 'var(--green)');
+    return `
+      <div class="demand-card ${isUnassigned?'unassigned-site':''} ${isSelected?'selected':''}"
+           onclick="selectDemand('${d.id}')">
+        <div class="demand-card-header">
+          <span class="demand-card-id">${d.id}</span>
+          <span class="demand-card-type ${typeClass}">${d.type}</span>
+        </div>
+        <div class="demand-card-desc">${d.desc}</div>
+        <div class="demand-card-meta">
+          <span>${d.qty}件</span>
+          <span class="demand-card-site ${isUnassigned?'unassigned':''}">${isUnassigned?'⚠ 未分配Site':(d.site+'厂')}</span>
+        </div>
+        <div class="demand-card-bar">
+          <div class="demand-card-bar-inner" style="width:${d.progress}%;background:${barColor};"></div>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ==================== SELECTION ====================
+function selectJob(jobId) {
+  selectedJobId = jobId;
+  selectedDemandId = null;
+  const job = jobs.find(j => j.id === jobId);
+  showDetailPanel(job, 'job');
+  render();
+}
+
+function selectDemand(demandId) {
+  selectedDemandId = demandId;
+  selectedJobId = null;
+  const demand = unassignedDemands.find(d => d.id === demandId);
+  showDetailPanel(demand, 'demand');
+  render();
+}
+
+function showDetailPanel(item, type) {
+  const panel = document.getElementById('detail-panel');
+  panel.classList.add('open');
+  
+  if (type === 'job') {
+    const statusMap = {draft:'草稿', scheduled:'已排程', executing:'执行中', completed:'已完成', hold:'暂停'};
+    const statusColor = {draft:'var(--text-3)', scheduled:'var(--blue)', executing:'var(--yellow)', completed:'var(--green)', hold:'var(--red)'};
+    
+    document.getElementById('detail-title').textContent = `💼 ${item.id}`;
+    document.getElementById('detail-info').innerHTML = `
+      <div class="detail-row"><span class="label">Part</span><span class="value mono">${item.part}</span></div>
+      <div class="detail-row"><span class="label">名称</span><span class="value">${item.partName}</span></div>
+      <div class="detail-row"><span class="label">数量</span><span class="value mono">${item.qty}件</span></div>
+      <div class="detail-row"><span class="label">Site</span><span class="value">${item.site}厂</span></div>
+      <div class="detail-row"><span class="label">起止</span><span class="value mono">${fmtDateFull(item.start)} → ${fmtDateFull(item.end)}</span></div>
+      <div class="detail-row"><span class="label">状态</span><span class="value" style="color:${statusColor[item.status]}">${statusMap[item.status]}</span></div>
+      <div class="detail-row"><span class="label">进度</span><span class="value mono">${item.progress}%</span></div>
+    `;
+    
+    // Process flow
+    const processHtml = item.processes.map((p, i) => {
+      const cls = p.status==='completed'?'done':(p.status==='active'?'active':'pending');
+      const arrow = i < item.processes.length - 1 ? '<span class="process-arrow">→</span>' : '';
+      return `<div class="process-step ${cls}">${p.name}</div>${arrow}`;
+    }).join('');
+    document.getElementById('detail-process').innerHTML = processHtml;
+    
+    // Linked demands
+    const demandsHtml = item.demands.map(did => {
+      const d = demandMap[did] || {customer:'未知', qty:0, part:''};
+      const typeColor = did.startsWith('SO')?'var(--yellow)':(did.startsWith('MTO')?'var(--red)':(did.startsWith('RP')?'var(--green)':'var(--blue)'));
+      return `
+        <div class="demand-link">
+          <span class="badge-mini" style="background:${typeColor}22;color:${typeColor};border:1px solid ${typeColor}44;">${did.split('-')[0]}</span>
+          <span style="flex:1;">${d.customer}</span>
+          <span class="mono" style="color:var(--text-3);">${d.qty}件</span>
+        </div>
+      `;
+    }).join('');
+    document.getElementById('detail-demands').innerHTML = demandsHtml;
+    
+  } else {
+    // Demand detail
+    const statusMap = {draft:'草稿', scheduled:'已排程', hold:'暂停'};
+    document.getElementById('detail-title').textContent = `📥 ${item.id} (未排程)`;
+    document.getElementById('detail-info').innerHTML = `
+      <div class="detail-row"><span class="label">类型</span><span class="value">${item.type}</span></div>
+      <div class="detail-row"><span class="label">描述</span><span class="value">${item.desc}</span></div>
+      <div class="detail-row"><span class="label">数量</span><span class="value mono">${item.qty}件</span></div>
+      <div class="detail-row"><span class="label">客户</span><span class="value">${item.customer}</span></div>
+      <div class="detail-row"><span class="label">Site</span><span class="value" style="color:${!item.site?'var(--red)':'var(--text-1)'}">${!item.site?'⚠ 未分配':item.site+'厂'}</span></div>
+      <div class="detail-row"><span class="label">状态</span><span class="value">${statusMap[item.status]||item.status}</span></div>
+    `;
+    document.getElementById('detail-process').innerHTML = `
+      <div class="process-step pending">未创建Job</div>
+      <span class="process-arrow">→</span>
+      <div class="process-step pending">未配置Recipe</div>
+      <span class="process-arrow">→</span>
+      <div class="process-step pending">未生成Process</div>
+    `;
+    document.getElementById('detail-demands').innerHTML = `
+      <div style="font-size:11px;color:var(--text-3);">该Demand尚未关联Job。<br>点击上方"+ 新建Job"创建。</div>
+    `;
+  }
+}
+
+// ==================== TOOLTIP ====================
+function showJobTooltip(e, jobId) {
+  const job = jobs.find(j => j.id === jobId);
+  const tooltip = document.getElementById('tooltip');
+  const statusMap = {draft:'草稿', scheduled:'已排程', executing:'执行中', completed:'已完成', hold:'暂停'};
+  
+  document.getElementById('tooltip-title').textContent = `${job.id} | ${job.partName}`;
+  document.getElementById('tooltip-body').innerHTML = `
+    <div class="tooltip-row"><span>数量</span><span>${job.qty}件</span></div>
+    <div class="tooltip-row"><span>起止</span><span>${fmtDateFull(job.start)} → ${fmtDateFull(job.end)}</span></div>
+    <div class="tooltip-row"><span>状态</span><span>${statusMap[job.status]}</span></div>
+    <div class="tooltip-row"><span>进度</span><span>${job.progress}%</span></div>
+    <div class="tooltip-row"><span>Demand</span><span>${job.demands.join(', ')}</span></div>
+    <div class="tooltip-row"><span>Process</span><span>${job.processes.map(p=>p.name).join(' → ')}</span></div>
+  `;
+  
+  tooltip.style.left = (e.clientX + 15) + 'px';
+  tooltip.style.top = (e.clientY + 15) + 'px';
+  tooltip.classList.add('open');
+}
+
+function hideTooltip() {
+  document.getElementById('tooltip').classList.remove('open');
+}
+
+// ==================== INIT ====================
+render();
+</script>
+</body>
+</html>
