@@ -1,0 +1,538 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scheduler — Schedule Board v7</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-0: #090b10;
+  --bg-1: #0f1117;
+  --bg-2: #161922;
+  --bg-3: #1e212b;
+  --bg-4: #272d3a;
+  --bg-5: #32384a;
+  --border: #1e222e;
+  --border-light: #2a2f3e;
+  --text-1: #e8eaf0;
+  --text-2: #8b92a8;
+  --text-3: #5a6078;
+  --accent: #e85d04;
+  --accent-dim: #c44a00;
+  --blue: #4cc9f0;
+  --green: #2dc653;
+  --yellow: #f4d03f;
+  --red: #e63946;
+  --purple: #a855f7;
+  --cyan: #22d3ee;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-body: 'DM Sans', -apple-system, sans-serif;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; }
+body { font-family: var(--font-body); background: var(--bg-0); color: var(--text-1); font-size: 12.5px; line-height: 1.5; overflow: hidden; }
+
+/* ========== HEADER ========== */
+.header { height: 44px; background: var(--bg-1); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; flex-shrink: 0; }
+.logo { font-family:var(--font-mono); font-weight:700; font-size:14px; color:var(--accent); }
+.btn { padding: 5px 12px; border-radius: 5px; border: none; font-family: var(--font-body); font-weight: 600; font-size: 11.5px; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; gap: 5px; }
+.btn-primary { background: var(--accent); color:#fff; }
+.btn-primary:hover { background: var(--accent-dim); }
+.btn-secondary { background: var(--bg-3); color: var(--text-1); border:1px solid var(--border-light); }
+.btn-secondary:hover { background: var(--bg-4); }
+.btn-ghost { background: transparent; color: var(--text-2); border: 1px solid transparent; }
+.btn-ghost:hover { background: var(--bg-3); color: var(--text-1); }
+.btn-sm { padding: 3px 8px; font-size: 10.5px; }
+
+/* ========== TOP: DEMAND POOL ========== */
+.top-section { background: var(--bg-1); border-bottom: 2px solid var(--border); flex-shrink: 0; }
+.pool-tabs { display:flex; gap:0; padding:0 16px; border-bottom:1px solid var(--border); }
+.pool-tab { padding: 8px 16px; font-size:11px; font-weight:600; color:var(--text-3); cursor:pointer; border-bottom:2px solid transparent; transition:all .15s; display:flex; align-items:center; gap:6px; }
+.pool-tab:hover { color:var(--text-2); }
+.pool-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+.pool-tab .count { font-family:var(--font-mono); font-size:10px; background:var(--bg-3); padding:1px 5px; border-radius:3px; }
+.pool-tab.active .count { background:rgba(232,93,4,0.15); color:var(--accent); }
+
+.pool-content { padding: 12px 16px; display:flex; gap:10px; overflow-x:auto; min-height:110px; }
+.pool-placeholder { color:var(--text-3); font-size:12px; display:flex; align-items:center; justify-content:center; width:100%; }
+
+/* Demand Card */
+.demand-card { flex-shrink:0; width:170px; background:var(--bg-2); border:1px solid var(--border); border-radius:8px; padding:10px; cursor:grab; transition:all .15s; position:relative; }
+.demand-card:hover { border-color:var(--border-light); transform:translateY(-1px); }
+.demand-card:active { cursor:grabbing; }
+.demand-card.selected { border-color:var(--accent); box-shadow:0 0 0 2px rgba(232,93,4,0.15); }
+.demand-card.has-site { border-left:3px solid var(--green); }
+.demand-card.no-site { border-left:3px solid var(--red); }
+.demand-card.dragging { opacity:0.4; }
+
+.dc-header { display:flex; justify-content:space-between; align-items:center; margin-bottom:5px; }
+.dc-id { font-family:var(--font-mono); font-weight:600; font-size:11px; }
+.dc-type { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.5px; padding:1px 5px; border-radius:3px; }
+.dc-desc { font-size:11px; color:var(--text-2); margin-bottom:6px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; }
+.dc-meta { display:flex; justify-content:space-between; font-size:10px; color:var(--text-3); font-family:var(--font-mono); }
+.dc-site-tag { display:inline-flex; align-items:center; gap:3px; }
+.dc-site-tag.assigned { color:var(--green); }
+.dc-site-tag.unassigned { color:var(--red); font-weight:600; }
+.dc-footer { margin-top:6px; display:flex; gap:4px; flex-wrap:wrap; }
+.dc-tag { font-size:9px; padding:1px 5px; border-radius:3px; background:var(--bg-3); color:var(--text-3); }
+
+/* ========== BOTTOM: SITE LISTS ========== */
+.bottom-section { flex:1; overflow-y:auto; padding: 12px 16px; }
+.site-block { margin-bottom: 16px; }
+.site-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:8px; }
+.site-title { display:flex; align-items:center; gap:10px; }
+.site-name { font-size:13px; font-weight:700; color:var(--text-1); }
+.site-loc { font-size:10px; color:var(--text-3); }
+.site-release-toggle { display:flex; background:var(--bg-2); border-radius:5px; border:1px solid var(--border); overflow:hidden; }
+.site-release-btn { padding:4px 10px; font-size:10px; font-weight:600; color:var(--text-3); cursor:pointer; border:none; background:transparent; transition:all .15s; }
+.site-release-btn.active { background:var(--accent); color:#fff; }
+
+.site-list { background:var(--bg-1); border:1px solid var(--border); border-radius:8px; overflow:hidden; }
+.site-list:empty::before { content:'暂无记录'; display:block; padding:20px; text-align:center; color:var(--text-3); font-size:12px; }
+
+/* List Item: PO / TO / JOB */
+.list-item { display:flex; align-items:center; gap:10px; padding: 8px 12px; border-bottom:1px solid var(--border); cursor:pointer; transition:background .1s; }
+.list-item:hover { background:var(--bg-2); }
+.list-item.selected { background:rgba(232,93,4,0.05); }
+.list-item:last-child { border-bottom:none; }
+.list-item.dragging { opacity:0.4; }
+
+.li-grip { color:var(--text-3); font-size:12px; cursor:grab; opacity:0; transition:opacity .15s; }
+.li-grip:active { cursor:grabbing; }
+.li-grip:hover { opacity:1; }
+.list-item:hover .li-grip { opacity:0.5; }
+
+.li-badge { flex-shrink:0; width:38px; text-align:center; padding:2px 0; border-radius:4px; font-size:9px; font-weight:700; text-transform:uppercase; }
+.li-badge.job { background:rgba(168,85,247,0.12); color:var(--purple); border:1px solid rgba(168,85,247,0.3); }
+.li-badge.po { background:rgba(76,201,240,0.12); color:var(--blue); border:1px solid rgba(76,201,240,0.3); }
+.li-badge.to { background:rgba(34,211,238,0.12); color:var(--cyan); border:1px solid rgba(34,211,238,0.3); }
+
+.li-main { flex:1; min-width:0; }
+.li-title { font-weight:600; font-size:11.5px; color:var(--text-1); display:flex; align-items:center; gap:6px; }
+.li-title .id { font-family:var(--font-mono); }
+.li-desc { font-size:10.5px; color:var(--text-3); margin-top:1px; }
+.li-part { font-size:10px; color:var(--text-2); font-family:var(--font-mono); margin-top:1px; }
+
+.li-priority { flex-shrink:0; font-size:9px; font-weight:700; padding:2px 6px; border-radius:3px; text-transform:uppercase; }
+.li-priority.critical { background:rgba(230,57,70,0.15); color:var(--red); }
+.li-priority.high { background:rgba(232,93,4,0.15); color:var(--accent); }
+.li-priority.normal { background:rgba(139,146,168,0.15); color:var(--text-2); }
+
+.li-status { flex-shrink:0; font-size:10px; color:var(--text-3); font-family:var(--font-mono); }
+.li-qty { flex-shrink:0; font-size:10px; color:var(--text-2); font-family:var(--font-mono); width:50px; text-align:right; }
+
+.li-progress { flex-shrink:0; width:60px; }
+.li-progress-track { height:4px; background:var(--bg-3); border-radius:2px; overflow:hidden; }
+.li-progress-bar { height:100%; border-radius:2px; transition:width .3s; }
+
+/* Drop target */
+.site-list.drag-over { background:rgba(232,93,4,0.03); border:1px dashed var(--accent); }
+
+/* ========== DETAIL PANEL ========== */
+.detail-panel { height:0; background:var(--bg-1); border-top:1px solid var(--border); overflow:hidden; transition:height .25s; display:flex; }
+.detail-panel.open { height:160px; }
+.detail-left { width:260px; border-right:1px solid var(--border); padding:12px 14px; flex-shrink:0; }
+.detail-center { flex:1; padding:12px 14px; overflow-x:auto; }
+.detail-right { width:180px; border-left:1px solid var(--border); padding:12px 14px; flex-shrink:0; }
+.detail-title { font-size:10px; font-weight:700; color:var(--text-3); text-transform:uppercase; letter-spacing:1px; margin-bottom:8px; }
+.detail-row { display:flex; justify-content:space-between; padding:3px 0; font-size:11px; }
+.detail-row .label { color:var(--text-3); }
+.detail-row .value { color:var(--text-1); font-weight:500; }
+.detail-row .value.mono { font-family:var(--font-mono); }
+
+/* ========== SCROLLBAR ========== */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg-4); border-radius: 3px; }
+</style>
+</head>
+<body style="display:flex;flex-direction:column;height:100vh;">
+
+<!-- Header -->
+<div class="header">
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div class="logo">◈ SCHEDULER</div>
+    <span style="font-size:11px;color:var(--text-3);">拖拽排序 · 点击详情</span>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;">
+    <button class="btn btn-secondary" onclick="showCreateJobDialog()">+ 新建Job</button>
+    <button class="btn btn-primary" onclick="showCreatePODialog()">+ 新建PO</button>
+  </div>
+</div>
+
+<!-- Top: Demand Pool -->
+<div class="top-section">
+  <div class="pool-tabs">
+    <div class="pool-tab active" id="tab-normal" onclick="switchPoolTab('normal')">
+      Normal <span class="count" id="count-normal">0</span>
+    </div>
+    <div class="pool-tab" id="tab-hold" onclick="switchPoolTab('hold')">
+      On Hold <span class="count" id="count-hold">0</span>
+    </div>
+  </div>
+  <div class="pool-content" id="pool-content">
+    <!-- Filled by JS -->
+  </div>
+</div>
+
+<!-- Bottom: Site Lists -->
+<div class="bottom-section" id="bottom-section">
+  <!-- Filled by JS -->
+</div>
+
+<!-- Detail Panel -->
+<div class="detail-panel" id="detail-panel">
+  <div class="detail-left">
+    <div class="detail-title" id="detail-title">选择项目查看详情</div>
+    <div id="detail-info"></div>
+  </div>
+  <div class="detail-center">
+    <div class="detail-title">执行链路</div>
+    <div id="detail-flow"></div>
+  </div>
+  <div class="detail-right">
+    <div class="detail-title">关联</div>
+    <div id="detail-links"></div>
+  </div>
+</div>
+
+<script>
+// ==================== DATA ====================
+const sites = [
+  { code:'A', name:'A厂', location:'深圳' },
+  { code:'B', name:'B厂', location:'东莞' },
+  { code:'C', name:'C厂', location:'苏州' },
+];
+
+// Top pool: unplanned demands
+const topDemands = [
+  { id:'SO-1001', type:'SO', desc:'Steel Bracket Assembly', qty:500, customer:'ACME Corp', site:'A', pool:'normal', priority:'high', tags:['需配Recipe'] },
+  { id:'SO-1002', type:'SO', desc:'Power Supply Unit 24V', qty:800, customer:'TechCorp', site:'A', pool:'normal', priority:'normal', tags:[] },
+  { id:'SO-1003', type:'SO', desc:'Sensor Module V2 + Connector', qty:800, customer:'StartUp Inc', site:'A', pool:'normal', priority:'high', tags:['部分已配'] },
+  { id:'SO-1004', type:'SO', desc:'Valve Component + Seal', qty:1800, customer:'Global Mfg', site:'A', pool:'normal', priority:'critical', tags:[] },
+  { id:'SO-1005', type:'SO', desc:'Hydraulic Pump', qty:100, customer:'MegaCorp', site:'B', pool:'normal', priority:'high', tags:[] },
+  { id:'SO-1010', type:'SO', desc:'Steel Tray + Silicone Tubing', qty:280, customer:'MediTech', site:'A', pool:'hold', priority:'normal', tags:['缺料','待确认'] },
+  { id:'SO-1011', type:'SO', desc:'Brake Pad + Rotor', qty:1600, customer:'AutoParts', site:'B', pool:'hold', priority:'high', tags:['工艺待定'] },
+  { id:'SO-1013', type:'SO', desc:'Steel Beam + Anchor', qty:580, customer:'BuildRight', site:'A', pool:'normal', priority:'normal', tags:[] },
+  { id:'SO-1016', type:'SO', desc:'Motor Housing XL', qty:120, customer:'Unassigned A', site:null, pool:'normal', priority:'normal', tags:['未分配Site'] },
+  { id:'SO-1017', type:'SO', desc:'Gearbox + Bearing', qty:380, customer:'Unassigned B', site:null, pool:'normal', priority:'normal', tags:['未分配Site'] },
+  { id:'SO-1018', type:'SO', desc:'Control Panel', qty:50, customer:'Pending', site:null, pool:'normal', priority:'high', tags:['未分配Site'] },
+  { id:'MTO-001', type:'MTO', desc:'Custom PCB for Huawei', qty:100, customer:'VIP-华为', site:'C', pool:'normal', priority:'critical', tags:['定制'] },
+  { id:'MTO-003', type:'MTO', desc:'Galaxy S30 Frame', qty:180, customer:'VIP-Samsung', site:'A', pool:'normal', priority:'high', tags:[] },
+  { id:'RP-002', type:'REPLENISH', desc:'Safety Stock Washer', qty:300, customer:'库存补货', site:'A', pool:'normal', priority:'normal', tags:[] },
+  { id:'RP-003', type:'REPLENISH', desc:'Safety Stock Spring', qty:800, customer:'库存补货', site:null, pool:'normal', priority:'normal', tags:['未分配Site'] },
+  { id:'RP-004', type:'REPLENISH', desc:'Safety Stock Nut', qty:600, customer:'库存补货', site:null, pool:'normal', priority:'normal', tags:['未分配Site'] },
+  { id:'RW-002', type:'REWORK', desc:'Surface Scratch Rework', qty:15, customer:'返工', site:'B', pool:'hold', priority:'high', tags:['QC判定中'] },
+];
+
+// Bottom: planned items per site (JOB / PO / TO)
+const siteItems = [
+  // A厂 · Not Released
+  { id:'JOB-333', type:'job', site:'A', releaseStatus:'not_released', priority:'high', desc:'Valve Component 3/4"', qty:600, status:'已排程', progress:0, demands:['SO-1004'], process:['铸造○','机加○'] },
+  { id:'PO-201', type:'po', site:'A', releaseStatus:'not_released', priority:'normal', desc:'Bolt M8 采购', qty:500, status:'待下单', progress:0, demands:['RP-001'], process:['下单○','到货○'] },
+  { id:'JOB-666', type:'job', site:'A', releaseStatus:'not_released', priority:'normal', desc:'Solar Panel Frame', qty:150, status:'草稿', progress:0, demands:['SO-1008'], process:['切割○','焊接○'] },
+  // A厂 · Released
+  { id:'JOB-111', type:'job', site:'A', releaseStatus:'released', priority:'high', desc:'Steel Bracket Assembly', qty:500, status:'执行中', progress:60, demands:['SO-1001'], process:['冲压✓','焊接▶','包装○'] },
+  { id:'JOB-444', type:'job', site:'A', releaseStatus:'released', priority:'critical', desc:'Titanium Fastener M8', qty:2000, status:'执行中', progress:35, demands:['SO-1006'], process:['锻造✓','机加▶','热处理○'] },
+
+  // B厂 · Not Released
+  { id:'JOB-889', type:'job', site:'B', releaseStatus:'not_released', priority:'high', desc:'Titanium Enclosure', qty:250, status:'已排程', progress:0, demands:['MTO-002'], process:['CNC○','表面处理○'] },
+  { id:'TO-003', type:'to', site:'B', releaseStatus:'not_released', priority:'normal', desc:'调拨 Steel Coil', qty:200, status:'待执行', progress:0, demands:['TR-001'], process:['拣货○','运输○'] },
+  // B厂 · Released
+  { id:'JOB-555', type:'job', site:'B', releaseStatus:'released', priority:'high', desc:'LED Driver Module', qty:500, status:'执行中', progress:40, demands:['SO-1007'], process:['SMT✓','测试▶','包装○'] },
+  { id:'PO-967', type:'po', site:'B', releaseStatus:'released', priority:'high', desc:'Hydraulic Pump 采购', qty:100, status:'收货中', progress:50, demands:['SO-1005'], process:['下单✓','到货▶','入库○'] },
+
+  // C厂 · Not Released
+  { id:'JOB-202', type:'job', site:'C', releaseStatus:'not_released', priority:'normal', desc:'Server Rack 42U', qty:25, status:'已排程', progress:0, demands:['SO-1015'], process:['切割○','折弯○','喷粉○'] },
+  // C厂 · Released
+  { id:'JOB-222', type:'job', site:'C', releaseStatus:'released', priority:'normal', desc:'Sensor Module V2', qty:250, status:'已完成', progress:100, demands:['SO-1003'], process:['SMT✓','装配✓','测试✓'] },
+  { id:'JOB-888', type:'job', site:'C', releaseStatus:'released', priority:'critical', desc:'Custom PCB', qty:100, status:'执行中', progress:75, demands:['MTO-001'], process:['SMT✓','测试▶'] },
+  { id:'JOB-901', type:'job', site:'C', releaseStatus:'released', priority:'high', desc:'Dimension Rework', qty:20, status:'执行中', progress:30, demands:['RW-001'], process:['返工▶','质检○'] },
+  { id:'TO-002', type:'to', site:'C', releaseStatus:'released', priority:'normal', desc:'调拨 Aluminum Sheet', qty:150, status:'运输中', progress:60, demands:['TR-002'], process:['拣货✓','运输▶'] },
+];
+
+let currentPoolTab = 'normal';
+let siteReleaseState = { A:'not_released', B:'not_released', C:'not_released' };
+let selectedItem = null;
+
+// ==================== RENDER ====================
+function render() {
+  renderPool();
+  renderSites();
+}
+
+function renderPool() {
+  const container = document.getElementById('pool-content');
+  const items = topDemands.filter(d => d.pool === currentPoolTab);
+  
+  document.getElementById('count-normal').textContent = topDemands.filter(d=>d.pool==='normal').length;
+  document.getElementById('count-hold').textContent = topDemands.filter(d=>d.pool==='hold').length;
+  
+  document.getElementById('tab-normal').classList.toggle('active', currentPoolTab==='normal');
+  document.getElementById('tab-hold').classList.toggle('active', currentPoolTab==='hold');
+  
+  if (items.length === 0) {
+    container.innerHTML = '<div class="pool-placeholder">该分类下暂无 Demand</div>';
+    return;
+  }
+  
+  container.innerHTML = items.map(d => {
+    const hasSite = !!d.site;
+    const typeClass = 'type-' + d.type.toLowerCase();
+    const priorityClass = d.priority;
+    const isSelected = selectedItem && selectedItem.id === d.id && selectedItem.source === 'pool';
+    const typeColors = {so:'var(--yellow)', mto:'var(--red)', replenish:'var(--green)', rework:'#ff2e63', transfer:'var(--blue)', sample:'var(--purple)'};
+    const typeColor = typeColors[d.type.toLowerCase()] || 'var(--text-3)';
+    return `
+      <div class="demand-card ${hasSite?'has-site':'no-site'} ${isSelected?'selected':''}"
+           draggable="true"
+           data-id="${d.id}"
+           onclick="selectPoolItem('${d.id}')"
+           ondragstart="onPoolDragStart(event,'${d.id}')">
+        <div class="dc-header">
+          <span class="dc-id">${d.id}</span>
+          <span class="dc-type" style="background:${typeColor}22;color:${typeColor};border:1px solid ${typeColor}44;">${d.type}</span>
+        </div>
+        <div class="dc-desc">${d.desc}</div>
+        <div class="dc-meta">
+          <span>${d.qty}件</span>
+          <span class="dc-site-tag ${hasSite?'assigned':'unassigned'}">${hasSite?d.site+'厂':'⚠ 未分配Site'}</span>
+        </div>
+        <div class="dc-footer">
+          <span class="dc-tag" style="background:${d.priority==='critical'?'rgba(230,57,70,0.15)':(d.priority==='high'?'rgba(232,93,4,0.15)':'rgba(139,146,168,0.15)')};color:${d.priority==='critical'?'var(--red)':(d.priority==='high'?'var(--accent)':'var(--text-3)')};">${d.priority}</span>
+          ${d.tags.map(t => `<span class="dc-tag">${t}</span>`).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderSites() {
+  const container = document.getElementById('bottom-section');
+  
+  container.innerHTML = sites.map(site => {
+    const release = siteReleaseState[site.code];
+    const items = siteItems.filter(i => i.site === site.code && i.releaseStatus === release)
+      .sort((a,b) => {
+        const pMap = {critical:3, high:2, normal:1};
+        return pMap[b.priority] - pMap[a.priority];
+      });
+    
+    return `
+      <div class="site-block">
+        <div class="site-header">
+          <div class="site-title">
+            <span class="site-name">${site.name}</span>
+            <span class="site-loc">${site.location}</span>
+          </div>
+          <div class="site-release-toggle">
+            <button class="site-release-btn ${release==='not_released'?'active':''}" onclick="setSiteRelease('${site.code}','not_released')">Not Released</button>
+            <button class="site-release-btn ${release==='released'?'active':''}" onclick="setSiteRelease('${site.code}','released')">Released</button>
+          </div>
+        </div>
+        <div class="site-list" 
+             id="site-list-${site.code}"
+             ondragover="onSiteDragOver(event,'${site.code}')"
+             ondragleave="onSiteDragLeave(event)"
+             ondrop="onSiteDrop(event,'${site.code}')">
+          ${items.map(item => renderListItem(item)).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderListItem(item) {
+  const isSelected = selectedItem && selectedItem.id === item.id && selectedItem.source === 'site';
+  const progressColor = item.progress===100?'var(--green)':(item.progress>0?'var(--yellow)':'var(--text-3)');
+  const statusIcon = item.status==='已完成'?'✓':(item.status==='执行中'?'▶':(item.status==='收货中'?'📦':'○'));
+  
+  return `
+    <div class="list-item ${isSelected?'selected':''}"
+         draggable="true"
+         data-id="${item.id}"
+         onclick="selectSiteItem('${item.id}')"
+         ondragstart="onSiteItemDragStart(event,'${item.id}')">
+      <div class="li-grip">⋮⋮</div>
+      <div class="li-badge ${item.type}">${item.type}</div>
+      <div class="li-main">
+        <div class="li-title">
+          <span class="id">${item.id}</span>
+          <span>${item.desc}</span>
+        </div>
+        <div class="li-part">${item.demands.join(', ')} · ${item.qty}件</div>
+      </div>
+      <div class="li-priority ${item.priority}">${item.priority}</div>
+      <div class="li-status">${statusIcon} ${item.status}</div>
+      <div class="li-progress">
+        <div class="li-progress-track">
+          <div class="li-progress-bar" style="width:${item.progress}%;background:${progressColor};"></div>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ==================== INTERACTION ====================
+function switchPoolTab(tab) {
+  currentPoolTab = tab;
+  renderPool();
+}
+
+function setSiteRelease(siteCode, release) {
+  siteReleaseState[siteCode] = release;
+  renderSites();
+}
+
+function selectPoolItem(id) {
+  selectedItem = { id, source:'pool' };
+  const d = topDemands.find(x => x.id === id);
+  showDetail(d, 'pool');
+  renderPool();
+  // Clear site selection highlight
+  renderSites();
+}
+
+function selectSiteItem(id) {
+  selectedItem = { id, source:'site' };
+  const item = siteItems.find(x => x.id === id);
+  showDetail(item, 'site');
+  renderSites();
+  // Clear pool selection highlight
+  renderPool();
+}
+
+function showDetail(data, source) {
+  const panel = document.getElementById('detail-panel');
+  panel.classList.add('open');
+  
+  if (source === 'pool') {
+    document.getElementById('detail-title').textContent = `📥 ${data.id} (未规划)`;
+    document.getElementById('detail-info').innerHTML = `
+      <div class="detail-row"><span class="label">类型</span><span class="value">${data.type}</span></div>
+      <div class="detail-row"><span class="label">描述</span><span class="value">${data.desc}</span></div>
+      <div class="detail-row"><span class="label">数量</span><span class="value mono">${data.qty}件</span></div>
+      <div class="detail-row"><span class="label">客户</span><span class="value">${data.customer}</span></div>
+      <div class="detail-row"><span class="label">Site</span><span class="value" style="color:${!data.site?'var(--red)':'var(--green)'}">${!data.site?'⚠ 未分配':data.site+'厂'}</span></div>
+      <div class="detail-row"><span class="label">优先级</span><span class="value" style="text-transform:uppercase;">${data.priority}</span></div>
+      <div class="detail-row"><span class="label">分类</span><span class="value">${data.pool==='hold'?'On Hold':'Normal'}</span></div>
+    `;
+    document.getElementById('detail-flow').innerHTML = `
+      <div style="font-size:11px;color:var(--text-3);padding:8px;background:var(--bg-2);border-radius:5px;">
+        该 Demand 尚未规划完成。<br>
+        ${!data.site ? '→ 需先分配 Site<br>' : ''}
+        → 需创建对应的 Job / PO / TO<br>
+        → 规划完成后拖拽到下方 Site 列表
+      </div>
+    `;
+    document.getElementById('detail-links').innerHTML = `<div style="font-size:11px;color:var(--text-3);">暂无关联</div>`;
+  } else {
+    const typeLabel = {job:'💼 Job', po:'🛒 PO', to:'🚚 TO'}[data.type];
+    const releaseLabel = data.releaseStatus==='released'?'已发布':'未发布';
+    document.getElementById('detail-title').textContent = `${typeLabel} ${data.id}`;
+    document.getElementById('detail-info').innerHTML = `
+      <div class="detail-row"><span class="label">描述</span><span class="value">${data.desc}</span></div>
+      <div class="detail-row"><span class="label">数量</span><span class="value mono">${data.qty}件</span></div>
+      <div class="detail-row"><span class="label">Site</span><span class="value">${data.site}厂</span></div>
+      <div class="detail-row"><span class="label">状态</span><span class="value">${data.status}</span></div>
+      <div class="detail-row"><span class="label">发布</span><span class="value">${releaseLabel}</span></div>
+      <div class="detail-row"><span class="label">进度</span><span class="value mono">${data.progress}%</span></div>
+      <div class="detail-row"><span class="label">优先级</span><span class="value" style="text-transform:uppercase;">${data.priority}</span></div>
+    `;
+    document.getElementById('detail-flow').innerHTML = `
+      <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap;">
+        ${data.process.map((p,i) => {
+          const done = p.includes('✓');
+          const active = p.includes('▶');
+          const cls = done?'done':(active?'active':'pending');
+          const arrow = i < data.process.length-1 ? '<span style="color:var(--text-3);font-size:10px;">→</span>' : '';
+          return `<span style="padding:4px 10px;border-radius:5px;background:${done?'rgba(45,198,83,0.1)':(active?'rgba(232,93,4,0.1)':'var(--bg-3)')};border:1px solid ${done?'rgba(45,198,83,0.3)':(active?'rgba(232,93,4,0.3)':'var(--border)')};color:${done?'var(--green)':(active?'var(--accent)':'var(--text-3)')};font-size:11px;white-space:nowrap;">${p}</span>${arrow}`;
+        }).join('')}
+      </div>
+    `;
+    document.getElementById('detail-links').innerHTML = data.demands.map(did => {
+      const d = topDemands.find(x => x.id === did) || {type:'SO', desc:'未知'};
+      return `<div style="font-size:11px;padding:4px 0;border-bottom:1px solid var(--border);">${did} · ${d.desc}</div>`;
+    }).join('');
+  }
+}
+
+// ==================== DRAG & DROP ====================
+let draggedPoolId = null;
+
+function onPoolDragStart(e, id) {
+  draggedPoolId = id;
+  e.target.classList.add('dragging');
+  e.dataTransfer.setData('text/plain', id);
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function onSiteDragOver(e, siteCode) {
+  e.preventDefault();
+  const list = document.getElementById(`site-list-${siteCode}`);
+  if (list) list.classList.add('drag-over');
+}
+
+function onSiteDragLeave(e) {
+  document.querySelectorAll('.site-list').forEach(l => l.classList.remove('drag-over'));
+}
+
+function onSiteDrop(e, siteCode) {
+  e.preventDefault();
+  document.querySelectorAll('.site-list').forEach(l => l.classList.remove('drag-over'));
+  const id = e.dataTransfer.getData('text/plain');
+  if (!id) return;
+  
+  const demand = topDemands.find(d => d.id === id);
+  if (!demand) return;
+  
+  // Move from pool to site
+  demand.planStatus = 'planned';
+  
+  // Create a new site item (mock)
+  const newItem = {
+    id: demand.type==='SO'?'JOB-NEW-'+Math.floor(Math.random()*1000):(demand.type==='REPLENISH'?'PO-NEW-'+Math.floor(Math.random()*1000):'TO-NEW-'+Math.floor(Math.random()*1000)),
+    type: demand.type==='SO'||demand.type==='MTO'||demand.type==='REWORK'||demand.type==='SAMPLE'?'job':(demand.type==='REPLENISH'?'po':'to'),
+    site: siteCode,
+    releaseStatus: 'not_released',
+    priority: demand.priority,
+    desc: demand.desc,
+    qty: demand.qty,
+    status: '草稿',
+    progress: 0,
+    demands: [demand.id],
+    process: ['创建○']
+  };
+  siteItems.push(newItem);
+  
+  // Remove from top pool
+  const idx = topDemands.indexOf(demand);
+  if (idx > -1) topDemands.splice(idx, 1);
+  
+  showToast('已规划', `${demand.id} → ${siteCode}厂 · ${newItem.type.toUpperCase()}`, false);
+  render();
+}
+
+// Site item reorder drag
+let draggedSiteItemId = null;
+function onSiteItemDragStart(e, id) {
+  draggedSiteItemId = id;
+  e.target.classList.add('dragging');
+  e.dataTransfer.setData('text/plain', id);
+}
+
+// ==================== TOAST ====================
+function showToast(title, body) {
+  const div = document.createElement('div');
+  div.style.cssText = 'position:fixed;bottom:20px;right:20px;background:var(--bg-2);border:1px solid var(--border-light);border-radius:8px;padding:12px 16px;box-shadow:0 8px 24px rgba(0,0,0,0.4);z-index:3000;font-size:12px;max-width:300px;animation:slideIn .3s;';
+  div.innerHTML = `<div style="font-weight:700;margin-bottom:3px;">${title}</div><div style="color:var(--text-2);">${body}</div>`;
+  document.body.appendChild(div);
+  setTimeout(() => div.remove(), 3000);
+}
+
+// ==================== INIT ====================
+render();
+</script>
+</body>
+</html>
