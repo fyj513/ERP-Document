@@ -57,15 +57,51 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 .main { display:flex; height: calc(100vh - 48px); }
 
 /* Filter Panel (Left) */
-.filter-panel { width: 200px; background: var(--bg-1); border-right: 1px solid var(--border); padding: 12px 0; overflow-y: auto; flex-shrink: 0; }
+.filter-panel { width: 210px; background: var(--bg-1); border-right: 1px solid var(--border); padding: 12px 0; overflow-y: auto; flex-shrink: 0; }
 .filter-group { margin-bottom: 4px; }
+
+/* Droppable groups (Site & Status) */
+.filter-group.droppable .filter-group-header {
+  background: rgba(232,93,4,0.05);
+  border-left: 2px solid var(--accent);
+}
+.filter-group.droppable .filter-group-header::before {
+  content: '📁';
+  margin-right: 4px;
+  font-size: 10px;
+}
+.filter-group.droppable .filter-option {
+  position: relative;
+}
+.filter-group.droppable .filter-option.drop-target {
+  background: rgba(232,93,4,0.15);
+  border: 1px dashed var(--accent);
+  color: var(--accent);
+}
+.filter-group.droppable .filter-option.drop-target::after {
+  content: '← Drop';
+  position: absolute;
+  right: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Filter-only groups (Type & Date) */
+.filter-group.filter-only .filter-group-header::before {
+  content: '🔍';
+  margin-right: 4px;
+  font-size: 10px;
+}
+
 .filter-group-header { padding: 8px 12px; font-size: 10px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; user-select: none; }
 .filter-group-header:hover { color: var(--text-2); }
 .filter-group-header .arrow { font-size: 10px; transition: transform .2s; }
 .filter-group-header.open .arrow { transform: rotate(90deg); }
 .filter-group-body { padding: 4px 10px 8px; display: none; }
 .filter-group-body.open { display: block; }
-.filter-option { padding: 5px 8px; border-radius: 5px; cursor: pointer; color: var(--text-2); font-size: 12px; display: flex; align-items: center; gap: 8px; transition: all .12s; margin-bottom: 1px; }
+.filter-option { padding: 5px 8px; border-radius: 5px; cursor: pointer; color: var(--text-2); font-size: 12px; display: flex; align-items: center; gap: 8px; transition: all .12s; margin-bottom: 2px; border: 1px solid transparent; }
 .filter-option:hover { background: var(--bg-2); color: var(--text-1); }
 .filter-option.active { background: var(--bg-3); color: var(--accent); }
 .filter-option .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
@@ -73,6 +109,11 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 .filter-option.active .count { color: var(--accent); }
 .filter-reset { padding: 6px 12px; font-size: 11px; color: var(--text-3); cursor: pointer; text-align: center; border-top: 1px solid var(--border); margin-top: 4px; }
 .filter-reset:hover { color: var(--accent); }
+
+/* Drop hint when dragging */
+.filter-panel.drag-active {
+  background: rgba(232,93,4,0.02);
+}
 
 /* Content (Right) */
 .content { flex: 1; overflow-y: auto; padding: 12px 16px 40px; }
@@ -198,7 +239,7 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 
 <!-- Batch Action Bar -->
 <div class="batch-bar" id="batch-bar">
-  <span class="batch-count" id="batch-count">0</span> 个Line Item 已选择
+  <span class="batch-count" id="batch-count">0</span> 个已选择
   <div class="batch-divider"></div>
   <button class="btn btn-primary btn-sm" onclick="batchMerge()">🔗 合并到Job</button>
   <button class="btn btn-secondary btn-sm" onclick="batchSplit()">✂️ 拆分数量</button>
@@ -212,62 +253,77 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 <!-- Main -->
 <div class="main">
   <!-- Filter Panel (Left) -->
-  <div class="filter-panel">
-    <div class="filter-group">
+  <div class="filter-panel" id="filter-panel">
+    <!-- Site: Droppable -->
+    <div class="filter-group droppable" data-droppable="site">
       <div class="filter-group-header open" onclick="toggleFilterGroup(this)">
-        <span>工厂 Site</span><span class="arrow">▶</span>
+        <span>📁 工厂 Site（可拖拽）</span><span class="arrow">▶</span>
       </div>
-      <div class="filter-group-body open">
-        <div class="filter-option active" data-filter="site" data-value="all" onclick="setFilter('site','all',this)">
+      <div class="filter-group-body open" id="site-filters">
+        <div class="filter-option active" data-filter="site" data-value="all" onclick="setFilter('site','all',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'site','all')">
           <span style="font-size:11px;">◈</span><span>全部工厂</span><span class="count">26</span>
         </div>
-        <div class="filter-option" data-filter="site" data-value="A" onclick="setFilter('site','A',this)">
+        <div class="filter-option" data-filter="site" data-value="A" onclick="setFilter('site','A',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'site','A')">
           <span class="dot" style="background:var(--blue)"></span><span>A厂 · 深圳</span><span class="count">10</span>
         </div>
-        <div class="filter-option" data-filter="site" data-value="B" onclick="setFilter('site','B',this)">
+        <div class="filter-option" data-filter="site" data-value="B" onclick="setFilter('site','B',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'site','B')">
           <span class="dot" style="background:var(--green)"></span><span>B厂 · 东莞</span><span class="count">8</span>
         </div>
-        <div class="filter-option" data-filter="site" data-value="C" onclick="setFilter('site','C',this)">
+        <div class="filter-option" data-filter="site" data-value="C" onclick="setFilter('site','C',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'site','C')">
           <span class="dot" style="background:var(--yellow)"></span><span>C厂 · 苏州</span><span class="count">5</span>
         </div>
-        <div class="filter-option" data-filter="site" data-value="unassigned" onclick="setFilter('site','unassigned',this)">
+        <div class="filter-option" data-filter="site" data-value="unassigned" onclick="setFilter('site','unassigned',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'site',null)">
           <span style="color:var(--red);font-size:10px;font-weight:700;">⚠</span><span>未分配</span><span class="count">3</span>
         </div>
       </div>
     </div>
 
-    <div class="filter-group">
+    <!-- Status: Droppable -->
+    <div class="filter-group droppable" data-droppable="status">
       <div class="filter-group-header open" onclick="toggleFilterGroup(this)">
-        <span>状态 Status</span><span class="arrow">▶</span>
+        <span>📁 状态 Status（可拖拽）</span><span class="arrow">▶</span>
       </div>
-      <div class="filter-group-body open">
-        <div class="filter-option active" data-filter="status" data-value="all" onclick="setFilter('status','all',this)">
+      <div class="filter-group-body open" id="status-filters">
+        <div class="filter-option active" data-filter="status" data-value="all" onclick="setFilter('status','all',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'status','all')">
           <span style="font-size:11px;">◈</span><span>全部状态</span><span class="count">26</span>
         </div>
-        <div class="filter-option" data-filter="status" data-value="draft" onclick="setFilter('status','draft',this)">
+        <div class="filter-option" data-filter="status" data-value="draft" onclick="setFilter('status','draft',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'status','draft')">
           <span class="dot" style="background:var(--text-3)"></span><span>草稿</span><span class="count">9</span>
         </div>
-        <div class="filter-option" data-filter="status" data-value="hold" onclick="setFilter('status','hold',this)">
+        <div class="filter-option" data-filter="status" data-value="hold" onclick="setFilter('status','hold',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'status','hold')">
           <span class="dot" style="background:var(--text-3)"></span><span>暂停</span><span class="count">2</span>
         </div>
-        <div class="filter-option" data-filter="status" data-value="scheduled" onclick="setFilter('status','scheduled',this)">
+        <div class="filter-option" data-filter="status" data-value="scheduled" onclick="setFilter('status','scheduled',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'status','scheduled')">
           <span class="dot" style="background:var(--blue)"></span><span>已排程</span><span class="count">8</span>
         </div>
-        <div class="filter-option" data-filter="status" data-value="executing" onclick="setFilter('status','executing',this)">
+        <div class="filter-option" data-filter="status" data-value="executing" onclick="setFilter('status','executing',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'status','executing')">
           <span class="dot" style="background:var(--yellow)"></span><span>执行中</span><span class="count">5</span>
         </div>
-        <div class="filter-option" data-filter="status" data-value="partial" onclick="setFilter('status','partial',this)">
+        <div class="filter-option" data-filter="status" data-value="partial" onclick="setFilter('status','partial',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'status','partial')">
           <span class="dot" style="background:var(--accent)"></span><span>部分完成</span><span class="count">2</span>
         </div>
-        <div class="filter-option" data-filter="status" data-value="completed" onclick="setFilter('status','completed',this)">
+        <div class="filter-option" data-filter="status" data-value="completed" onclick="setFilter('status','completed',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'status','completed')">
           <span class="dot" style="background:var(--green)"></span><span>已完成</span><span class="count">1</span>
         </div>
       </div>
     </div>
 
-    <div class="filter-group">
+    <!-- Type: Filter only -->
+    <div class="filter-group filter-only">
       <div class="filter-group-header open" onclick="toggleFilterGroup(this)">
-        <span>类型 Type</span><span class="arrow">▶</span>
+        <span>🔍 类型 Type（仅筛选）</span><span class="arrow">▶</span>
       </div>
       <div class="filter-group-body open">
         <div class="filter-option active" data-filter="type" data-value="all" onclick="setFilter('type','all',this)">
@@ -294,9 +350,10 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
       </div>
     </div>
 
-    <div class="filter-group">
+    <!-- Date: Filter only -->
+    <div class="filter-group filter-only">
       <div class="filter-group-header open" onclick="toggleFilterGroup(this)">
-        <span>交期 Due Date</span><span class="arrow">▶</span>
+        <span>🔍 交期 Due Date（仅筛选）</span><span class="arrow">▶</span>
       </div>
       <div class="filter-group-body open">
         <div class="filter-option active" data-filter="date" data-value="all" onclick="setFilter('date','all',this)">
@@ -539,12 +596,9 @@ function toggleFilterGroup(header) {
 }
 
 function setFilter(category, value, el) {
-  // Update filter state
   filters[category] = value;
-  // Update UI
   document.querySelectorAll(`[data-filter="${category}"]`).forEach(opt => opt.classList.remove('active'));
   el.classList.add('active');
-  // Re-render
   renderTable();
 }
 
@@ -557,7 +611,6 @@ function resetAllFilters() {
 }
 
 function matchesFilters(item) {
-  // Site filter
   if (filters.site !== 'all') {
     if (filters.site === 'unassigned') {
       if (item.site) return false;
@@ -565,18 +618,54 @@ function matchesFilters(item) {
       if (!item.site || !item.site.includes(filters.site)) return false;
     }
   }
-  // Status filter
   if (filters.status !== 'all' && item.status !== filters.status) return false;
-  // Type filter
   if (filters.type !== 'all') {
     const itemType = item.id.startsWith('SO') ? 'SO' : (item.id.split('-')[0]);
     if (itemType !== filters.type) return false;
   }
-  // Date filter (simplified)
-  if (filters.date !== 'all') {
-    // For demo, just allow all
-  }
   return true;
+}
+
+// ==================== DRAG & DROP TO FILTER ====================
+function handleFilterDragOver(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('drop-target');
+}
+function handleFilterDragLeave(e) {
+  e.currentTarget.classList.remove('drop-target');
+}
+function handleFilterDrop(e, category, value) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drop-target');
+  const id = e.dataTransfer.getData('text/plain');
+  if (!id) return;
+
+  if (category === 'site') {
+    const so = allData.find(s=>s.id===id);
+    const sp = specialDemands.find(s=>s.id===id);
+    if (so) {
+      so.site = value;
+      showToast('Site 已变更', `${id} → ${value==='A'?'A厂':(value==='B'?'B厂':(value==='C'?'C厂':'未分配'))}`);
+    } else if (sp) {
+      sp.site = value;
+      showToast('Site 已变更', `${id} → ${value==='A'?'A厂':(value==='B'?'B厂':(value==='C'?'C厂':'未分配'))}`);
+    }
+  } else if (category === 'status') {
+    const so = allData.find(s=>s.id===id);
+    const sp = specialDemands.find(s=>s.id===id);
+    if (so) {
+      so.status = value;
+      showToast('状态已变更', `${id} → ${statusLabel(value)}`);
+    } else if (sp) {
+      sp.status = value;
+      showToast('状态已变更', `${id} → ${statusLabel(value)}`);
+    }
+  }
+  renderTable();
+}
+function statusLabel(s) {
+  const map = {draft:'草稿',hold:'暂停',scheduled:'已排程',executing:'执行中',partial:'部分完成',completed:'已完成'};
+  return map[s]||s;
 }
 
 // ==================== RENDER ====================
@@ -584,27 +673,16 @@ function renderTable() {
   const tbody = document.getElementById('table-body');
   tbody.innerHTML = '';
 
-  // Filter SO data
   let soData = allData.filter(s => matchesFilters(s));
-  // Filter special demands
   let spData = specialDemands.filter(s => matchesFilters(s));
 
-  // Combine and sort by priority/DDL
   let allItems = [];
-  soData.forEach(so => {
-    allItems.push({ kind:'so', data:so, sortKey: so.ddl });
-  });
-  spData.forEach(sp => {
-    allItems.push({ kind:'special', data:sp, sortKey: sp.ddl });
-  });
+  soData.forEach(so => { allItems.push({ kind:'so', data:so, sortKey: so.ddl }); });
+  spData.forEach(sp => { allItems.push({ kind:'special', data:sp, sortKey: sp.ddl }); });
 
-  // Render
   allItems.forEach(item => {
-    if (item.kind === 'so') {
-      renderSORow(tbody, item.data);
-    } else {
-      renderSpecialRow(tbody, item.data);
-    }
+    if (item.kind === 'so') renderSORow(tbody, item.data);
+    else renderSpecialRow(tbody, item.data);
   });
 
   if (allItems.length === 0) {
@@ -744,7 +822,6 @@ function renderSiteCell(id, site, type) {
     </div>
   `;
 }
-
 function assignSite(e, id, type) {
   const site = e.target.value;
   if (!site) return;
@@ -755,7 +832,7 @@ function assignSite(e, id, type) {
     const sp = specialDemands.find(s=>s.id===id);
     if (sp) sp.site = site;
   }
-  showToast('Site 已分配', `${id} 已分配到 ${site==='A'?'A厂':(site==='B'?'B厂':'C厂')}`);
+  showToast('Site 已分配', `${id} → ${site==='A'?'A厂':(site==='B'?'B厂':'C厂')}`);
   renderTable();
 }
 
@@ -781,7 +858,7 @@ function renderMergeSuggestions() {
     </div>
   `;
 }
-function confirmMerge(id) { showToast('合并成功', `Candidate ${id} 已合并为 Job JB-999`); event.target.closest('.merge-card').remove(); }
+function confirmMerge(id) { showToast('合并成功', `Candidate ${id} → Job JB-999`); event.target.closest('.merge-card').remove(); }
 function ignoreMerge(id) { event.target.closest('.merge-card').remove(); }
 function refreshMerge() { renderMergeSuggestions(); showToast('已刷新', '合并建议已更新'); }
 
@@ -832,10 +909,9 @@ function clearSelection() { selectedLines.clear(); renderTable(); }
 
 // ==================== BATCH ACTIONS ====================
 function batchMerge() {
-  if (selectedLines.size < 2) { showToast('无法合并', '请至少选择 2 个 Line Item'); return; }
-  showToast('合并到Job', `已将 ${selectedLines.size} 个Line Item合并为新Job`);
-  selectedLines.clear();
-  renderTable();
+  if (selectedLines.size < 2) { showToast('无法合并', '请至少选择 2 个'); return; }
+  showToast('合并到Job', `${selectedLines.size} 个Line Item → 新Job`);
+  selectedLines.clear(); renderTable();
 }
 function batchSplit() {
   if (selectedLines.size === 0) return;
@@ -851,8 +927,7 @@ function batchSplit() {
       ctxTarget = {soId:id, line:0, special:true};
       document.getElementById('split-part').textContent = `${sp.part} - ${sp.desc}`;
       document.getElementById('split-total').textContent = sp.qty;
-      openDialog('dialog-split');
-      updateSplitStats();
+      openDialog('dialog-split'); updateSplitStats();
     }
   }
 }
@@ -864,26 +939,20 @@ function batchAssignSite() {
     const [id,line]=k.split(':');
     const so=allData.find(s=>s.id===id);
     if (so) so.site = site;
-    else {
-      const sp=specialDemands.find(s=>s.id===id);
-      if (sp) sp.site = site;
-    }
+    else { const sp=specialDemands.find(s=>s.id===id); if (sp) sp.site = site; }
   });
-  showToast('批量分配Site', `已将 ${selectedLines.size} 个Demand分配到 ${site==='A'?'A厂':(site==='B'?'B厂':'C厂')}`);
-  selectedLines.clear();
-  renderTable();
+  showToast('批量分配Site', `${selectedLines.size} 个Demand → ${site==='A'?'A厂':(site==='B'?'B厂':'C厂')}`);
+  selectedLines.clear(); renderTable();
 }
 function batchCreateJob() {
   if (selectedLines.size === 0) return;
-  showToast('创建Job', `已为 ${selectedLines.size} 个Line Item创建Job`);
-  selectedLines.clear();
-  renderTable();
+  showToast('创建Job', `${selectedLines.size} 个Line Item → Job`);
+  selectedLines.clear(); renderTable();
 }
 function batchCreatePO() {
   if (selectedLines.size === 0) return;
-  showToast('创建PO', `已为 ${selectedLines.size} 个Line Item创建PO`);
-  selectedLines.clear();
-  renderTable();
+  showToast('创建PO', `${selectedLines.size} 个Line Item → PO`);
+  selectedLines.clear(); renderTable();
 }
 
 // ==================== INTERACTIONS ====================
@@ -893,11 +962,11 @@ function toggleExpand(soId) {
 }
 function scheduleSpecial(id) {
   const sd = specialDemands.find(s=>s.id===id);
-  showToast('排程成功', `${sd.id} (${sd.part}) 已创建为 Job，BOM 自动展开`);
+  showToast('排程成功', `${sd.id} (${sd.part}) → Job，BOM自动展开`);
 }
 function showSpecialDetail(id) {
   const sd = specialDemands.find(s=>s.id===id);
-  showToast('详情', `${sd.id} | ${sd.part} - ${sd.desc} | 数量:${sd.qty} | 优先级:${sd.priority}`);
+  showToast('详情', `${sd.id} | ${sd.part} - ${sd.desc} | Qty:${sd.qty} | Priority:${sd.priority}`);
 }
 
 // ==================== DRAG & DROP ====================
@@ -906,16 +975,18 @@ function addDragEvents(row) {
     row.classList.add('dragging');
     e.dataTransfer.setData('text/plain', row.dataset.id);
     e.dataTransfer.effectAllowed = 'move';
+    document.getElementById('filter-panel').classList.add('drag-active');
   });
   row.addEventListener('dragend', ()=>{
     row.classList.remove('dragging');
+    document.getElementById('filter-panel').classList.remove('drag-active');
+    document.querySelectorAll('.drop-target').forEach(el=>el.classList.remove('drop-target'));
   });
 }
 
 // ==================== CONTEXT MENU ====================
 function showCtxMenu(e, soId, lineNo) {
-  e.preventDefault();
-  e.stopPropagation();
+  e.preventDefault(); e.stopPropagation();
   ctxTarget = {soId, lineNo};
   const menu = document.getElementById('ctx-menu');
   menu.style.left = e.pageX+'px';
@@ -940,7 +1011,7 @@ function ctxCreateJob() {
   document.getElementById('cj-ddl').value = new Date().toISOString().split('T')[0];
   openDialog('dialog-create-job');
 }
-function ctxCreatePO() { showToast('创建PO', `为 ${ctxTarget.soId} 创建采购订单`); }
+function ctxCreatePO() { showToast('创建PO', `${ctxTarget.soId} → PO`); }
 function ctxSplit() {
   const so = allData.find(s=>s.id===ctxTarget.soId);
   if (so) {
@@ -954,23 +1025,20 @@ function ctxSplit() {
       document.getElementById('split-total').textContent = sp.qty;
     }
   }
-  openDialog('dialog-split');
-  updateSplitStats();
+  openDialog('dialog-split'); updateSplitStats();
 }
 function ctxViewDetail() {
   const so = allData.find(s=>s.id===ctxTarget.soId);
-  if (so) {
-    showToast('查看详情', `${ctxTarget.soId} Line ${ctxTarget.lineNo}`);
-  } else {
+  if (so) showToast('详情', `${ctxTarget.soId} Line ${ctxTarget.lineNo}`);
+  else {
     const sp = specialDemands.find(s=>s.id===ctxTarget.soId);
-    if (sp) showToast('查看详情', `${sp.id} | ${sp.part} - ${sp.desc}`);
+    if (sp) showToast('详情', `${sp.id} | ${sp.part} - ${sp.desc}`);
   }
 }
 
 // ==================== DIALOGS ====================
 function openDialog(id) { document.getElementById(id).classList.add('open'); }
 function closeDialog(id) { document.getElementById(id).classList.remove('open'); }
-
 function showCreateJobDialog() {
   document.getElementById('cj-part').value = '';
   document.getElementById('cj-qty').value = '';
@@ -980,9 +1048,8 @@ function confirmCreateJob() {
   const part = document.getElementById('cj-part').value;
   const qty = document.getElementById('cj-qty').value;
   closeDialog('dialog-create-job');
-  showToast('Job 已创建', `${part} × ${qty} 的 Job 已生成，BOM已自动展开`);
+  showToast('Job 已创建', `${part} × ${qty} → Job，BOM已展开`);
 }
-
 function onSplitModeChange() {
   const mode = document.getElementById('split-mode').value;
   document.getElementById('split-manual').style.display = mode==='manual'?'block':'none';
@@ -1006,9 +1073,7 @@ function updateSplitStats() {
   let entered = 0;
   if (mode==='manual') {
     document.querySelectorAll('#split-rows input').forEach(i=>{ entered += parseInt(i.value)||0; });
-  } else {
-    entered = total;
-  }
+  } else { entered = total; }
   document.getElementById('split-entered').textContent = entered;
   document.getElementById('split-remaining').textContent = total - entered;
 }
