@@ -56,6 +56,12 @@
 10. As a Scheduler，我希望看到返工Demand自动置顶并以红色标记，so that 返工不会淹没在普通需求中。
 11. As a Scheduler，我希望Replenishment Demand以草稿态进入页面，支持批量确认，so that 系统补货建议不会直接执行，保留我的审阅权。
 12. As a Scheduler，我希望Transfer Demand在创建前能看到全公司各Site的可用库存，so that 我决定是否调拨以及从哪里调拨。
+13. As a Scheduler，我希望看到Site未分配的Demand以高亮标记（如⚠️），so that 我知道哪些需求必须先分配Site才能排程。
+14. As a Scheduler，我希望系统根据产能负荷、距离、工艺匹配度自动推荐最优Site，so that 我不需要凭经验猜测该放在哪个工厂。
+15. As a Scheduler，我希望在推荐Site不合理时手动更换Site（如下拉选择A厂/B厂/C厂），so that 特殊情况下我可以覆盖系统建议。
+16. As a Scheduler，我希望一个大SO可以拆分到多个Site生产（如A厂生产80%、B厂生产20%），so that 灵活利用分散的产能。
+17. As a Scheduler，我希望批量勾选多个Replenishment Demand后一键分配Site，so that 我不需要逐条处理大量补货需求。
+18. As a Scheduler，我希望在分配Site前看到该Site的实时产能负荷（如A厂已用82%），so that 我不会把新Job分配到已经满载的工厂。
 
 ### Site Plan 页面（Site主管/班组长）
 

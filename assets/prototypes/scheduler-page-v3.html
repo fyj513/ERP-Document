@@ -117,7 +117,7 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 
 /* Table */
 .schedule-table { background: var(--bg-1); border: 1px solid var(--border); border-radius: 8px; overflow: hidden; }
-.table-header { display: grid; grid-template-columns: 28px 28px 28px 85px 100px 1fr 65px 65px 65px 65px 80px 130px; padding: 7px 10px; background: var(--bg-2); font-size: 9px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); align-items: center; }
+.table-header { display: grid; grid-template-columns: 28px 28px 28px 85px 100px 1fr 65px 65px 65px 65px 80px 80px 130px; padding: 7px 10px; background: var(--bg-2); font-size: 9px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; border-bottom: 1px solid var(--border); align-items: center; }
 .table-header .th { overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
 .table-header .th-right { text-align: right; }
 
@@ -127,7 +127,7 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 .so-row.selected-so { background: rgba(232,93,4,0.05); }
 .so-row.dragging { opacity: 0.35; }
 
-.so-main { display: grid; grid-template-columns: 28px 28px 28px 85px 100px 1fr 65px 65px 65px 65px 80px 130px; padding: 8px 10px; align-items: center; gap: 3px; cursor: pointer; }
+.so-main { display: grid; grid-template-columns: 28px 28px 28px 85px 100px 1fr 65px 65px 65px 65px 80px 80px 130px; padding: 8px 10px; align-items: center; gap: 3px; cursor: pointer; }
 .so-check { display:flex; align-items:center; justify-content:center; }
 .so-check input { width: 13px; height: 13px; accent-color: var(--accent); cursor:pointer; }
 .so-grip { display:flex; align-items:center; justify-content:center; cursor: grab; color: var(--text-3); font-size: 12px; opacity: 0; transition: opacity .15s; }
@@ -150,7 +150,7 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 /* Line Items */
 .line-items { display: none; padding: 0 10px 6px 48px; }
 .line-items.open { display: block; }
-.line-item { display: grid; grid-template-columns: 28px 28px 28px 85px 100px 1fr 65px 65px 65px 65px 80px 130px; padding: 6px 0; align-items: center; gap: 3px; border-bottom: 1px solid rgba(255,255,255,0.02); transition: background .1s; }
+.line-item { display: grid; grid-template-columns: 28px 28px 28px 85px 100px 1fr 65px 65px 65px 65px 80px 80px 130px; padding: 6px 0; align-items: center; gap: 3px; border-bottom: 1px solid rgba(255,255,255,0.02); transition: background .1s; }
 .line-item:hover { background: var(--bg-2); }
 .line-item.selected { box-shadow: inset 2px 0 0 var(--accent); background: rgba(232,93,4,0.04); }
 .li-line { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); }
@@ -227,6 +227,7 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
   <div class="header-right">
     <button class="btn btn-secondary" id="btn-merge" style="display:none;" onclick="batchMerge()">🔗 合并到Job</button>
     <button class="btn btn-secondary" id="btn-split" style="display:none;" onclick="batchSplit()">✂️ 拆分</button>
+    <button class="btn btn-secondary" id="btn-assign-site" style="display:none;" onclick="batchAssignSite()">📍 分配Site</button>
     <button class="btn btn-primary" onclick="showCreateJobDialog()">+ 新建Job</button>
   </div>
 </div>
@@ -237,6 +238,7 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
   <div class="batch-divider"></div>
   <button class="btn btn-primary btn-sm" onclick="batchMerge()">🔗 合并到Job</button>
   <button class="btn btn-secondary btn-sm" onclick="batchSplit()">✂️ 拆分数量</button>
+  <button class="btn btn-secondary btn-sm" onclick="batchAssignSite()">📍 分配Site</button>
   <button class="btn btn-ghost btn-sm" onclick="batchCreateJob()">💼 创建Job</button>
   <button class="btn btn-ghost btn-sm" onclick="batchCreatePO()">🛒 创建PO</button>
   <div style="flex:1"></div>
@@ -459,6 +461,17 @@ const allData = [
     { line:1, pn:'RS4932', desc:'Server Rack 42U', qty:20, oh:5, demand:25, supply:22, ddl:'Jul 1', linked:[{type:'po',no:'PO-202'}] },
     { line:2, pn:'RS8473', desc:'Cable Management Panel', qty:60, oh:25, demand:70, supply:65, ddl:'Jul 1', linked:[] },
   ]},
+  // Site未分配的SO
+  { id:'SO-1016', customer:'Unassigned Corp A', status:'draft', site:null, ddl:'2026-06-22', lines:[
+    { line:1, pn:'RS9991', desc:'Motor Housing XL', qty:120, oh:40, demand:150, supply:130, ddl:'Jun 22', linked:[] },
+  ]},
+  { id:'SO-1017', customer:'Unassigned Corp B', status:'draft', site:null, ddl:'2026-06-25', lines:[
+    { line:1, pn:'RS9992', desc:'Gearbox Assembly', qty:80, oh:20, demand:100, supply:90, ddl:'Jun 25', linked:[] },
+    { line:2, pn:'RS9993', desc:'Bearing Set 6204', qty:300, oh:150, demand:350, supply:320, ddl:'Jun 25', linked:[] },
+  ]},
+  { id:'SO-1018', customer:'Pending Systems', status:'scheduled', site:null, ddl:'2026-06-28', lines:[
+    { line:1, pn:'RS9994', desc:'Control Panel Enclosure', qty:50, oh:10, demand:60, supply:55, ddl:'Jun 28', linked:[] },
+  ]},
 ];
 
 const specialDemands = [
@@ -469,6 +482,8 @@ const specialDemands = [
   { id:'TR-002', type:'transfer', part:'H-008', desc:'Aluminum Sheet Transfer', qty:150, site:'A→C', ddl:'2026-05-25', priority:68, so:'Site C厂申请', status:'scheduled' },
   { id:'RP-001', type:'replenish', part:'D-004', desc:'Safety Stock - Bolt M8', qty:500, site:'C', ddl:'2026-05-25', priority:60, status:'draft' },
   { id:'RP-002', type:'replenish', part:'E-005', desc:'Safety Stock - Washer SS', qty:300, site:'A', ddl:'2026-05-22', priority:55, status:'draft' },
+  { id:'RP-003', type:'replenish', part:'K-011', desc:'Safety Stock - Spring 5mm', qty:800, site:null, ddl:'2026-06-15', priority:52, status:'draft' },
+  { id:'RP-004', type:'replenish', part:'L-012', desc:'Safety Stock - Nut M10', qty:600, site:null, ddl:'2026-06-18', priority:50, status:'draft' },
   { id:'RW-001', type:'rework', part:'A-001', desc:'QC Failed - Dimension Out', qty:20, site:'A', ddl:'ASAP', priority:99, so:'JB-001返工', status:'executing' },
   { id:'RW-002', type:'rework', part:'B-002', desc:'Surface Scratch Rework', qty:15, site:'B', ddl:'ASAP', priority:98, so:'CJ-001返工', status:'hold' },
   { id:'SAM-001', type:'sample', part:'B-002', desc:'R&D Prototype Sample', qty:10, site:'B', ddl:'2026-05-20', priority:50, so:'研发部申请', status:'draft' },
@@ -520,6 +535,7 @@ function renderTable() {
         <div class="so-oh">${sum(so.lines,'oh')}</div>
         <div class="so-demand ${hasShortage?'shortage':''}">${sum(so.lines,'demand')}</div>
         <div class="so-supply ${hasSurplus?'surplus':''}">${sum(so.lines,'supply')}</div>
+        <div>${renderSiteCell(so.id, so.site, 'so')}</div>
         <div class="so-ddl ${isUrgent(so.ddl)?'urgent':''}">${fmtDate(so.ddl)}</div>
         <div class="so-linked">${renderLinked(so.linked)}</div>
       </div>
@@ -537,6 +553,7 @@ function renderTable() {
             <div class="li-oh">${l.oh}</div>
             <div class="li-demand ${l.demand>l.supply?'shortage':''}">${l.demand}</div>
             <div class="li-supply ${l.supply>l.demand?'surplus':''}">${l.supply}</div>
+            <div class="li-ddl">-</div>
             <div class="li-ddl">${l.ddl}</div>
             <div class="so-linked">${renderLinked(l.linked)}</div>
           </div>`;
@@ -579,6 +596,7 @@ function renderTable() {
         <div class="so-oh">-</div>
         <div class="so-qty">-</div>
         <div class="so-qty">-</div>
+        <div>${renderSiteCell(sd.id, sd.site, 'special')}</div>
         <div class="so-ddl ${sd.ddl==='ASAP'?'urgent':''}">${sd.ddl==='ASAP'?'ASAP':fmtDate(sd.ddl)}</div>
         <div style="display:flex;gap:4px;">
           <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();scheduleSpecial('${sd.id}')">排程</button>
@@ -605,6 +623,55 @@ function renderTable() {
 }
 
 function sum(lines, key) { return lines.reduce((a,l)=>a+l[key],0); }
+
+function renderSiteCell(id, site, type) {
+  if (site) {
+    return `<span style="font-family:var(--font-mono);font-size:11px;color:var(--text-2);">${site==='A'?'A厂':(site==='B'?'B厂':(site==='C'?'C厂':site))}</span>`;
+  }
+  return `
+    <div style="display:flex;align-items:center;gap:4px;">
+      <span style="color:var(--red);font-size:10px;font-weight:700;">⚠</span>
+      <select class="form-select" style="width:80px;padding:2px 4px;font-size:10px;background:var(--bg-2);" onchange="assignSite(event,'${id}','${type}')" onclick="event.stopPropagation()">
+        <option value="">分配Site</option>
+        <option value="A">A厂 · 65%</option>
+        <option value="B">B厂 · 82%</option>
+        <option value="C">C厂 · 35%</option>
+      </select>
+    </div>
+  `;
+}
+
+function assignSite(e, id, type) {
+  const site = e.target.value;
+  if (!site) return;
+  if (type === 'so') {
+    const so = allData.find(s=>s.id===id);
+    if (so) so.site = site;
+  } else if (type === 'special') {
+    const sp = specialDemands.find(s=>s.id===id);
+    if (sp) sp.site = site;
+  }
+  showToast('Site 已分配', `${id} 已分配到 ${site==='A'?'A厂':(site==='B'?'B厂':'C厂')}`);
+  renderTable();
+}
+
+function batchAssignSite() {
+  if (selectedLines.size === 0) return;
+  const sites = ['A','B','C'];
+  const site = sites[Math.floor(Math.random()*sites.length)];
+  Array.from(selectedLines).forEach(k=>{
+    const [id,line]=k.split(':');
+    const so=allData.find(s=>s.id===id);
+    if (so) so.site = site;
+    else {
+      const sp=specialDemands.find(s=>s.id===id);
+      if (sp) sp.site = site;
+    }
+  });
+  showToast('批量分配Site', `已将 ${selectedLines.size} 个Demand分配到 ${site==='A'?'A厂':(site==='B'?'B厂':'C厂')}`);
+  selectedLines.clear();
+  renderTable();
+}
 function renderLinked(linked) {
   if (!linked?.length) return '<span style="color:var(--text-3);font-size:10px;">-</span>';
   let html = linked.slice(0,2).map(l => {
@@ -707,15 +774,18 @@ function updateBatchBar() {
   const count = document.getElementById('batch-count');
   const mergeBtn = document.getElementById('btn-merge');
   const splitBtn = document.getElementById('btn-split');
+  const assignBtn = document.getElementById('btn-assign-site');
   count.textContent = selectedLines.size;
   if (selectedLines.size > 0) {
     bar.classList.add('open');
     mergeBtn.style.display = '';
     splitBtn.style.display = '';
+    assignBtn.style.display = '';
   } else {
     bar.classList.remove('open');
     mergeBtn.style.display = 'none';
     splitBtn.style.display = 'none';
+    assignBtn.style.display = 'none';
   }
 }
 function clearSelection() { selectedLines.clear(); renderTable(); }
@@ -832,6 +902,7 @@ function renderTableFiltered(sourceType) {
         <div class="so-oh">-</div>
         <div class="so-qty">-</div>
         <div class="so-qty">-</div>
+        <div>${renderSiteCell(sd.id, sd.site, 'special')}</div>
         <div class="so-ddl ${sd.ddl==='ASAP'?'urgent':''}">${sd.ddl==='ASAP'?'ASAP':fmtDate(sd.ddl)}</div>
         <div style="display:flex;gap:4px;">
           <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();scheduleSpecial('${sd.id}')">排程</button>

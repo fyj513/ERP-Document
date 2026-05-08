@@ -74,7 +74,148 @@
 
 ---
 
-## 二、核心概念与数据模型
+## 二、Site分配策略（核心决策）
+
+### 2.1 问题：Demand创建时Site可能未确定
+
+| Demand来源 | Site是否预设 | 说明 |
+|-----------|-------------|------|
+| **SO客户订单** | ⚠️ 可能未指定 | 销售下单时可能只填了客户和交期，Site留空或由Scheduler决定 |
+| **MTO** | 跟随SO | SO确定Site后，MTO自动跟随 |
+| **Transfer** | ⚠️ 一半确定 | **调入方**确定（缺料的Site），**调出方**由Scheduler决定 |
+| **Replenishment** | ⚠️ 可能未指定 | 系统生成时可能只标记了"需要补货的Site"，但由哪个Site生产/采购未定 |
+| **Rework** | ✅ 已确定 | 在原Site处理，不需要重新分配 |
+| **Sample** | ⚠️ 可能未指定 | 研发申请时可能没指定Site，由Scheduler根据产能分配 |
+
+### 2.2 Scheduler的Site分配职责
+
+**分配时机**：Demand进入Schedule页面后、确认排程（创建Job）之前，必须完成Site分配。
+
+**未分配Site的Demand状态：**
+- 显示为 `site_id: null` 或 `site_id: PENDING`
+- Schedule页面中以 **⚠️ 未分配Site** 标记高亮
+- **不可直接创建Job**——必须先分配Site
+
+### 2.3 Site分配决策引擎（系统建议 + Scheduler确认）
+
+系统根据以下因子计算推荐Site：
+
+```
+推荐Site = argmax( Site得分 )
+
+Site得分 = w1×产能匹配 + w2×距离/物流 + w3×工艺匹配 + w4×历史偏好
+
+产能匹配 = 1 - (当前Site负荷率)  # 负荷越低得分越高
+距离/物流 = f(客户距离, 调入方距离, 物流成本)  # 越近得分越高
+工艺匹配 = 该产品是否需要特殊设备/工艺？该Site是否具备？
+历史偏好 = 过去90天内，该产品由哪个Site生产的比例最高
+```
+
+| 因子 | 权重 | 说明 |
+|------|------|------|
+| 产能匹配 | 40% | 优先分配给负荷低的Site，避免超载 |
+| 距离/物流 | 25% | 优先分配给离客户/调入方近的Site |
+| 工艺匹配 | 25% | 某些产品只能在特定Site生产（特殊设备） |
+| 历史偏好 | 10% | 保持生产稳定性，减少换线成本 |
+
+### 2.4 各类Demand的Site分配规则
+
+#### A. SO / MTO → Scheduler决定生产Site
+
+```
+SO创建（site_id = null）
+    │
+    ├── 系统计算推荐Site（A厂/B厂/C厂）
+    │   └── 显示：「推荐：A厂（负荷65%，距离120km，有工艺）」
+    │
+    ├── Scheduler审阅
+    │   ├── 接受推荐 → site_id = A厂 → 可排程
+    │   ├── 更换Site → site_id = B厂 → 可排程
+    │   └── 拆分多Site → SO拆分为多个Demand，分别指派不同Site
+    │
+    └── 分配完成后，Demand状态：site_confirmed = true
+```
+
+#### B. Transfer → Scheduler决定调出Site
+
+```
+Site B申请调入 200件 C-003
+    │
+    ├── 调入方已确定：Site B
+    │
+    ├── Scheduler检查全公司库存
+    │   ├── Site C有可用库存 500件 → 推荐从C调出
+    │   ├── Site A有可用库存 100件 → 备选
+    │   └── 无Site有足够库存 → Transfer不可行，转为Replenishment/采购
+    │
+    └── Scheduler确认调出方 → 创建Transfer Job
+        └── Transfer Job的site_id = "C→B"（调出→调入）
+```
+
+#### C. Replenishment → Scheduler决定生产/采购Site
+
+```
+系统生成Replenishment Demand（site_id = null）
+    │
+    ├── 系统计算：哪个Site生产这批货最合理？
+    │   └── 考虑：产能、距离目标仓库、该产品历史生产Site
+    │
+    ├── Scheduler审阅推荐
+    │   └── 通常批量确认（Replenishment数量多，逐条确认效率低）
+    │
+    └── 分配Site → 创建Job → 自动配置PO/MO
+```
+
+### 2.5 Schedule页面中的Site分配交互
+
+#### 未分配Site的Demand展示：
+
+```
+┌─────────────────────────────────────────────────────────────────────────────┐
+│ SO-1020   Global Industries   3 line items   ⚠️ Site未分配   DDL: Jun 15     │
+│     [分配Site ▼]  系统推荐: A厂 (负荷65%)  [确认分配] [忽略]                    │
+└─────────────────────────────────────────────────────────────────────────────┘
+```
+
+#### Site分配操作：
+
+| 操作 | 作用 | 适用场景 |
+|------|------|----------|
+| **系统推荐** | 自动计算最优Site并高亮 | 大多数Demand |
+| **下拉选择Site** | Scheduler手动指定Site | 系统推荐不合理时 |
+| **批量分配** | 勾选多个Demand → 统一分配Site | Replenishment批量处理 |
+| **拆分多Site** | 一个SO拆分为多个Demand，分别分配不同Site | 大单需要多Site协同 |
+| **确认分配** | Site确定后，Demand可进入排程 | 分配是排程的前置条件 |
+
+#### 全局产能视图（辅助分配决策）：
+
+```
+A厂: ████████░░░░ 65%  |  距离客户A: 120km  |  擅长: 机加工
+B厂: ██████████░░ 82%  |  距离客户A: 300km  |  擅长: 注塑
+C厂: ████░░░░░░░░ 35%  |  距离客户A: 80km   |  擅长: 装配
+```
+
+### 2.6 数据模型更新
+
+**DEMAND表增加字段：**
+```
+site_id: string | null       # null = 未分配
+site_recommended: string     # 系统推荐的Site
+site_confirmed: boolean      # Scheduler是否已确认分配
+site_confirmed_by: string    # 确认人
+site_confirmed_at: datetime  # 确认时间
+```
+
+**TRANSFER类型的特殊处理：**
+```
+# Transfer Demand有两个Site相关字段
+from_site_id: string | null  # 调出方（由Scheduler决定）
+to_site_id: string           # 调入方（申请时已确定）
+```
+
+---
+
+## 三、核心概念与数据模型
 
 ### 2.1 实体关系图（ER）
 
