@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Scheduler — Schedule Board v8</title>
+<link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg-0: #090b10;
+  --bg-1: #0f1117;
+  --bg-2: #161922;
+  --bg-3: #1e212b;
+  --bg-4: #272d3a;
+  --border: #1e222e;
+  --border-light: #2a2f3e;
+  --text-1: #e8eaf0;
+  --text-2: #8b92a8;
+  --text-3: #5a6078;
+  --accent: #e85d04;
+  --accent-dim: #c44a00;
+  --blue: #4cc9f0;
+  --green: #2dc653;
+  --yellow: #f4d03f;
+  --red: #e63946;
+  --purple: #a855f7;
+  --cyan: #22d3ee;
+  --font-mono: 'JetBrains Mono', monospace;
+  --font-body: 'DM Sans', -apple-system, sans-serif;
+}
+* { margin:0; padding:0; box-sizing:border-box; }
+html, body { height:100%; }
+body { font-family: var(--font-body); background: var(--bg-0); color: var(--text-1); font-size: 12.5px; line-height: 1.5; overflow: hidden; }
+
+/* ========== HEADER ========== */
+.header { height: 44px; background: var(--bg-1); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; flex-shrink: 0; }
+.logo { font-family:var(--font-mono); font-weight:700; font-size:14px; color:var(--accent); }
+.btn { padding: 5px 12px; border-radius: 5px; border: none; font-family: var(--font-body); font-weight: 600; font-size: 11.5px; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; gap: 5px; }
+.btn-primary { background: var(--accent); color:#fff; }
+.btn-primary:hover { background: var(--accent-dim); }
+.btn-secondary { background: var(--bg-3); color: var(--text-1); border:1px solid var(--border-light); }
+.btn-secondary:hover { background: var(--bg-4); }
+.btn-ghost { background: transparent; color: var(--text-2); border: 1px solid transparent; }
+.btn-ghost:hover { background: var(--bg-3); color: var(--text-1); }
+.btn-sm { padding: 3px 8px; font-size: 10.5px; }
+
+/* ========== MAIN LAYOUT ========== */
+.main { display:flex; height: calc(100vh - 44px); }
+
+/* ========== LEFT: DEMAND POOL ========== */
+.left-panel { width: 55%; background: var(--bg-1); border-right: 1px solid var(--border); display:flex; flex-direction:column; }
+
+.pool-tabs { display:flex; gap:0; padding:0 12px; border-bottom:1px solid var(--border); flex-shrink:0; }
+.pool-tab { padding: 8px 14px; font-size:11px; font-weight:600; color:var(--text-3); cursor:pointer; border-bottom:2px solid transparent; transition:all .15s; display:flex; align-items:center; gap:6px; }
+.pool-tab:hover { color:var(--text-2); }
+.pool-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
+.pool-tab .count { font-family:var(--font-mono); font-size:10px; background:var(--bg-3); padding:1px 5px; border-radius:3px; }
+.pool-tab.active .count { background:rgba(232,93,4,0.15); color:var(--accent); }
+
+.pool-actions { padding: 8px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; flex-shrink: 0; min-height: 40px; }
+.pool-actions.hidden { display: none; }
+
+.pool-content { flex:1; overflow-y:auto; padding: 4px 0; }
+
+/* Demand Row (collapsible) */
+.demand-row { border-bottom: 1px solid var(--border); }
+.demand-main { display: flex; align-items: center; gap: 6px; padding: 7px 12px; cursor: pointer; transition: background .1s; }
+.demand-main:hover { background: var(--bg-2); }
+.demand-main.selected { background: rgba(232,93,4,0.08); }
+
+.dc-expand { display:flex; align-items:center; justify-content:center; color:var(--text-3); font-size:10px; width:14px; transition:transform .2s; }
+.dc-expand.open { transform: rotate(90deg); color:var(--accent); }
+.dc-check { display:flex; align-items:center; justify-content:center; }
+.dc-check input { width: 13px; height: 13px; accent-color: var(--accent); cursor: pointer; }
+.dc-grip { color: var(--text-3); font-size: 12px; opacity: 0; cursor: grab; }
+.demand-main:hover .dc-grip { opacity: 0.4; }
+.dc-type { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 1px 5px; border-radius: 3px; flex-shrink: 0; }
+.dc-id { font-family: var(--font-mono); font-weight: 600; font-size: 11px; flex-shrink: 0; }
+.dc-customer { color: var(--text-2); font-size: 11px; flex: 1; min-width: 0; overflow: hidden; white-space: nowrap; text-overflow: ellipsis; }
+.dc-site { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); flex-shrink: 0; }
+.dc-site.assigned { color: var(--green); }
+.dc-site.unassigned { color: var(--red); font-weight: 600; }
+.dc-qty { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-2); flex-shrink: 0; width: 50px; text-align: right; }
+.dc-ddl { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); flex-shrink: 0; width: 50px; text-align: right; }
+.dc-urgent { color: var(--red); font-weight: 600; }
+
+/* Line Items */
+.line-detail { display: none; padding: 0 12px 6px 46px; }
+.line-detail.open { display: block; }
+.line-row { display: flex; align-items: center; gap: 6px; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.02); transition: background .1s; }
+.line-row:hover { background: var(--bg-2); }
+.line-row.selected { box-shadow: inset 2px 0 0 var(--accent); background: rgba(232,93,4,0.04); }
+.li-check input { width: 12px; height: 12px; accent-color: var(--accent); cursor: pointer; }
+.li-pn { font-weight: 600; font-size: 11px; color: var(--text-1); }
+.li-desc { color: var(--text-3); font-size: 10.5px; }
+.li-demand { font-family: var(--font-mono); font-size: 10.5px; color: var(--red); font-weight: 700; }
+.li-oh { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-3); }
+.li-shortage { color: var(--red); font-weight: 700; }
+
+/* Demand Group */
+.demand-group { background: rgba(232,93,4,0.04); border: 1px dashed var(--accent); border-radius: 6px; margin: 6px 12px; padding: 8px 10px; cursor: grab; transition: all .15s; }
+.demand-group:hover { background: rgba(232,93,4,0.08); }
+.demand-group.dragging { opacity: 0.4; }
+.group-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
+.group-icon { font-size: 14px; }
+.group-title { font-weight: 700; font-size: 11.5px; color: var(--accent); }
+.group-qty { font-family: var(--font-mono); font-size: 10px; color: var(--text-3); margin-left: auto; }
+.group-items { font-size: 10.5px; color: var(--text-2); line-height: 1.6; }
+.group-tag { display: inline-block; padding: 1px 5px; border-radius: 3px; background: var(--bg-3); font-size: 9px; color: var(--text-3); margin-right: 4px; }
+
+/* System Suggestion */
+.suggest-card { background: rgba(244,208,63,0.05); border: 1px solid rgba(244,208,63,0.2); border-radius: 6px; margin: 6px 12px; padding: 8px 10px; }
+.suggest-title { font-size: 10px; font-weight: 700; color: var(--yellow); margin-bottom: 4px; }
+.suggest-body { font-size: 10.5px; color: var(--text-2); line-height: 1.5; }
+.suggest-actions { display: flex; gap: 6px; margin-top: 6px; }
+
+/* ========== RIGHT: SITE QUEUE ========== */
+.right-panel { width: 45%; background: var(--bg-0); display:flex; flex-direction:column; }
+
+.site-section { flex: 1; overflow-y: auto; border-bottom: 1px solid var(--border); }
+.site-section:last-child { border-bottom: none; }
+.site-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 12px; background: var(--bg-1); border-bottom: 1px solid var(--border); position: sticky; top: 0; z-index: 5; }
+.site-title-group { display: flex; align-items: center; gap: 10px; }
+.site-name { font-size: 12px; font-weight: 700; }
+.site-loc { font-size: 10px; color: var(--text-3); }
+.site-toggle { display: flex; background: var(--bg-2); border-radius: 4px; border: 1px solid var(--border); overflow: hidden; }
+.site-toggle-btn { padding: 3px 8px; font-size: 10px; font-weight: 600; color: var(--text-3); cursor: pointer; border: none; background: transparent; transition: all .15s; }
+.site-toggle-btn.active { background: var(--accent); color: #fff; }
+
+.site-list { padding: 4px 0; min-height: 40px; }
+.site-list.drag-over { background: rgba(232,93,4,0.03); }
+.site-list:empty::before { content: '暂无记录'; display: block; padding: 16px; text-align: center; color: var(--text-3); font-size: 11px; }
+
+/* Site Item */
+.site-item { border-bottom: 1px solid var(--border); }
+.site-item-main { display: flex; align-items: center; gap: 8px; padding: 8px 12px; cursor: pointer; transition: background .1s; }
+.site-item-main:hover { background: var(--bg-2); }
+.site-item-main.selected { background: rgba(232,93,4,0.08); }
+
+.si-grip { color: var(--text-3); font-size: 12px; opacity: 0; cursor: grab; flex-shrink: 0; }
+.si-grip:active { cursor: grabbing; }
+.site-item-main:hover .si-grip { opacity: 0.4; }
+.si-badge { flex-shrink: 0; width: 36px; text-align: center; padding: 2px 0; border-radius: 4px; font-size: 9px; font-weight: 700; text-transform: uppercase; }
+.si-badge.job { background: rgba(168,85,247,0.12); color: var(--purple); border: 1px solid rgba(168,85,247,0.3); }
+.si-badge.po { background: rgba(76,201,240,0.12); color: var(--blue); border: 1px solid rgba(76,201,240,0.3); }
+.si-badge.to { background: rgba(34,211,238,0.12); color: var(--cyan); border: 1px solid rgba(34,211,238,0.3); }
+
+.si-main { flex: 1; min-width: 0; }
+.si-title { font-weight: 600; font-size: 11.5px; display: flex; align-items: center; gap: 6px; }
+.si-id { font-family: var(--font-mono); }
+.si-desc { font-size: 10px; color: var(--text-3); margin-top: 2px; }
+.si-priority { flex-shrink: 0; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 3px; text-transform: uppercase; }
+.si-priority.critical { background: rgba(230,57,70,0.15); color: var(--red); }
+.si-priority.high { background: rgba(232,93,4,0.15); color: var(--accent); }
+.si-priority.normal { background: rgba(139,146,168,0.15); color: var(--text-2); }
+.si-status { flex-shrink: 0; font-size: 10px; color: var(--text-3); font-family: var(--font-mono); }
+.si-progress { flex-shrink: 0; width: 50px; }
+.si-progress-track { height: 4px; background: var(--bg-3); border-radius: 2px; overflow: hidden; }
+.si-progress-bar { height: 100%; border-radius: 2px; }
+
+/* Site Item Detail */
+.site-item-detail { display: none; padding: 0 12px 8px 46px; }
+.site-item-detail.open { display: block; }
+.sid-flow { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+.sid-step { padding: 4px 8px; border-radius: 4px; font-size: 10px; white-space: nowrap; }
+.sid-step.done { background: rgba(45,198,83,0.1); border: 1px solid rgba(45,198,83,0.3); color: var(--green); }
+.sid-step.active { background: rgba(232,93,4,0.1); border: 1px solid rgba(232,93,4,0.3); color: var(--accent); }
+.sid-step.pending { background: var(--bg-2); border: 1px solid var(--border); color: var(--text-3); }
+.sid-arrow { color: var(--text-3); font-size: 10px; }
+.sid-demands { font-size: 10.5px; color: var(--text-2); line-height: 1.6; }
+
+/* ========== CONFIG DIALOG ========== */
+.dialog-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.6); backdrop-filter: blur(4px); z-index: 2000; display: none; align-items: center; justify-content: center; }
+.dialog-overlay.open { display: flex; }
+.dialog { background: var(--bg-1); border: 1px solid var(--border); border-radius: 10px; width: 420px; max-width: 90vw; overflow: hidden; display: flex; flex-direction: column; }
+.dialog-header { padding: 12px 16px; border-bottom: 1px solid var(--border); font-weight: 700; font-size: 13px; }
+.dialog-body { padding: 14px 16px; }
+.dialog-footer { padding: 10px 16px; border-top: 1px solid var(--border); display: flex; justify-content: flex-end; gap: 8px; }
+
+.form-row { margin-bottom: 10px; }
+.form-label { font-size: 10px; font-weight: 600; color: var(--text-2); margin-bottom: 3px; display: block; text-transform: uppercase; letter-spacing: 0.5px; }
+.form-input, .form-select { width: 100%; background: var(--bg-2); border: 1px solid var(--border); border-radius: 5px; padding: 6px 10px; color: var(--text-1); font-family: var(--font-body); font-size: 12px; }
+.form-input:focus, .form-select:focus { outline: none; border-color: var(--accent); }
+
+.type-selector { display: flex; gap: 8px; margin-bottom: 10px; }
+.type-option { flex: 1; padding: 10px; border-radius: 6px; border: 2px solid var(--border); cursor: pointer; text-align: center; transition: all .15s; }
+.type-option:hover { border-color: var(--border-light); }
+.type-option.selected { border-color: var(--accent); background: rgba(232,93,4,0.05); }
+.type-option .icon { font-size: 18px; margin-bottom: 4px; }
+.type-option .label { font-size: 11px; font-weight: 600; }
+.type-option .hint { font-size: 9px; color: var(--text-3); margin-top: 2px; }
+
+.config-preview { background: var(--bg-2); padding: 10px; border-radius: 6px; margin-top: 10px; font-size: 11px; color: var(--text-2); line-height: 1.6; }
+
+/* ========== TOAST ========== */
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg-2); border: 1px solid var(--border-light); border-radius: 8px; padding: 12px 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 3000; transform: translateY(100px); opacity: 0; transition: all .3s; font-size: 12px; max-width: 320px; }
+.toast.open { transform: translateY(0); opacity: 1; }
+
+/* ========== SCROLLBAR ========== */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg-4); border-radius: 3px; }
+</style>
+</head>
+<body>
+
+<!-- Header -->
+<div class="header">
+  <div style="display:flex;align-items:center;gap:16px;">
+    <div class="logo">◈ SCHEDULER</div>
+    <span style="font-size:11px;color:var(--text-3);">合并 → 配置 → 排序 → 执行</span>
+  </div>
+</div>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Left: Demand Pool -->
+  <div class="left-panel">
+    <div class="pool-tabs">
+      <div class="pool-tab active" id="tab-normal" onclick="switchPoolTab('normal')">
+        Normal <span class="count" id="count-normal">0</span>
+      </div>
+      <div class="pool-tab" id="tab-hold" onclick="switchPoolTab('hold')">
+        On Hold <span class="count" id="count-hold">0</span>
+      </div>
+    </div>
+    <div class="pool-actions hidden" id="pool-actions">
+      <span style="font-size:11px;color:var(--text-2);"><strong id="sel-count" style="color:var(--accent);">0</strong> 项已选择</span>
+      <button class="btn btn-primary btn-sm" onclick="mergeSelected()">🔗 合并为Group</button>
+      <button class="btn btn-secondary btn-sm" onclick="splitSelected()">✂️ 拆分</button>
+      <button class="btn btn-ghost btn-sm" onclick="clearPoolSelection()">清除</button>
+    </div>
+    <div class="pool-content" id="pool-content">
+      <!-- Filled by JS -->
+    </div>
+  </div>
+
+  <!-- Right: Site Queue -->
+  <div class="right-panel" id="right-panel">
+    <!-- Filled by JS -->
+  </div>
+
+</div>
+
+<!-- Config Dialog -->
+<div class="dialog-overlay" id="config-dialog">
+  <div class="dialog">
+    <div class="dialog-header">配置处理类型</div>
+    <div class="dialog-body">
+      <div class="form-row">
+        <label class="form-label">Demand Group</label>
+        <div id="cfg-group-info" style="font-size:11px;color:var(--text-2);"></div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">处理类型</label>
+        <div class="type-selector" id="type-selector">
+          <div class="type-option" data-type="job" onclick="selectConfigType('job')">
+            <div class="icon">💼</div>
+            <div class="label">Job</div>
+            <div class="hint">生产/返工</div>
+          </div>
+          <div class="type-option" data-type="po" onclick="selectConfigType('po')">
+            <div class="icon">🛒</div>
+            <div class="label">PO</div>
+            <div class="hint">采购</div>
+          </div>
+          <div class="type-option" data-type="to" onclick="selectConfigType('to')">
+            <div class="icon">🚚</div>
+            <div class="label">TO</div>
+            <div class="hint">调拨</div>
+          </div>
+        </div>
+      </div>
+      <div class="form-row">
+        <label class="form-label">数量</label>
+        <input class="form-input" type="number" id="cfg-qty" value="">
+      </div>
+      <div class="form-row">
+        <label class="form-label">优先级</label>
+        <select class="form-select" id="cfg-priority">
+          <option value="critical">Critical</option>
+          <option value="high">High</option>
+          <option value="normal" selected>Normal</option>
+        </select>
+      </div>
+      <div class="config-preview" id="cfg-preview"></div>
+    </div>
+    <div class="dialog-footer">
+      <button class="btn btn-secondary" onclick="closeConfigDialog()">取消</button>
+      <button class="btn btn-primary" onclick="confirmConfig()">确认创建</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast" id="toast"></div>
+
+<script>
+// ==================== DATA ====================
+const sites = [
+  { code:'A', name:'A厂', location:'深圳' },
+  { code:'B', name:'B厂', location:'东莞' },
+  { code:'C', name:'C厂', location:'苏州' },
+];
+
+// Top pool: unplanned demands (SO with line items, or special demands)
+const topDemands = [
+  { id:'SO-1001', type:'SO', customer:'ACME Corp', site:'A', pool:'normal', expanded:false, ddl:'2026-05-15',
+    lines:[
+      { line:1, pn:'RS1234', desc:'Steel Bracket Assembly', qty:500, demand:600, oh:200 },
+      { line:2, pn:'RS5678', desc:'Aluminum Housing', qty:300, demand:450, oh:150 },
+    ]},
+  { id:'SO-1002', type:'SO', customer:'TechCorp Industries', site:'A', pool:'normal', expanded:false, ddl:'2026-05-20',
+    lines:[
+      { line:1, pn:'RS9012', desc:'Power Supply Unit 24V', qty:800, demand:850, oh:320 },
+    ]},
+  { id:'SO-1003', type:'SO', customer:'StartUp Inc', site:'A', pool:'normal', expanded:false, ddl:'2026-05-22',
+    lines:[
+      { line:1, pn:'RS3456', desc:'Sensor Module V2', qty:250, demand:300, oh:80 },
+      { line:2, pn:'RS7890', desc:'Connector Kit 10pin', qty:400, demand:420, oh:200 },
+      { line:3, pn:'RS4321', desc:'PCB Controller Board', qty:150, demand:180, oh:50 },
+    ]},
+  { id:'SO-1004', type:'SO', customer:'Global Manufacturing', site:'A', pool:'normal', expanded:false, ddl:'2026-05-25',
+    lines:[
+      { line:1, pn:'RS8765', desc:'Valve Component 3/4"', qty:600, demand:700, oh:250 },
+      { line:2, pn:'RS5432', desc:'Rubber Seal Gasket', qty:1200, demand:1300, oh:800 },
+    ]},
+  { id:'SO-1005', type:'SO', customer:'MegaCorp Ltd', site:'B', pool:'normal', expanded:false, ddl:'2026-05-28',
+    lines:[
+      { line:1, pn:'RS2468', desc:'Hydraulic Pump Assembly', qty:100, demand:120, oh:20 },
+    ]},
+  { id:'SO-1006', type:'SO', customer:'Precision Tools Co', site:'A', pool:'normal', expanded:false, ddl:'2026-05-15',
+    lines:[
+      { line:1, pn:'RS1357', desc:'Titanium Fastener M8', qty:2000, demand:2100, oh:1500 },
+      { line:2, pn:'RS9753', desc:'Carbon Fiber Sheet 2mm', qty:100, demand:120, oh:30 },
+    ]},
+  { id:'SO-1010', type:'SO', customer:'MediTech Devices', site:'A', pool:'hold', expanded:false, ddl:'2026-06-10',
+    lines:[
+      { line:1, pn:'RS1593', desc:'Stainless Steel Tray', qty:80, demand:100, oh:20 },
+      { line:2, pn:'RS7531', desc:'Silicone Tubing 4mm', qty:200, demand:250, oh:80 },
+    ]},
+  { id:'SO-1011', type:'SO', customer:'AutoParts Global', site:'B', pool:'hold', expanded:false, ddl:'2026-06-15',
+    lines:[
+      { line:1, pn:'RS4826', desc:'Brake Pad Ceramic', qty:1200, demand:1400, oh:600 },
+      { line:2, pn:'RS9173', desc:'Rotor Disc 300mm', qty:400, demand:500, oh:150 },
+    ]},
+  { id:'SO-1016', type:'SO', customer:'Unassigned Corp A', site:null, pool:'normal', expanded:false, ddl:'2026-06-22',
+    lines:[ { line:1, pn:'RS9991', desc:'Motor Housing XL', qty:120, demand:150, oh:40 } ]},
+  { id:'SO-1017', type:'SO', customer:'Unassigned Corp B', site:null, pool:'normal', expanded:false, ddl:'2026-06-25',
+    lines:[
+      { line:1, pn:'RS9992', desc:'Gearbox Assembly', qty:80, demand:100, oh:20 },
+      { line:2, pn:'RS9993', desc:'Bearing Set 6204', qty:300, demand:350, oh:150 },
+    ]},
+  { id:'MTO-001', type:'MTO', customer:'VIP-华为', site:'C', pool:'normal', expanded:false, ddl:'2026-05-15',
+    lines:[ { line:1, pn:'A-001', desc:'Custom PCB for Huawei', qty:100, demand:100, oh:0 } ]},
+  { id:'MTO-003', type:'MTO', customer:'VIP-Samsung', site:'A', pool:'normal', expanded:false, ddl:'2026-06-01',
+    lines:[ { line:1, pn:'G-007', desc:'Galaxy S30 Frame', qty:180, demand:180, oh:0 } ]},
+  { id:'RP-002', type:'REPLENISH', customer:'库存补货', site:'A', pool:'normal', expanded:false, ddl:'2026-05-22',
+    lines:[ { line:1, pn:'E-005', desc:'Safety Stock Washer SS', qty:300, demand:300, oh:80 } ]},
+  { id:'RP-003', type:'REPLENISH', customer:'库存补货', site:null, pool:'normal', expanded:false, ddl:'2026-06-15',
+    lines:[ { line:1, pn:'K-011', desc:'Safety Stock Spring 5mm', qty:800, demand:800, oh:200 } ]},
+  { id:'RW-002', type:'REWORK', customer:'返工', site:'B', pool:'hold', expanded:false, ddl:'ASAP',
+    lines:[ { line:1, pn:'B-002', desc:'Surface Scratch Rework', qty:15, demand:15, oh:0 } ]},
+];
+
+// Demand Groups (merged)
+let demandGroups = [
+  { id:'GRP-001', demands:['SO-1001:1','RP-001'], site:'A', suggestedType:'job', totalQty:530 },
+];
+
+// System suggestions
+const suggestions = [
+  { id:'SUG-001', type:'merge', demandIds:['SO-1001:1','SO-1003:1'], reason:'同Part RS1234/RS3456 可在A厂合并生产', suggestedType:'job', suggestedSite:'A' },
+  { id:'SUG-002', type:'split', demandId:'SO-1006', reason:'2000件超产能，建议拆分为2个Job', suggestedType:'job', suggestedSite:'A' },
+];
+
+// Bottom: site items
+let siteItems = [
+  // A厂 released
+  { id:'JOB-111', type:'job', site:'A', releaseStatus:'released', priority:'high', desc:'Steel Bracket Assembly', qty:530, status:'执行中', progress:60, expanded:false, demands:['SO-1001','RP-001'], process:['冲压✓','焊接▶','包装○'], ddl:'2026-05-15' },
+  { id:'JOB-444', type:'job', site:'A', releaseStatus:'released', priority:'critical', desc:'Titanium Fastener M8', qty:2100, status:'执行中', progress:35, expanded:false, demands:['SO-1006'], process:['锻造✓','机加▶','热处理○'], ddl:'2026-05-20' },
+  { id:'PO-201', type:'po', site:'A', releaseStatus:'released', priority:'normal', desc:'Bolt M8 采购', qty:500, status:'收货中', progress:50, expanded:false, demands:['RP-001'], process:['下单✓','到货▶','入库○'], ddl:'2026-05-25' },
+  // A厂 not released
+  { id:'JOB-333', type:'job', site:'A', releaseStatus:'not_released', priority:'high', desc:'Valve Component', qty:600, status:'已排程', progress:0, expanded:false, demands:['SO-1004'], process:['铸造○','机加○'], ddl:'2026-05-25' },
+  { id:'JOB-666', type:'job', site:'A', releaseStatus:'not_released', priority:'normal', desc:'Solar Panel Frame', qty:150, status:'草稿', progress:0, expanded:false, demands:['SO-1008'], process:['切割○','焊接○'], ddl:'2026-06-05' },
+  // B厂 released
+  { id:'JOB-555', type:'job', site:'B', releaseStatus:'released', priority:'high', desc:'LED Driver Module', qty:500, status:'执行中', progress:40, expanded:false, demands:['SO-1007'], process:['SMT✓','测试▶','包装○'], ddl:'2026-05-30' },
+  { id:'PO-967', type:'po', site:'B', releaseStatus:'released', priority:'high', desc:'Hydraulic Pump 采购', qty:100, status:'收货中', progress:50, expanded:false, demands:['SO-1005'], process:['下单✓','到货▶','入库○'], ddl:'2026-05-28' },
+  // B厂 not released
+  { id:'JOB-889', type:'job', site:'B', releaseStatus:'not_released', priority:'high', desc:'Titanium Enclosure', qty:250, status:'已排程', progress:0, expanded:false, demands:['MTO-002'], process:['CNC○','表面处理○'], ddl:'2026-05-28' },
+  // C厂 released
+  { id:'JOB-222', type:'job', site:'C', releaseStatus:'released', priority:'normal', desc:'Sensor Module V2', qty:250, status:'已完成', progress:100, expanded:false, demands:['SO-1003'], process:['SMT✓','装配✓','测试✓'], ddl:'2026-05-22' },
+  { id:'JOB-888', type:'job', site:'C', releaseStatus:'released', priority:'critical', desc:'Custom PCB', qty:100, status:'执行中', progress:75, expanded:false, demands:['MTO-001'], process:['SMT✓','测试▶'], ddl:'2026-05-15' },
+  { id:'TO-002', type:'to', site:'C', releaseStatus:'released', priority:'normal', desc:'调拨 Aluminum Sheet', qty:150, status:'运输中', progress:60, expanded:false, demands:['TR-002'], process:['拣货✓','运输▶'], ddl:'2026-05-25' },
+  // C厂 not released
+  { id:'JOB-202', type:'job', site:'C', releaseStatus:'not_released', priority:'normal', desc:'Server Rack 42U', qty:25, status:'已排程', progress:0, expanded:false, demands:['SO-1015'], process:['切割○','折弯○','喷粉○'], ddl:'2026-07-01' },
+];
+
+let currentPoolTab = 'normal';
+let siteReleaseState = { A:'released', B:'released', C:'released' };
+let selectedPoolItems = new Set(); // "SO-1001:1" format
+let selectedItem = null;
+let configTarget = null; // { demandIds: [...], site: 'A' }
+let configType = 'job';
+
+// ==================== RENDER POOL ====================
+function renderPool() {
+  const container = document.getElementById('pool-content');
+  const items = topDemands.filter(d => d.pool === currentPoolTab);
+  
+  document.getElementById('count-normal').textContent = topDemands.filter(d=>d.pool==='normal').length;
+  document.getElementById('count-hold').textContent = topDemands.filter(d=>d.pool==='hold').length;
+  document.getElementById('tab-normal').classList.toggle('active', currentPoolTab==='normal');
+  document.getElementById('tab-hold').classList.toggle('active', currentPoolTab==='hold');
+  
+  // Show/hide batch actions
+  const actionBar = document.getElementById('pool-actions');
+  if (selectedPoolItems.size > 0) {
+    actionBar.classList.remove('hidden');
+    document.getElementById('sel-count').textContent = selectedPoolItems.size;
+  } else {
+    actionBar.classList.add('hidden');
+  }
+  
+  let html = '';
+  
+  // System suggestions
+  const activeSuggestions = suggestions.filter(s => !s.dismissed);
+  activeSuggestions.forEach(sug => {
+    if (sug.type === 'merge') {
+      html += `
+        <div class="suggest-card">
+          <div class="suggest-title">💡 系统建议: 合并 ${sug.demandIds.length} 个Demand</div>
+          <div class="suggest-body">${sug.reason}<br>建议类型: <strong>${sug.suggestedType.toUpperCase()}</strong> · 建议Site: <strong>${sug.suggestedSite}厂</strong></div>
+          <div class="suggest-actions">
+            <button class="btn btn-primary btn-sm" onclick="acceptSuggestion('${sug.id}')">✓ 确认合并</button>
+            <button class="btn btn-ghost btn-sm" onclick="dismissSuggestion('${sug.id}')">忽略</button>
+          </div>
+        </div>
+      `;
+    } else if (sug.type === 'split') {
+      html += `
+        <div class="suggest-card">
+          <div class="suggest-title">💡 系统建议: 拆分 ${sug.demandId}</div>
+          <div class="suggest-body">${sug.reason}</div>
+          <div class="suggest-actions">
+            <button class="btn btn-primary btn-sm" onclick="acceptSuggestion('${sug.id}')">✓ 确认拆分</button>
+            <button class="btn btn-ghost btn-sm" onclick="dismissSuggestion('${sug.id}')">忽略</button>
+          </div>
+        </div>
+      `;
+    }
+  });
+  
+  // Demand Groups
+  demandGroups.forEach(g => {
+    html += `
+      <div class="demand-group" draggable="true" ondragstart="onGroupDragStart(event,'${g.id}')">
+        <div class="group-header">
+          <span class="group-icon">🔗</span>
+          <span class="group-title">MERGED GROUP</span>
+          <span class="group-qty">${g.totalQty}件</span>
+        </div>
+        <div class="group-items">
+          ${g.demands.map(d => `<span class="group-tag">${d}</span>`).join('')}
+        </div>
+      </div>
+    `;
+  });
+  
+  // Demand rows
+  items.forEach(d => {
+    html += renderDemandRow(d);
+  });
+  
+  container.innerHTML = html || '<div class="pool-placeholder">该分类下暂无 Demand</div>';
+}
+
+function renderDemandRow(d) {
+  const hasSite = !!d.site;
+  const isUrgent = d.ddl === 'ASAP' || (new Date(d.ddl) - new Date('2026-05-07')) / (1000*60*60*24) <= 3;
+  const totalQty = d.lines.reduce((a,l) => a + l.qty, 0);
+  const typeColors = {SO:'var(--yellow)', MTO:'var(--red)', REPLENISH:'var(--green)', REWORK:'#ff2e63', TRANSFER:'var(--blue)', SAMPLE:'var(--purple)'};
+  const typeColor = typeColors[d.type] || 'var(--text-3)';
+  
+  return `
+    <div class="demand-row">
+      <div class="demand-main" onclick="toggleExpand('${d.id}')">
+        <div class="dc-expand ${d.expanded?'open':''}">▶</div>
+        <div class="dc-type" style="background:${typeColor}22;color:${typeColor};border:1px solid ${typeColor}44;">${d.type}</div>
+        <div class="dc-id">${d.id}</div>
+        <div class="dc-customer">${d.customer}</div>
+        <div class="dc-site ${hasSite?'assigned':'unassigned'}">${hasSite?d.site+'厂':'⚠ 未分配'}</div>
+        <div class="dc-qty">${totalQty}件</div>
+        <div class="dc-ddl ${isUrgent?'dc-urgent':''}">${d.ddl==='ASAP'?'ASAP':fmtShortDate(d.ddl)}</div>
+      </div>
+      <div class="line-detail ${d.expanded?'open':''}">
+        ${d.lines.map(l => {
+          const key = `${d.id}:${l.line}`;
+          const checked = selectedPoolItems.has(key);
+          const shortage = l.demand > l.oh;
+          return `
+          <div class="line-row ${checked?'selected':''}">
+            <div class="li-check"><input type="checkbox" ${checked?'checked':''} onclick="event.stopPropagation();togglePoolSelect('${d.id}',${l.line})"></div>
+            <div class="li-pn">${l.pn}</div>
+            <div class="li-desc">${l.desc}</div>
+            <div style="flex:1"></div>
+            <div class="li-oh ${shortage?'li-shortage':''}">OH:${l.oh}</div>
+            <div class="li-demand">需:${l.demand}</div>
+            <div style="font-family:var(--font-mono);font-size:10.5px;color:var(--text-2);width:50px;text-align:right;">${l.qty}件</div>
+          </div>`;
+        }).join('')}
+      </div>
+    </div>
+  `;
+}
+
+function fmtShortDate(d) {
+  const date = new Date(d);
+  return (date.getMonth()+1) + '/' + date.getDate();
+}
+
+// ==================== RENDER SITES ====================
+function renderSites() {
+  const container = document.getElementById('right-panel');
+  
+  container.innerHTML = sites.map(site => {
+    const release = siteReleaseState[site.code];
+    const items = siteItems
+      .filter(i => i.site === site.code && i.releaseStatus === release)
+      .sort((a,b) => {
+        const pMap = {critical:3, high:2, normal:1};
+        return pMap[b.priority] - pMap[a.priority];
+      });
+    
+    return `
+      <div class="site-section">
+        <div class="site-header">
+          <div class="site-title-group">
+            <span class="site-name">${site.name}</span>
+            <span class="site-loc">${site.location}</span>
+          </div>
+          <div class="site-toggle">
+            <button class="site-toggle-btn ${release==='not_released'?'active':''}" onclick="setSiteRelease('${site.code}','not_released')">Not Released</button>
+            <button class="site-toggle-btn ${release==='released'?'active':''}" onclick="setSiteRelease('${site.code}','released')">Released</button>
+          </div>
+        </div>
+        <div class="site-list" id="site-list-${site.code}"
+             ondragover="onSiteDragOver(event,'${site.code}')"
+             ondragleave="onSiteDragLeave(event)"
+             ondrop="onSiteDrop(event,'${site.code}')">
+          ${items.map(item => renderSiteItem(item)).join('')}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderSiteItem(item) {
+  const isSelected = selectedItem && selectedItem.id === item.id && selectedItem.source === 'site';
+  const progressColor = item.progress===100?'var(--green)':(item.progress>0?'var(--yellow)':'var(--text-3)');
+  const statusMap = {'执行中':'▶','收货中':'📦','运输中':'🚚','已完成':'✓','已排程':'○','草稿':'○'};
+  const statusIcon = statusMap[item.status] || '○';
+  
+  return `
+    <div class="site-item">
+      <div class="site-item-main ${isSelected?'selected':''}" onclick="toggleSiteExpand('${item.id}')">
+        <div class="si-grip">⋮⋮</div>
+        <div class="si-badge ${item.type}">${item.type}</div>
+        <div class="si-main">
+          <div class="si-title">
+            <span class="si-id">${item.id}</span>
+            <span>${item.desc}</span>
+          </div>
+          <div class="si-desc">${item.demands.join(', ')} · ${item.qty}件</div>
+        </div>
+        <div class="si-priority ${item.priority}">${item.priority}</div>
+        <div class="si-status">${statusIcon} ${item.status}</div>
+        <div class="si-progress">
+          <div class="si-progress-track">
+            <div class="si-progress-bar" style="width:${item.progress}%;background:${progressColor};"></div>
+          </div>
+        </div>
+      </div>
+      <div class="site-item-detail ${item.expanded?'open':''}">
+        <div class="sid-flow">
+          ${item.process.map((p,i) => {
+            const done = p.includes('✓');
+            const active = p.includes('▶');
+            const cls = done?'done':(active?'active':'pending');
+            const arrow = i < item.process.length-1 ? '<span class="sid-arrow">→</span>' : '';
+            return `<span class="sid-step ${cls}">${p}</span>${arrow}`;
+          }).join('')}
+        </div>
+        <div class="sid-demands">
+          关联Demand: ${item.demands.map(d => `<span style="font-family:var(--font-mono);color:var(--text-2);">${d}</span>`).join(', ')}
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+// ==================== INTERACTIONS ====================
+function switchPoolTab(tab) {
+  currentPoolTab = tab;
+  selectedPoolItems.clear();
+  renderPool();
+}
+
+function toggleExpand(id) {
+  const d = topDemands.find(x => x.id === id);
+  if (d) d.expanded = !d.expanded;
+  renderPool();
+}
+
+function togglePoolSelect(demandId, lineNo) {
+  const key = `${demandId}:${lineNo}`;
+  if (selectedPoolItems.has(key)) selectedPoolItems.delete(key);
+  else selectedPoolItems.add(key);
+  renderPool();
+}
+
+function clearPoolSelection() {
+  selectedPoolItems.clear();
+  renderPool();
+}
+
+function mergeSelected() {
+  if (selectedPoolItems.size < 2) {
+    showToast('无法合并', '请至少选择 2 个 Line Item');
+    return;
+  }
+  const ids = Array.from(selectedPoolItems);
+  let totalQty = 0;
+  ids.forEach(key => {
+    const [did, line] = key.split(':');
+    const d = topDemands.find(x => x.id === did);
+    if (d) {
+      const l = d.lines.find(x => x.line == line);
+      if (l) totalQty += l.qty;
+    }
+  });
+  
+  demandGroups.push({
+    id: 'GRP-' + String(demandGroups.length + 1).padStart(3, '0'),
+    demands: ids,
+    site: 'A',
+    suggestedType: 'job',
+    totalQty
+  });
+  selectedPoolItems.clear();
+  showToast('已合并', `${ids.length} 个 Line Item → 新Group，共 ${totalQty}件`);
+  renderPool();
+}
+
+function splitSelected() {
+  showToast('拆分', `${selectedPoolItems.size} 个 Line Item 待拆分配置`);
+}
+
+function setSiteRelease(siteCode, release) {
+  siteReleaseState[siteCode] = release;
+  renderSites();
+}
+
+function toggleSiteExpand(id) {
+  const item = siteItems.find(x => x.id === id);
+  if (item) item.expanded = !item.expanded;
+  selectedItem = { id, source: 'site' };
+  renderSites();
+}
+
+function acceptSuggestion(sugId) {
+  const sug = suggestions.find(s => s.id === sugId);
+  if (!sug) return;
+  
+  if (sug.type === 'merge') {
+    let totalQty = 0;
+    sug.demandIds.forEach(key => {
+      const [did, line] = key.includes(':') ? key.split(':') : [key, '1'];
+      const d = topDemands.find(x => x.id === did);
+      if (d) {
+        const l = d.lines.find(x => x.line == line);
+        if (l) totalQty += l.qty;
+      }
+    });
+    demandGroups.push({
+      id: 'GRP-' + String(demandGroups.length + 1).padStart(3, '0'),
+      demands: sug.demandIds,
+      site: sug.suggestedSite,
+      suggestedType: sug.suggestedType,
+      totalQty
+    });
+  }
+  
+  sug.dismissed = true;
+  showToast('已采纳', '系统建议已处理');
+  renderPool();
+}
+
+function dismissSuggestion(sugId) {
+  const sug = suggestions.find(s => s.id === sugId);
+  if (sug) sug.dismissed = true;
+  renderPool();
+}
+
+// ==================== DRAG & DROP ====================
+function onGroupDragStart(e, groupId) {
+  e.dataTransfer.setData('text/plain', 'GROUP:' + groupId);
+  e.dataTransfer.effectAllowed = 'move';
+}
+
+function onSiteDragOver(e, siteCode) {
+  e.preventDefault();
+  const list = document.getElementById(`site-list-${siteCode}`);
+  if (list) list.classList.add('drag-over');
+}
+
+function onSiteDragLeave(e) {
+  document.querySelectorAll('.site-list').forEach(l => l.classList.remove('drag-over'));
+}
+
+function onSiteDrop(e, siteCode) {
+  e.preventDefault();
+  document.querySelectorAll('.site-list').forEach(l => l.classList.remove('drag-over'));
+  const data = e.dataTransfer.getData('text/plain');
+  if (!data) return;
+  
+  let demandIds = [];
+  let totalQty = 0;
+  
+  if (data.startsWith('GROUP:')) {
+    const groupId = data.replace('GROUP:', '');
+    const group = demandGroups.find(g => g.id === groupId);
+    if (!group) return;
+    demandIds = group.demands;
+    totalQty = group.totalQty;
+    configType = group.suggestedType || 'job';
+  } else {
+    // Single demand line
+    demandIds = [data];
+    const [did, line] = data.split(':');
+    const d = topDemands.find(x => x.id === did);
+    if (d) {
+      const l = d.lines.find(x => x.line == line);
+      if (l) totalQty = l.qty;
+    }
+    // Auto-suggest type based on demand type
+    const d2 = topDemands.find(x => x.id === did);
+    if (d2) {
+      configType = d2.type === 'SO' || d2.type === 'MTO' || d2.type === 'REWORK' ? 'job' : (d2.type === 'REPLENISH' ? 'po' : 'to');
+    }
+  }
+  
+  configTarget = { demandIds, site: siteCode, totalQty };
+  openConfigDialog();
+}
+
+// ==================== CONFIG DIALOG ====================
+function openConfigDialog() {
+  const dialog = document.getElementById('config-dialog');
+  document.getElementById('cfg-group-info').innerHTML = `
+    <strong>${configTarget.demandIds.length}</strong> 个Demand · 
+    Site: <strong>${configTarget.site}厂</strong> · 
+    数量: <strong>${configTarget.totalQty}件</strong>
+  `;
+  document.getElementById('cfg-qty').value = configTarget.totalQty;
+  selectConfigType(configType);
+  updateConfigPreview();
+  dialog.classList.add('open');
+}
+
+function closeConfigDialog() {
+  document.getElementById('config-dialog').classList.remove('open');
+  configTarget = null;
+}
+
+function selectConfigType(type) {
+  configType = type;
+  document.querySelectorAll('.type-option').forEach(el => {
+    el.classList.toggle('selected', el.dataset.type === type);
+  });
+  updateConfigPreview();
+}
+
+function updateConfigPreview() {
+  const typeLabels = {job:'Job（生产/返工）', po:'PO（采购）', to:'TO（调拨）'};
+  const qty = document.getElementById('cfg-qty').value || configTarget.totalQty;
+  const priority = document.getElementById('cfg-priority').value;
+  document.getElementById('cfg-preview').innerHTML = `
+    <strong>预览:</strong> 创建 <strong>${typeLabels[configType]}</strong><br>
+    Site: ${configTarget.site}厂 · 数量: ${qty}件 · 优先级: ${priority.toUpperCase()}<br>
+    关联Demand: ${configTarget.demands.join(', ')}
+  `;
+}
+
+document.getElementById('cfg-qty').addEventListener('input', updateConfigPreview);
+document.getElementById('cfg-priority').addEventListener('change', updateConfigPreview);
+
+function confirmConfig() {
+  if (!configTarget) return;
+  
+  const qty = parseInt(document.getElementById('cfg-qty').value) || configTarget.totalQty;
+  const priority = document.getElementById('cfg-priority').value;
+  const type = configType;
+  const site = configTarget.site;
+  
+  // Create new site item
+  const prefix = type === 'job' ? 'JOB' : (type === 'po' ? 'PO' : 'TO');
+  const newId = prefix + '-NEW-' + Math.floor(Math.random() * 900 + 100);
+  
+  const typeDescMap = {
+    job: '生产任务',
+    po: '采购任务',
+    to: '调拨任务'
+  };
+  
+  siteItems.push({
+    id: newId,
+    type,
+    site,
+    releaseStatus: 'not_released',
+    priority,
+    desc: typeDescMap[type] + ' ' + configTarget.demands[0].split(':')[0],
+    qty,
+    status: '草稿',
+    progress: 0,
+    expanded: false,
+    demands: configTarget.demands.map(d => d.split(':')[0]),
+    process: type === 'job' ? ['创建○','BOM展开○','Recipe配置○'] : (type === 'po' ? ['创建○','下单○','到货○'] : ['创建○','拣货○','运输○']),
+    ddl: '2026-05-20'
+  });
+  
+  // Remove from top pool / groups
+  configTarget.demands.forEach(key => {
+    if (!key.includes(':')) return;
+    const [did, line] = key.split(':');
+    const dIdx = topDemands.findIndex(x => x.id === did);
+    if (dIdx > -1) {
+      const d = topDemands[dIdx];
+      d.lines = d.lines.filter(l => l.line != line);
+      if (d.lines.length === 0) topDemands.splice(dIdx, 1);
+    }
+  });
+  
+  // Remove used group
+  if (configTarget.demands.length > 1) {
+    demandGroups = demandGroups.filter(g => {
+      // Keep groups that don't match exactly
+      return !(g.demands.length === configTarget.demands.length && g.demands.every(d => configTarget.demands.includes(d)));
+    });
+  }
+  
+  showToast('已创建', `${newId} → ${site}厂 · ${type.toUpperCase()} · ${qty}件`);
+  closeConfigDialog();
+  render();
+}
+
+// ==================== TOAST ====================
+function showToast(title, body) {
+  const toast = document.getElementById('toast');
+  toast.innerHTML = `<div style="font-weight:700;margin-bottom:3px;">${title}</div><div style="color:var(--text-2);">${body}</div>`;
+  toast.classList.add('open');
+  setTimeout(() => toast.classList.remove('open'), 3000);
+}
+
+// ==================== INIT ====================
+function render() {
+  renderPool();
+  renderSites();
+}
+
+render();
+</script>
+</body>
+</html>

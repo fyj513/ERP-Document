@@ -1,0 +1,49 @@
+{
+  "version": "1.0",
+  "repo": "pram-team/pram-docs",
+  "folder": "training",
+  "topics": [
+    {
+      "id": "pram-intro",
+      "file": "pram-intro.md",
+      "title": "PRAM 简介",
+      "icon": "Home",
+      "color": "#00E5FF"
+    },
+    {
+      "id": "core-arch",
+      "file": "core-arch.md",
+      "title": "核心架构",
+      "icon": "Building2",
+      "color": "#FFD700"
+    },
+    {
+      "id": "api-auth",
+      "file": "api-auth.md",
+      "title": "API 认证",
+      "icon": "Wifi",
+      "color": "#39FF14"
+    },
+    {
+      "id": "dev-guide",
+      "file": "dev-guide.md",
+      "title": "开发规范",
+      "icon": "FileText",
+      "color": "#FF00FF"
+    },
+    {
+      "id": "deploy",
+      "file": "deploy.md",
+      "title": "部署指南",
+      "icon": "Rocket",
+      "color": "#FF3366"
+    },
+    {
+      "id": "advanced",
+      "file": "advanced.md",
+      "title": "高级技巧",
+      "icon": "Zap",
+      "color": "#9966CC"
+    }
+  ]
+}

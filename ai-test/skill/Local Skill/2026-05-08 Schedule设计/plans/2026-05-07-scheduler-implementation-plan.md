@@ -842,6 +842,46 @@ git commit -m "test(integration): add end-to-end scheduler flow tests"
 
 ---
 
+## 前端原型迭代记录
+
+| 版本 | 文件 | 状态 | 核心设计 |
+|------|------|------|---------|
+| v4 | `scheduler-page-v4.html` | ✅ Done | 左右两列：左侧筛选，右侧统一Demand视图，拖拽改Site/Status |
+| v5 | `scheduler-page-v5.html` | ✅ Done | v4 + ActionStack回退 + processStatus模型 + Job弹窗(BOM/Recipe/Process/Signal) |
+| v6 | `scheduler-page-v6.html` | ⏸️ Abandoned | 时间轴甘特图设计，因复杂度放弃 |
+| v7 | `scheduler-page-v7.html` | ✅ Done | Kanban看板式：上方Demand池(Normal/On Hold)，下方Site纵向列表(Released/Not Released)，拖拽规划 |
+| **v8** | **`scheduler-page-v8.html`** | **✅ Done** | **解决大规模Demand场景：展开/折叠 + 勾选合并 + 系统建议 + Group拖拽 + 自动路由弹窗配置 + Site列表展开/折叠 + 优先级排序** |
+| **v9** | **`scheduler-page-v9.html`** | **✅ Done** | **最终版：三列公司级执行队列（JOB/PO/TO）+ 列可隐藏/显示 + Job不分配Site（Recipe决定）+ 列内拖拽排序 = 公司级优先级** |
+
+### v8 关键交互设计
+
+1. **上方 Demand 池**（左侧 55%）：
+   - Demand 以可展开/折叠列表展示（而非卡片），Line Item 为最小粒度
+   - 勾选 Line Item → 底部批量操作栏显示（合并/拆分/清除）
+   - 系统建议卡片（💡 合并/拆分建议，可确认或忽略）
+   - Demand Groups（已合并）以特殊卡片展示，可直接拖拽到右侧
+   - 支持 Normal / On Hold 标签切换
+
+2. **拖拽单位为 Demand Group**（或单条 Line）：
+   - 只有已合并的 Group 才能拖拽（体现批量处理思想）
+   - 拖拽到右侧 Site 列表后弹出**配置弹窗**（不会直接落地）
+
+3. **配置弹窗**（核心设计）：
+   - 根据 (产品 × Site) 自动推荐类型：Job/PO/TO
+   - 可手动切换类型
+   - 配置数量、优先级
+   - **确认后才创建**，创建后出现在下方 Not Released
+   - 未配置完成不允许出现在 Site 列表中
+
+4. **下方 Site 队列**（右侧 45%）：
+   - A/B/C 厂纵向排列
+   - 每个 Site 支持 Not Released / Released 切换
+   - 按优先级(Critical > High > Normal)排序
+   - 展开/折叠查看 Process 执行链路
+   - 支持拖拽排序（体现执行优先级和依赖关系）
+
+---
+
 ## 执行选项
 
 **Plan complete and saved to `docs/superpowers/plans/2026-05-07-scheduler-implementation-plan.md`.**
@@ -849,6 +889,6 @@ git commit -m "test(integration): add end-to-end scheduler flow tests"
 **建议执行顺序：**
 1. Task 1（数据库Schema）→ Task 2（合并引擎）→ Task 3（优先级引擎）→ Task 4（Job生命周期）
 2. Task 5（Demand来源集成）
-3. Task 6-7（前端页面）
+3. Task 6-7（前端页面，参考 v9 原型交互）
 4. Task 8（WebSocket）
 5. Task 9（集成测试）
