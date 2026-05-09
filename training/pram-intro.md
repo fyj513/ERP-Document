@@ -9,8 +9,6 @@ version: 1.0
 
 PRAM 是 **Project Resource And Management** 的缩写，是专为高效团队打造的资源管理平台。
 
-> 💡 核心理念：**轻松、有趣、严谨**
-
 ---
 
 ## 为什么选择 PRAM？
