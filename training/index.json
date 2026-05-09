@@ -44,6 +44,20 @@
       "title": "高级技巧",
       "icon": "Zap",
       "color": "#9966CC"
+    },
+    {
+      "id": "build-tool",
+      "file": "build-tool.md",
+      "title": "Build工具使用",
+      "icon": "Wrench",
+      "color": "#FF8C00"
+    },
+    {
+      "id": "github-workflow",
+      "file": "github-workflow.md",
+      "title": "GitHub工作流",
+      "icon": "GitBranch",
+      "color": "#2E8B57"
     }
   ]
 }
