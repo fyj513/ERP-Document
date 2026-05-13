@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Scheduler — 需求中枢 v3</title>
+<title>Scheduler — 需求中枢 v4</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
@@ -37,11 +37,6 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 .header { height: 48px; background: var(--bg-1); border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 16px; flex-shrink: 0; }
 .header-left { display:flex; align-items:center; gap:16px; }
 .logo { font-family:var(--font-mono); font-weight:700; font-size:14px; color:var(--accent); }
-.site-switch { display:flex; align-items:center; gap:4px; background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px; padding: 2px; }
-.site-pill { padding: 4px 12px; border-radius: 4px; font-size: 11px; font-weight: 600; cursor: pointer; color: var(--text-3); transition: all .15s; }
-.site-pill.active { background: var(--accent); color:#fff; }
-.site-pill:hover:not(.active) { color: var(--text-1); }
-
 .header-right { display:flex; align-items:center; gap:8px; }
 .btn { padding: 5px 12px; border-radius: 5px; border: none; font-family: var(--font-body); font-weight: 600; font-size: 11.5px; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; gap: 5px; }
 .btn-primary { background: var(--accent); color:#fff; }
@@ -53,55 +48,75 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 .btn-ghost:hover { background: var(--bg-3); color: var(--text-1); }
 
 /* Batch Action Bar */
-.batch-bar {
-  display: none;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 16px;
-  background: var(--bg-2);
-  border-bottom: 1px solid var(--border);
-  font-size: 12px;
-}
+.batch-bar { display: none; align-items: center; gap: 10px; padding: 8px 16px; background: var(--bg-2); border-bottom: 1px solid var(--border); font-size: 12px; }
 .batch-bar.open { display: flex; }
 .batch-count { font-weight: 700; color: var(--accent); }
 .batch-divider { width: 1px; height: 16px; background: var(--border-light); margin: 0 4px; }
 
-/* Main */
+/* Main Layout */
 .main { display:flex; height: calc(100vh - 48px); }
 
-/* Sidebar */
-.sidebar { width: 200px; background: var(--bg-1); border-right: 1px solid var(--border); padding: 12px 8px; overflow-y: auto; flex-shrink: 0; }
-.sidebar-title { font-size: 9px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px; padding: 10px 6px 4px; }
-.sidebar-item { padding: 6px 8px; border-radius: 5px; cursor: pointer; color: var(--text-2); display: flex; align-items: center; gap: 8px; transition: all .12s; margin-bottom: 1px; font-size: 12px; }
-.sidebar-item:hover { background: var(--bg-2); color: var(--text-1); }
-.sidebar-item.active { background: var(--bg-3); color: var(--accent); }
-.sidebar-badge { margin-left: auto; background: var(--bg-3); color: var(--text-3); font-size: 10px; padding: 1px 6px; border-radius: 8px; font-weight: 700; }
+/* Filter Panel (Left) */
+.filter-panel { width: 210px; background: var(--bg-1); border-right: 1px solid var(--border); padding: 12px 0; overflow-y: auto; flex-shrink: 0; }
+.filter-group { margin-bottom: 4px; }
 
-/* Content */
+/* Droppable groups (Site & Status) */
+.filter-group.droppable .filter-group-header {
+  background: rgba(232,93,4,0.05);
+  border-left: 2px solid var(--accent);
+}
+.filter-group.droppable .filter-group-header::before {
+  content: '📁';
+  margin-right: 4px;
+  font-size: 10px;
+}
+.filter-group.droppable .filter-option {
+  position: relative;
+}
+.filter-group.droppable .filter-option.drop-target {
+  background: rgba(232,93,4,0.15);
+  border: 1px dashed var(--accent);
+  color: var(--accent);
+}
+.filter-group.droppable .filter-option.drop-target::after {
+  content: '← Drop';
+  position: absolute;
+  right: 6px;
+  font-size: 9px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+/* Filter-only groups (Type & Date) */
+.filter-group.filter-only .filter-group-header::before {
+  content: '🔍';
+  margin-right: 4px;
+  font-size: 10px;
+}
+
+.filter-group-header { padding: 8px 12px; font-size: 10px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px; cursor: pointer; display: flex; align-items: center; justify-content: space-between; user-select: none; }
+.filter-group-header:hover { color: var(--text-2); }
+.filter-group-header .arrow { font-size: 10px; transition: transform .2s; }
+.filter-group-header.open .arrow { transform: rotate(90deg); }
+.filter-group-body { padding: 4px 10px 8px; display: none; }
+.filter-group-body.open { display: block; }
+.filter-option { padding: 5px 8px; border-radius: 5px; cursor: pointer; color: var(--text-2); font-size: 12px; display: flex; align-items: center; gap: 8px; transition: all .12s; margin-bottom: 2px; border: 1px solid transparent; }
+.filter-option:hover { background: var(--bg-2); color: var(--text-1); }
+.filter-option.active { background: var(--bg-3); color: var(--accent); }
+.filter-option .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.filter-option .count { margin-left: auto; font-family: var(--font-mono); font-size: 10px; color: var(--text-3); }
+.filter-option.active .count { color: var(--accent); }
+.filter-reset { padding: 6px 12px; font-size: 11px; color: var(--text-3); cursor: pointer; text-align: center; border-top: 1px solid var(--border); margin-top: 4px; }
+.filter-reset:hover { color: var(--accent); }
+
+/* Drop hint when dragging */
+.filter-panel.drag-active {
+  background: rgba(232,93,4,0.02);
+}
+
+/* Content (Right) */
 .content { flex: 1; overflow-y: auto; padding: 12px 16px 40px; }
-
-/* Status Tabs - with drop zones */
-.status-tabs { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
-.status-group { background: var(--bg-1); border: 1px solid var(--border); border-radius: 8px; padding: 8px 10px; transition: all .2s; }
-.status-group.drag-over { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(232,93,4,0.15); }
-.status-group-title { font-size: 9px; font-weight: 700; color: var(--text-3); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 6px; display: flex; justify-content: space-between; }
-.status-row { display: flex; gap: 5px; flex-wrap: wrap; }
-.status-tab { padding: 4px 10px; border-radius: 16px; font-size: 11px; font-weight: 600; cursor: pointer; border: 1px solid transparent; display: inline-flex; align-items: center; gap: 5px; transition: all .15s; user-select: none; }
-.status-tab:hover { transform: scale(1.02); }
-.status-tab.active { box-shadow: 0 0 0 2px var(--bg-0), 0 0 0 3px var(--accent); }
-.status-tab .count { font-family: var(--font-mono); font-size: 10px; opacity: 0.8; }
-.tab-draft { background: rgba(158,163,184,0.08); color: var(--text-2); border-color: var(--border-light); }
-.tab-draft.active { background: rgba(158,163,184,0.2); color: var(--text-1); }
-.tab-hold { background: rgba(158,163,184,0.08); color: var(--text-2); border-color: var(--border-light); }
-.tab-hold.active { background: rgba(158,163,184,0.2); color: var(--text-1); }
-.tab-scheduled { background: rgba(76,201,240,0.08); color: var(--blue); border-color: rgba(76,201,240,0.25); }
-.tab-scheduled.active { background: rgba(76,201,240,0.18); }
-.tab-executing { background: rgba(244,208,63,0.08); color: var(--yellow); border-color: rgba(244,208,63,0.25); }
-.tab-executing.active { background: rgba(244,208,63,0.18); }
-.tab-partial { background: rgba(232,93,4,0.08); color: var(--accent); border-color: rgba(232,93,4,0.25); }
-.tab-partial.active { background: rgba(232,93,4,0.18); }
-.tab-completed { background: rgba(45,198,83,0.08); color: var(--green); border-color: rgba(45,198,83,0.25); }
-.tab-completed.active { background: rgba(45,198,83,0.18); }
 
 /* Merge Section */
 .merge-section { margin-bottom: 12px; }
@@ -195,21 +210,16 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 .split-remove { color: var(--red); cursor: pointer; font-size: 16px; padding: 4px; }
 .split-remove:hover { background: rgba(230,57,70,0.1); border-radius: 4px; }
 
-/* Drop indicator */
-.drop-indicator { height: 2px; background: var(--accent); border-radius: 1px; margin: 0 10px; opacity: 0; transition: opacity .15s; position: relative; }
-.drop-indicator.active { opacity: 1; }
-.drop-indicator::after { content: 'Drop here'; position: absolute; left: 50%; top: -16px; transform: translateX(-50%); background: var(--accent); color: #fff; font-size: 9px; font-weight: 700; padding: 1px 6px; border-radius: 3px; text-transform: uppercase; letter-spacing: 0.5px; }
-
-/* Scrollbar */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: var(--bg-4); border-radius: 3px; }
-
 /* Toast */
 .toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg-2); border: 1px solid var(--border-light); border-radius: 8px; padding: 12px 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 3000; transform: translateY(100px); opacity: 0; transition: all .3s; font-size: 12px; max-width: 320px; }
 .toast.open { transform: translateY(0); opacity: 1; }
 .toast-title { font-weight: 700; margin-bottom: 3px; }
 .toast-body { color: var(--text-2); }
+
+/* Scrollbar */
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--bg-4); border-radius: 3px; }
 </style>
 </head>
 <body>
@@ -218,11 +228,6 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 <div class="header">
   <div class="header-left">
     <div class="logo">◈ SCHEDULER</div>
-    <div class="site-switch">
-      <div class="site-pill active" onclick="switchSite(this,'A')">A厂 · 深圳</div>
-      <div class="site-pill" onclick="switchSite(this,'B')">B厂 · 东莞</div>
-      <div class="site-pill" onclick="switchSite(this,'C')">C厂 · 苏州</div>
-    </div>
   </div>
   <div class="header-right">
     <button class="btn btn-secondary" id="btn-merge" style="display:none;" onclick="batchMerge()">🔗 合并到Job</button>
@@ -234,7 +239,7 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 
 <!-- Batch Action Bar -->
 <div class="batch-bar" id="batch-bar">
-  <span class="batch-count" id="batch-count">0</span> 个Line Item 已选择
+  <span class="batch-count" id="batch-count">0</span> 个已选择
   <div class="batch-divider"></div>
   <button class="btn btn-primary btn-sm" onclick="batchMerge()">🔗 合并到Job</button>
   <button class="btn btn-secondary btn-sm" onclick="batchSplit()">✂️ 拆分数量</button>
@@ -247,42 +252,130 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 
 <!-- Main -->
 <div class="main">
-  <div class="sidebar">
-    <div class="sidebar-title">需求来源</div>
-    <div class="sidebar-item active" onclick="filterSource('all',this)"><span>◈</span><span>全部</span><span class="sidebar-badge">26</span></div>
-    <div class="sidebar-item" onclick="filterSource('SO',this)"><span style="color:var(--yellow)">●</span><span>客户订单</span><span class="sidebar-badge">15</span></div>
-    <div class="sidebar-item" onclick="filterSource('MTO',this)"><span style="color:var(--red)">●</span><span>Make to Order</span><span class="sidebar-badge">3</span></div>
-    <div class="sidebar-item" onclick="filterSource('REPLENISH',this)"><span style="color:var(--green)">●</span><span>补货</span><span class="sidebar-badge">2</span></div>
-    <div class="sidebar-item" onclick="filterSource('TRANSFER',this)"><span style="color:var(--blue)">●</span><span>调拨</span><span class="sidebar-badge">2</span></div>
-    <div class="sidebar-item" onclick="filterSource('REWORK',this)"><span style="color:#ff2e63">●</span><span>返工</span><span class="sidebar-badge">2</span></div>
-    <div class="sidebar-item" onclick="filterSource('SAMPLE',this)"><span style="color:var(--purple)">●</span><span>样品</span><span class="sidebar-badge">2</span></div>
-
-    <div class="sidebar-title">操作</div>
-    <div class="sidebar-item" onclick="showMergeConfig()"><span>⚙</span><span>合并规则</span></div>
-    <div class="sidebar-item" onclick="showCapacity()"><span>📊</span><span>产能报表</span></div>
-  </div>
-
-  <div class="content">
-    <!-- Status Tabs with Drop Zones -->
-    <div class="status-tabs" id="status-tabs">
-      <div class="status-group" data-status-group="not-released" ondragover="handleTabDragOver(event)" ondragleave="handleTabDragLeave(event)" ondrop="handleTabDrop(event,'draft')">
-        <div class="status-group-title"><span>未释放</span></div>
-        <div class="status-row">
-          <div class="status-tab tab-draft active" data-status="draft" onclick="switchStatus(this,'draft')">草稿 <span class="count">6</span></div>
-          <div class="status-tab tab-hold" data-status="hold" onclick="switchStatus(this,'hold')">暂停 <span class="count">2</span></div>
-          <div class="status-tab tab-scheduled" data-status="scheduled" onclick="switchStatus(this,'scheduled')">已排程 <span class="count">8</span></div>
-        </div>
+  <!-- Filter Panel (Left) -->
+  <div class="filter-panel" id="filter-panel">
+    <!-- Site: Droppable -->
+    <div class="filter-group droppable" data-droppable="site">
+      <div class="filter-group-header open" onclick="toggleFilterGroup(this)">
+        <span>📁 工厂 Site（可拖拽）</span><span class="arrow">▶</span>
       </div>
-      <div class="status-group" data-status-group="released" ondragover="handleTabDragOver(event)" ondragleave="handleTabDragLeave(event)" ondrop="handleTabDrop(event,'executing')">
-        <div class="status-group-title"><span>已释放</span></div>
-        <div class="status-row">
-          <div class="status-tab tab-executing" data-status="executing" onclick="switchStatus(this,'executing')">执行中 <span class="count">5</span></div>
-          <div class="status-tab tab-partial" data-status="partial" onclick="switchStatus(this,'partial')">部分完成 <span class="count">2</span></div>
-          <div class="status-tab tab-completed" data-status="completed" onclick="switchStatus(this,'completed')">已完成 <span class="count">1</span></div>
+      <div class="filter-group-body open" id="site-filters">
+        <div class="filter-option active" data-filter="site" data-value="all" onclick="setFilter('site','all',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'site','all')">
+          <span style="font-size:11px;">◈</span><span>全部工厂</span><span class="count">26</span>
+        </div>
+        <div class="filter-option" data-filter="site" data-value="A" onclick="setFilter('site','A',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'site','A')">
+          <span class="dot" style="background:var(--blue)"></span><span>A厂 · 深圳</span><span class="count">10</span>
+        </div>
+        <div class="filter-option" data-filter="site" data-value="B" onclick="setFilter('site','B',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'site','B')">
+          <span class="dot" style="background:var(--green)"></span><span>B厂 · 东莞</span><span class="count">8</span>
+        </div>
+        <div class="filter-option" data-filter="site" data-value="C" onclick="setFilter('site','C',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'site','C')">
+          <span class="dot" style="background:var(--yellow)"></span><span>C厂 · 苏州</span><span class="count">5</span>
+        </div>
+        <div class="filter-option" data-filter="site" data-value="unassigned" onclick="setFilter('site','unassigned',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'site',null)">
+          <span style="color:var(--red);font-size:10px;font-weight:700;">⚠</span><span>未分配</span><span class="count">3</span>
         </div>
       </div>
     </div>
 
+    <!-- Status: Droppable -->
+    <div class="filter-group droppable" data-droppable="status">
+      <div class="filter-group-header open" onclick="toggleFilterGroup(this)">
+        <span>📁 状态 Status（可拖拽）</span><span class="arrow">▶</span>
+      </div>
+      <div class="filter-group-body open" id="status-filters">
+        <div class="filter-option active" data-filter="status" data-value="all" onclick="setFilter('status','all',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'status','all')">
+          <span style="font-size:11px;">◈</span><span>全部状态</span><span class="count">26</span>
+        </div>
+        <div class="filter-option" data-filter="status" data-value="draft" onclick="setFilter('status','draft',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'status','draft')">
+          <span class="dot" style="background:var(--text-3)"></span><span>草稿</span><span class="count">9</span>
+        </div>
+        <div class="filter-option" data-filter="status" data-value="hold" onclick="setFilter('status','hold',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'status','hold')">
+          <span class="dot" style="background:var(--text-3)"></span><span>暂停</span><span class="count">2</span>
+        </div>
+        <div class="filter-option" data-filter="status" data-value="scheduled" onclick="setFilter('status','scheduled',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'status','scheduled')">
+          <span class="dot" style="background:var(--blue)"></span><span>已排程</span><span class="count">8</span>
+        </div>
+        <div class="filter-option" data-filter="status" data-value="executing" onclick="setFilter('status','executing',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'status','executing')">
+          <span class="dot" style="background:var(--yellow)"></span><span>执行中</span><span class="count">5</span>
+        </div>
+        <div class="filter-option" data-filter="status" data-value="partial" onclick="setFilter('status','partial',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'status','partial')">
+          <span class="dot" style="background:var(--accent)"></span><span>部分完成</span><span class="count">2</span>
+        </div>
+        <div class="filter-option" data-filter="status" data-value="completed" onclick="setFilter('status','completed',this)"
+             ondragover="handleFilterDragOver(event)" ondragleave="handleFilterDragLeave(event)" ondrop="handleFilterDrop(event,'status','completed')">
+          <span class="dot" style="background:var(--green)"></span><span>已完成</span><span class="count">1</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Type: Filter only -->
+    <div class="filter-group filter-only">
+      <div class="filter-group-header open" onclick="toggleFilterGroup(this)">
+        <span>🔍 类型 Type（仅筛选）</span><span class="arrow">▶</span>
+      </div>
+      <div class="filter-group-body open">
+        <div class="filter-option active" data-filter="type" data-value="all" onclick="setFilter('type','all',this)">
+          <span style="font-size:11px;">◈</span><span>全部类型</span><span class="count">26</span>
+        </div>
+        <div class="filter-option" data-filter="type" data-value="SO" onclick="setFilter('type','SO',this)">
+          <span class="dot" style="background:var(--yellow)"></span><span>客户订单 SO</span><span class="count">15</span>
+        </div>
+        <div class="filter-option" data-filter="type" data-value="MTO" onclick="setFilter('type','MTO',this)">
+          <span class="dot" style="background:var(--red)"></span><span>Make to Order</span><span class="count">3</span>
+        </div>
+        <div class="filter-option" data-filter="type" data-value="TRANSFER" onclick="setFilter('type','TRANSFER',this)">
+          <span class="dot" style="background:var(--blue)"></span><span>调拨 Transfer</span><span class="count">2</span>
+        </div>
+        <div class="filter-option" data-filter="type" data-value="REPLENISH" onclick="setFilter('type','REPLENISH',this)">
+          <span class="dot" style="background:var(--green)"></span><span>补货 Replenish</span><span class="count">4</span>
+        </div>
+        <div class="filter-option" data-filter="type" data-value="REWORK" onclick="setFilter('type','REWORK',this)">
+          <span class="dot" style="background:#ff2e63"></span><span>返工 Rework</span><span class="count">2</span>
+        </div>
+        <div class="filter-option" data-filter="type" data-value="SAMPLE" onclick="setFilter('type','SAMPLE',this)">
+          <span class="dot" style="background:var(--purple)"></span><span>样品 Sample</span><span class="count">2</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Date: Filter only -->
+    <div class="filter-group filter-only">
+      <div class="filter-group-header open" onclick="toggleFilterGroup(this)">
+        <span>🔍 交期 Due Date（仅筛选）</span><span class="arrow">▶</span>
+      </div>
+      <div class="filter-group-body open">
+        <div class="filter-option active" data-filter="date" data-value="all" onclick="setFilter('date','all',this)">
+          <span style="font-size:11px;">◈</span><span>全部</span><span class="count">26</span>
+        </div>
+        <div class="filter-option" data-filter="date" data-value="week" onclick="setFilter('date','week',this)">
+          <span style="font-size:11px;">📅</span><span>本周</span><span class="count">8</span>
+        </div>
+        <div class="filter-option" data-filter="date" data-value="nextweek" onclick="setFilter('date','nextweek',this)">
+          <span style="font-size:11px;">📅</span><span>下周</span><span class="count">10</span>
+        </div>
+        <div class="filter-option" data-filter="date" data-value="month" onclick="setFilter('date','month',this)">
+          <span style="font-size:11px;">📅</span><span>本月</span><span class="count">18</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="filter-reset" onclick="resetAllFilters()">↺ 重置所有筛选</div>
+  </div>
+
+  <!-- Content (Right) -->
+  <div class="content">
     <!-- Merge Suggestions -->
     <div class="merge-section" id="merge-section">
       <div class="merge-header">
@@ -299,7 +392,7 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
         <div class="th">SO#</div><div class="th">Customer</div><div class="th">P/N & Description</div>
         <div class="th th-right">Qty</div><div class="th th-right">On Hand</div>
         <div class="th th-right">Demand</div><div class="th th-right">Supply</div>
-        <div class="th">DDL</div><div class="th">Linked</div>
+        <div class="th">Site</div><div class="th">DDL</div><div class="th">Linked</div>
       </div>
       <div id="table-body"></div>
     </div>
@@ -461,7 +554,7 @@ const allData = [
     { line:1, pn:'RS4932', desc:'Server Rack 42U', qty:20, oh:5, demand:25, supply:22, ddl:'Jul 1', linked:[{type:'po',no:'PO-202'}] },
     { line:2, pn:'RS8473', desc:'Cable Management Panel', qty:60, oh:25, demand:70, supply:65, ddl:'Jul 1', linked:[] },
   ]},
-  // Unassigned Site SO
+  // Site未分配的SO
   { id:'SO-1016', customer:'Unassigned Corp A', status:'draft', site:null, ddl:'2026-06-22', lines:[
     { line:1, pn:'RS9991', desc:'Motor Housing XL', qty:120, oh:40, demand:150, supply:130, ddl:'Jun 22', linked:[] },
   ]},
@@ -490,188 +583,210 @@ const specialDemands = [
   { id:'SAM-002', type:'sample', part:'J-010', desc:'Customer Trial Sample', qty:5, site:'A', ddl:'2026-05-30', priority:48, so:'销售部申请', status:'scheduled' },
 ];
 
-let currentStatus = 'draft';
-let currentSite = 'A';
+let filters = { site:'all', status:'all', type:'all', date:'all' };
 let expandedRows = new Set();
-let selectedLines = new Set(); // "soId:lineNo"
+let selectedLines = new Set();
 let ctxTarget = null;
+
+// ==================== FILTER LOGIC ====================
+function toggleFilterGroup(header) {
+  header.classList.toggle('open');
+  const body = header.nextElementSibling;
+  body.classList.toggle('open');
+}
+
+function setFilter(category, value, el) {
+  filters[category] = value;
+  document.querySelectorAll(`[data-filter="${category}"]`).forEach(opt => opt.classList.remove('active'));
+  el.classList.add('active');
+  renderTable();
+}
+
+function resetAllFilters() {
+  filters = { site:'all', status:'all', type:'all', date:'all' };
+  document.querySelectorAll('.filter-option').forEach(opt => {
+    opt.classList.toggle('active', opt.dataset.value === 'all');
+  });
+  renderTable();
+}
+
+function matchesFilters(item) {
+  if (filters.site !== 'all') {
+    if (filters.site === 'unassigned') {
+      if (item.site) return false;
+    } else {
+      if (!item.site || !item.site.includes(filters.site)) return false;
+    }
+  }
+  if (filters.status !== 'all' && item.status !== filters.status) return false;
+  if (filters.type !== 'all') {
+    const itemType = item.id.startsWith('SO') ? 'SO' : (item.id.split('-')[0]);
+    if (itemType !== filters.type) return false;
+  }
+  return true;
+}
+
+// ==================== DRAG & DROP TO FILTER ====================
+function handleFilterDragOver(e) {
+  e.preventDefault();
+  e.currentTarget.classList.add('drop-target');
+}
+function handleFilterDragLeave(e) {
+  e.currentTarget.classList.remove('drop-target');
+}
+function handleFilterDrop(e, category, value) {
+  e.preventDefault();
+  e.currentTarget.classList.remove('drop-target');
+  const id = e.dataTransfer.getData('text/plain');
+  if (!id) return;
+
+  if (category === 'site') {
+    const so = allData.find(s=>s.id===id);
+    const sp = specialDemands.find(s=>s.id===id);
+    if (so) {
+      so.site = value;
+      showToast('Site 已变更', `${id} → ${value==='A'?'A厂':(value==='B'?'B厂':(value==='C'?'C厂':'未分配'))}`);
+    } else if (sp) {
+      sp.site = value;
+      showToast('Site 已变更', `${id} → ${value==='A'?'A厂':(value==='B'?'B厂':(value==='C'?'C厂':'未分配'))}`);
+    }
+  } else if (category === 'status') {
+    const so = allData.find(s=>s.id===id);
+    const sp = specialDemands.find(s=>s.id===id);
+    if (so) {
+      so.status = value;
+      showToast('状态已变更', `${id} → ${statusLabel(value)}`);
+    } else if (sp) {
+      sp.status = value;
+      showToast('状态已变更', `${id} → ${statusLabel(value)}`);
+    }
+  }
+  renderTable();
+}
+function statusLabel(s) {
+  const map = {draft:'草稿',hold:'暂停',scheduled:'已排程',executing:'执行中',partial:'部分完成',completed:'已完成'};
+  return map[s]||s;
+}
 
 // ==================== RENDER ====================
 function renderTable() {
   const tbody = document.getElementById('table-body');
   tbody.innerHTML = '';
 
-  let data = allData.filter(s => s.status === currentStatus);
-  if (currentSite !== 'all') {
-    data = data.filter(s => s.site === currentSite);
-  }
+  let soData = allData.filter(s => matchesFilters(s));
+  let spData = specialDemands.filter(s => matchesFilters(s));
 
-  data.forEach(so => {
-    const isOpen = expandedRows.has(so.id);
-    const lineCount = so.lines.length;
-    const firstLine = so.lines[0];
-    const hasShortage = so.lines.some(l => l.demand > l.supply);
-    const hasSurplus = so.lines.some(l => l.supply > l.demand);
-    const allSelected = so.lines.every(l => selectedLines.has(`${so.id}:${l.line}`));
-    const someSelected = so.lines.some(l => selectedLines.has(`${so.id}:${l.line}`));
+  let allItems = [];
+  soData.forEach(so => { allItems.push({ kind:'so', data:so, sortKey: so.ddl }); });
+  spData.forEach(sp => { allItems.push({ kind:'special', data:sp, sortKey: sp.ddl }); });
 
-    const row = document.createElement('div');
-    row.className = 'so-row' + (someSelected ? ' selected-so' : '');
-    row.draggable = true;
-    row.dataset.id = so.id;
-    row.dataset.status = so.status;
-
-    row.innerHTML = `
-      <div class="so-main" onclick="toggleExpand('${so.id}')">
-        <div class="so-check" onclick="event.stopPropagation();toggleSelectSO('${so.id}')">
-          <input type="checkbox" ${allSelected?'checked':''} ${someSelected&&!allSelected?'indeterminate':''}>
-        </div>
-        <div class="so-grip" onclick="event.stopPropagation()">⋮⋮</div>
-        <div class="so-expand ${isOpen?'open':''}">▶</div>
-        <div class="so-number">${so.id}</div>
-        <div class="so-customer">${so.customer}</div>
-        <div class="so-items">${lineCount===1?`<span class="pn">${firstLine.pn}</span> <span class="desc">${firstLine.desc}</span>`:`${lineCount} line items`}</div>
-        <div class="so-qty">${sum(so.lines,'qty')}</div>
-        <div class="so-oh">${sum(so.lines,'oh')}</div>
-        <div class="so-demand ${hasShortage?'shortage':''}">${sum(so.lines,'demand')}</div>
-        <div class="so-supply ${hasSurplus?'surplus':''}">${sum(so.lines,'supply')}</div>
-        <div>${renderSiteCell(so.id, so.site, 'so')}</div>
-        <div class="so-ddl ${isUrgent(so.ddl)?'urgent':''}">${fmtDate(so.ddl)}</div>
-        <div class="so-linked">${renderLinked(so.linked)}</div>
-      </div>
-      <div class="line-items ${isOpen?'open':''}">
-        ${so.lines.map(l => {
-          const sel = selectedLines.has(`${so.id}:${l.line}`);
-          return `
-          <div class="line-item ${sel?'selected':''}" data-so="${so.id}" data-line="${l.line}" oncontextmenu="showCtxMenu(event,'${so.id}',${l.line})" onclick="toggleSelectLine(event,'${so.id}',${l.line})">
-            <div class="so-check"><input type="checkbox" ${sel?'checked':''} onclick="event.stopPropagation();toggleSelectLine(null,'${so.id}',${l.line})"></div>
-            <div></div><div></div>
-            <div class="li-line">Line ${l.line}</div>
-            <div></div>
-            <div><span class="li-pn">${l.pn}</span> <span class="li-desc">${l.desc}</span></div>
-            <div class="li-qty">${l.qty}</div>
-            <div class="li-oh">${l.oh}</div>
-            <div class="li-demand ${l.demand>l.supply?'shortage':''}">${l.demand}</div>
-            <div class="li-supply ${l.supply>l.demand?'surplus':''}">${l.supply}</div>
-            <div class="li-ddl">-</div>
-            <div class="li-ddl">${l.ddl}</div>
-            <div class="so-linked">${renderLinked(l.linked)}</div>
-          </div>`;
-        }).join('')}
-      </div>
-    `;
-    tbody.appendChild(row);
-    addDragEvents(row);
+  allItems.forEach(item => {
+    if (item.kind === 'so') renderSORow(tbody, item.data);
+    else renderSpecialRow(tbody, item.data);
   });
 
-  // Render special demands interspersed
-  const visibleSpecial = specialDemands.filter(s => currentStatus === 'all' || s.status === currentStatus);
-  if (currentSite !== 'all') {
-    // filter by site (simplified)
-  }
-  visibleSpecial.forEach((sd, idx) => {
-    const colorMap = {mto:'var(--red)', transfer:'var(--blue)', replenish:'var(--green)', rework:'#ff2e63', sample:'var(--purple)'};
-    const labelMap = {mto:'MTO', transfer:'TRANSFER', replenish:'REPLENISH', rework:'REWORK', sample:'SAMPLE'};
-    const typeClass = {mto:'type-mto', transfer:'type-transfer', replenish:'type-replenish', rework:'type-rework', sample:'type-sample'};
-    const sel = selectedLines.has(`${sd.id}:0`);
-
-    const div = document.createElement('div');
-    div.className = 'so-row' + (sel ? ' selected-so' : '');
-    div.draggable = true;
-    div.dataset.id = sd.id;
-    div.dataset.status = sd.status;
-    div.dataset.special = 'true';
-    div.innerHTML = `
-      <div class="so-main" style="position:relative;" oncontextmenu="showCtxMenu(event,'${sd.id}',0)">
-        <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${colorMap[sd.type]};border-radius:0 2px 2px 0;"></div>
-        <div class="so-check" onclick="event.stopPropagation();toggleSelectSpecial('${sd.id}')">
-          <input type="checkbox" ${sel?'checked':''}>
-        </div>
-        <div class="so-grip" onclick="event.stopPropagation()">⋮⋮</div>
-        <div></div>
-        <div style="font-family:var(--font-mono);font-weight:600;font-size:11.5px;"><span style="display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background:${colorMap[sd.type]}22;color:${colorMap[sd.type]};border:1px solid ${colorMap[sd.type]}44;margin-right:5px;">${labelMap[sd.type]}</span>${sd.id}</div>
-        <div style="color:var(--text-2);font-size:11.5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${sd.customer||sd.so||''}</div>
-        <div><span class="li-pn">${sd.part}</span> <span class="li-desc">${sd.desc}</span></div>
-        <div class="so-qty">${sd.qty}</div>
-        <div class="so-oh">-</div>
-        <div class="so-qty">-</div>
-        <div class="so-qty">-</div>
-        <div>${renderSiteCell(sd.id, sd.site, 'special')}</div>
-        <div class="so-ddl ${sd.ddl==='ASAP'?'urgent':''}">${sd.ddl==='ASAP'?'ASAP':fmtDate(sd.ddl)}</div>
-        <div style="display:flex;gap:4px;">
-          <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();scheduleSpecial('${sd.id}')">排程</button>
-          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showSpecialDetail('${sd.id}')">详情</button>
-        </div>
-      </div>
-    `;
-    // Insert at appropriate position (after every 2-3 SO rows)
-    const insertPos = Math.min((idx + 1) * 2, tbody.children.length);
-    if (insertPos < tbody.children.length) {
-      tbody.insertBefore(div, tbody.children[insertPos]);
-    } else {
-      tbody.appendChild(div);
-    }
-    addDragEvents(div);
-  });
-
-  if (data.length === 0 && visibleSpecial.length === 0) {
-    tbody.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-3);font-size:12px;">📭 此状态下暂无记录<br><span style="font-size:11px;color:var(--text-3);">拖动项目到这里以添加</span></div>';
+  if (allItems.length === 0) {
+    tbody.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-3);font-size:12px;">📭 无匹配记录<br><span style="font-size:11px;">调整左侧筛选条件</span></div>';
   }
 
   renderMergeSuggestions();
   updateBatchBar();
 }
 
-function sum(lines, key) { return lines.reduce((a,l)=>a+l[key],0); }
+function renderSORow(tbody, so) {
+  const isOpen = expandedRows.has(so.id);
+  const lineCount = so.lines.length;
+  const firstLine = so.lines[0];
+  const hasShortage = so.lines.some(l => l.demand > l.supply);
+  const hasSurplus = so.lines.some(l => l.supply > l.demand);
+  const allSelected = so.lines.every(l => selectedLines.has(`${so.id}:${l.line}`));
+  const someSelected = so.lines.some(l => selectedLines.has(`${so.id}:${l.line}`));
 
-function renderSiteCell(id, site, type) {
-  if (site) {
-    return `<span style="font-family:var(--font-mono);font-size:11px;color:var(--text-2);">${site==='A'?'A厂':(site==='B'?'B厂':(site==='C'?'C厂':site))}</span>`;
-  }
-  return `
-    <div style="display:flex;align-items:center;gap:4px;">
-      <span style="color:var(--red);font-size:10px;font-weight:700;">⚠</span>
-      <select class="form-select" style="width:80px;padding:2px 4px;font-size:10px;background:var(--bg-2);" onchange="assignSite(event,'${id}','${type}')" onclick="event.stopPropagation()">
-        <option value="">分配Site</option>
-        <option value="A">A厂 · 65%</option>
-        <option value="B">B厂 · 82%</option>
-        <option value="C">C厂 · 35%</option>
-      </select>
+  const row = document.createElement('div');
+  row.className = 'so-row' + (someSelected ? ' selected-so' : '');
+  row.draggable = true;
+  row.dataset.id = so.id;
+
+  row.innerHTML = `
+    <div class="so-main" onclick="toggleExpand('${so.id}')">
+      <div class="so-check" onclick="event.stopPropagation();toggleSelectSO('${so.id}')">
+        <input type="checkbox" ${allSelected?'checked':''} ${someSelected&&!allSelected?'indeterminate':''}>
+      </div>
+      <div class="so-grip" onclick="event.stopPropagation()">⋮⋮</div>
+      <div class="so-expand ${isOpen?'open':''}">▶</div>
+      <div class="so-number">${so.id}</div>
+      <div class="so-customer">${so.customer}</div>
+      <div class="so-items">${lineCount===1?`<span class="pn">${firstLine.pn}</span> <span class="desc">${firstLine.desc}</span>`:`${lineCount} line items`}</div>
+      <div class="so-qty">${sum(so.lines,'qty')}</div>
+      <div class="so-oh">${sum(so.lines,'oh')}</div>
+      <div class="so-demand ${hasShortage?'shortage':''}">${sum(so.lines,'demand')}</div>
+      <div class="so-supply ${hasSurplus?'surplus':''}">${sum(so.lines,'supply')}</div>
+      <div>${renderSiteCell(so.id, so.site, 'so')}</div>
+      <div class="so-ddl ${isUrgent(so.ddl)?'urgent':''}">${fmtDate(so.ddl)}</div>
+      <div class="so-linked">${renderLinked(so.linked)}</div>
+    </div>
+    <div class="line-items ${isOpen?'open':''}">
+      ${so.lines.map(l => {
+        const sel = selectedLines.has(`${so.id}:${l.line}`);
+        return `
+        <div class="line-item ${sel?'selected':''}" data-so="${so.id}" data-line="${l.line}" oncontextmenu="showCtxMenu(event,'${so.id}',${l.line})" onclick="toggleSelectLine(event,'${so.id}',${l.line})">
+          <div class="so-check"><input type="checkbox" ${sel?'checked':''} onclick="event.stopPropagation();toggleSelectLine(null,'${so.id}',${l.line})"></div>
+          <div></div><div></div>
+          <div class="li-line">Line ${l.line}</div>
+          <div></div>
+          <div><span class="li-pn">${l.pn}</span> <span class="li-desc">${l.desc}</span></div>
+          <div class="li-qty">${l.qty}</div>
+          <div class="li-oh">${l.oh}</div>
+          <div class="li-demand ${l.demand>l.supply?'shortage':''}">${l.demand}</div>
+          <div class="li-supply ${l.supply>l.demand?'surplus':''}">${l.supply}</div>
+          <div class="li-ddl">-</div>
+          <div class="li-ddl">${l.ddl}</div>
+          <div class="so-linked">${renderLinked(l.linked)}</div>
+        </div>`;
+      }).join('')}
     </div>
   `;
+  tbody.appendChild(row);
+  addDragEvents(row);
 }
 
-function assignSite(e, id, type) {
-  const site = e.target.value;
-  if (!site) return;
-  if (type === 'so') {
-    const so = allData.find(s=>s.id===id);
-    if (so) so.site = site;
-  } else if (type === 'special') {
-    const sp = specialDemands.find(s=>s.id===id);
-    if (sp) sp.site = site;
-  }
-  showToast('Site 已分配', `${id} 已分配到 ${site==='A'?'A厂':(site==='B'?'B厂':'C厂')}`);
-  renderTable();
+function renderSpecialRow(tbody, sd) {
+  const colorMap = {mto:'var(--red)', transfer:'var(--blue)', replenish:'var(--green)', rework:'#ff2e63', sample:'var(--purple)'};
+  const labelMap = {mto:'MTO', transfer:'TRANSFER', replenish:'REPLENISH', rework:'REWORK', sample:'SAMPLE'};
+  const sel = selectedLines.has(`${sd.id}:0`);
+
+  const div = document.createElement('div');
+  div.className = 'so-row' + (sel ? ' selected-so' : '');
+  div.draggable = true;
+  div.dataset.id = sd.id;
+  div.innerHTML = `
+    <div class="so-main" style="position:relative;" oncontextmenu="showCtxMenu(event,'${sd.id}',0)">
+      <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${colorMap[sd.type]};border-radius:0 2px 2px 0;"></div>
+      <div class="so-check" onclick="event.stopPropagation();toggleSelectSpecial('${sd.id}')">
+        <input type="checkbox" ${sel?'checked':''}>
+      </div>
+      <div class="so-grip" onclick="event.stopPropagation()">⋮⋮</div>
+      <div></div>
+      <div style="font-family:var(--font-mono);font-weight:600;font-size:11.5px;"><span style="display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background:${colorMap[sd.type]}22;color:${colorMap[sd.type]};border:1px solid ${colorMap[sd.type]}44;margin-right:5px;">${labelMap[sd.type]}</span>${sd.id}</div>
+      <div style="color:var(--text-2);font-size:11.5px;overflow:hidden;white-space:nowrap;text-overflow:ellipsis;">${sd.customer||sd.so||''}</div>
+      <div><span class="li-pn">${sd.part}</span> <span class="li-desc">${sd.desc}</span></div>
+      <div class="so-qty">${sd.qty}</div>
+      <div class="so-oh">-</div>
+      <div class="so-qty">-</div>
+      <div class="so-qty">-</div>
+      <div>${renderSiteCell(sd.id, sd.site, 'special')}</div>
+      <div class="so-ddl ${sd.ddl==='ASAP'?'urgent':''}">${sd.ddl==='ASAP'?'ASAP':fmtDate(sd.ddl)}</div>
+      <div style="display:flex;gap:4px;">
+        <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();scheduleSpecial('${sd.id}')">排程</button>
+        <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showSpecialDetail('${sd.id}')">详情</button>
+      </div>
+    </div>
+  `;
+  tbody.appendChild(div);
+  addDragEvents(div);
 }
 
-function batchAssignSite() {
-  if (selectedLines.size === 0) return;
-  const sites = ['A','B','C'];
-  const site = sites[Math.floor(Math.random()*sites.length)];
-  Array.from(selectedLines).forEach(k=>{
-    const [id,line]=k.split(':');
-    const so=allData.find(s=>s.id===id);
-    if (so) so.site = site;
-    else {
-      const sp=specialDemands.find(s=>s.id===id);
-      if (sp) sp.site = site;
-    }
-  });
-  showToast('批量分配Site', `已将 ${selectedLines.size} 个Demand分配到 ${site==='A'?'A厂':(site==='B'?'B厂':'C厂')}`);
-  selectedLines.clear();
-  renderTable();
-}
+function sum(lines, key) { return lines.reduce((a,l)=>a+l[key],0); }
 function renderLinked(linked) {
   if (!linked?.length) return '<span style="color:var(--text-3);font-size:10px;">-</span>';
   let html = linked.slice(0,2).map(l => {
@@ -691,14 +806,39 @@ function isUrgent(ddl) {
   return (d-now)/(1000*60*60*24) <= 3;
 }
 
+function renderSiteCell(id, site, type) {
+  if (site) {
+    return `<span style="font-family:var(--font-mono);font-size:11px;color:var(--text-2);">${site==='A'?'A厂':(site==='B'?'B厂':(site==='C'?'C厂':site))}</span>`;
+  }
+  return `
+    <div style="display:flex;align-items:center;gap:4px;">
+      <span style="color:var(--red);font-size:10px;font-weight:700;">⚠</span>
+      <select class="form-select" style="width:80px;padding:2px 4px;font-size:10px;background:var(--bg-2);" onchange="assignSite(event,'${id}','${type}')" onclick="event.stopPropagation()">
+        <option value="">分配Site</option>
+        <option value="A">A厂 · 65%</option>
+        <option value="B">B厂 · 82%</option>
+        <option value="C">C厂 · 35%</option>
+      </select>
+    </div>
+  `;
+}
+function assignSite(e, id, type) {
+  const site = e.target.value;
+  if (!site) return;
+  if (type === 'so') {
+    const so = allData.find(s=>s.id===id);
+    if (so) so.site = site;
+  } else {
+    const sp = specialDemands.find(s=>s.id===id);
+    if (sp) sp.site = site;
+  }
+  showToast('Site 已分配', `${id} → ${site==='A'?'A厂':(site==='B'?'B厂':'C厂')}`);
+  renderTable();
+}
+
 // ==================== MERGE SUGGESTIONS ====================
 function renderMergeSuggestions() {
   const container = document.getElementById('merge-cards');
-  // Only show merge suggestions for draft status
-  if (currentStatus !== 'draft') {
-    container.innerHTML = '';
-    return;
-  }
   container.innerHTML = `
     <div class="merge-card">
       <div class="merge-icon">⚠️</div>
@@ -716,24 +856,9 @@ function renderMergeSuggestions() {
         <button class="btn btn-ghost btn-sm" onclick="ignoreMerge('CJ-001')">忽略</button>
       </div>
     </div>
-    <div class="merge-card">
-      <div class="merge-icon">⚠️</div>
-      <div class="merge-content">
-        <div class="merge-title">Candidate Job #CJ-002 — 建议合并 2 个Demand</div>
-        <div class="merge-detail">
-          <span class="merge-tag">SO-1011</span> MTS 200件 (AutoParts)
-          <span class="merge-tag">Forecast-F003</span> 计划 50件
-          <br>→ 合并后: <strong style="color:var(--text-1)">250件</strong> | Part: <strong style="color:var(--text-1)">RS4826</strong> | Site: <strong style="color:var(--text-1)">B厂</strong>
-        </div>
-      </div>
-      <div class="merge-actions">
-        <button class="btn btn-primary btn-sm" onclick="confirmMerge('CJ-002')">确认合并</button>
-        <button class="btn btn-ghost btn-sm" onclick="ignoreMerge('CJ-002')">忽略</button>
-      </div>
-    </div>
   `;
 }
-function confirmMerge(id) { showToast('合并成功', `Candidate ${id} 已合并为 Job JB-999`); event.target.closest('.merge-card').remove(); }
+function confirmMerge(id) { showToast('合并成功', `Candidate ${id} → Job JB-999`); event.target.closest('.merge-card').remove(); }
 function ignoreMerge(id) { event.target.closest('.merge-card').remove(); }
 function refreshMerge() { renderMergeSuggestions(); showToast('已刷新', '合并建议已更新'); }
 
@@ -761,14 +886,6 @@ function toggleSelectSpecial(id) {
   else selectedLines.add(key);
   renderTable();
 }
-function scheduleSpecial(id) {
-  const sd = specialDemands.find(s=>s.id===id);
-  showToast('排程成功', `${sd.id} (${sd.part}) 已创建为 Job，BOM 自动展开`);
-}
-function showSpecialDetail(id) {
-  const sd = specialDemands.find(s=>s.id===id);
-  showToast('详情', `${sd.id} | ${sd.part} - ${sd.desc} | 数量:${sd.qty} | 优先级:${sd.priority}`);
-}
 function updateBatchBar() {
   const bar = document.getElementById('batch-bar');
   const count = document.getElementById('batch-count');
@@ -792,21 +909,9 @@ function clearSelection() { selectedLines.clear(); renderTable(); }
 
 // ==================== BATCH ACTIONS ====================
 function batchMerge() {
-  if (selectedLines.size < 2) { showToast('无法合并', '请至少选择 2 个 Line Item'); return; }
-  const items = Array.from(selectedLines).map(k=>{
-    const [id,line]=k.split(':');
-    const so=allData.find(s=>s.id===id);
-    if (so) {
-      const l=so.lines.find(x=>x.line==line);
-      return `${id} Line ${line} (${l.pn})`;
-    }
-    const sp=specialDemands.find(s=>s.id===id);
-    if (sp) return `${id} (${sp.part})`;
-    return id;
-  });
-  showToast('合并到Job', `已将 ${selectedLines.size} 个Line Item合并为新Job`);
-  selectedLines.clear();
-  renderTable();
+  if (selectedLines.size < 2) { showToast('无法合并', '请至少选择 2 个'); return; }
+  showToast('合并到Job', `${selectedLines.size} 个Line Item → 新Job`);
+  selectedLines.clear(); renderTable();
 }
 function batchSplit() {
   if (selectedLines.size === 0) return;
@@ -822,22 +927,32 @@ function batchSplit() {
       ctxTarget = {soId:id, line:0, special:true};
       document.getElementById('split-part').textContent = `${sp.part} - ${sp.desc}`;
       document.getElementById('split-total').textContent = sp.qty;
-      openDialog('dialog-split');
-      updateSplitStats();
+      openDialog('dialog-split'); updateSplitStats();
     }
   }
 }
+function batchAssignSite() {
+  if (selectedLines.size === 0) return;
+  const sites = ['A','B','C'];
+  const site = sites[Math.floor(Math.random()*sites.length)];
+  Array.from(selectedLines).forEach(k=>{
+    const [id,line]=k.split(':');
+    const so=allData.find(s=>s.id===id);
+    if (so) so.site = site;
+    else { const sp=specialDemands.find(s=>s.id===id); if (sp) sp.site = site; }
+  });
+  showToast('批量分配Site', `${selectedLines.size} 个Demand → ${site==='A'?'A厂':(site==='B'?'B厂':'C厂')}`);
+  selectedLines.clear(); renderTable();
+}
 function batchCreateJob() {
   if (selectedLines.size === 0) return;
-  showToast('创建Job', `已为 ${selectedLines.size} 个Line Item创建Job`);
-  selectedLines.clear();
-  renderTable();
+  showToast('创建Job', `${selectedLines.size} 个Line Item → Job`);
+  selectedLines.clear(); renderTable();
 }
 function batchCreatePO() {
   if (selectedLines.size === 0) return;
-  showToast('创建PO', `已为 ${selectedLines.size} 个Line Item创建PO`);
-  selectedLines.clear();
-  renderTable();
+  showToast('创建PO', `${selectedLines.size} 个Line Item → PO`);
+  selectedLines.clear(); renderTable();
 }
 
 // ==================== INTERACTIONS ====================
@@ -845,129 +960,33 @@ function toggleExpand(soId) {
   expandedRows.has(soId) ? expandedRows.delete(soId) : expandedRows.add(soId);
   renderTable();
 }
-function switchStatus(el, status) {
-  document.querySelectorAll('.status-tab').forEach(t=>t.classList.remove('active'));
-  el.classList.add('active');
-  currentStatus = status;
-  renderTable();
+function scheduleSpecial(id) {
+  const sd = specialDemands.find(s=>s.id===id);
+  showToast('排程成功', `${sd.id} (${sd.part}) → Job，BOM自动展开`);
 }
-function switchSite(el, site) {
-  document.querySelectorAll('.site-pill').forEach(p=>p.classList.remove('active'));
-  el.classList.add('active');
-  currentSite = site;
-  renderTable();
-}
-function filterSource(source, el) {
-  document.querySelectorAll('.sidebar-item').forEach(i=>i.classList.remove('active'));
-  el.classList.add('active');
-  // Filter logic: if not 'all', only show special demands of that type
-  if (source === 'all') {
-    currentSite = 'A';
-    renderTable();
-  } else if (source === 'SO') {
-    // Only show SO rows, hide special demands
-    // For demo: we still render table but special demands are hidden via a flag
-    showToast('过滤', '显示客户订单 (SO)');
-    renderTable();
-  } else {
-    // Show only special demands of this type
-    showToast('过滤', `显示 ${source} 类型需求`);
-    renderTableFiltered(source);
-  }
+function showSpecialDetail(id) {
+  const sd = specialDemands.find(s=>s.id===id);
+  showToast('详情', `${sd.id} | ${sd.part} - ${sd.desc} | Qty:${sd.qty} | Priority:${sd.priority}`);
 }
 
-function renderTableFiltered(sourceType) {
-  const tbody = document.getElementById('table-body');
-  tbody.innerHTML = '';
-  const filtered = specialDemands.filter(s => s.type === sourceType.toLowerCase());
-  filtered.forEach(sd => {
-    const colorMap = {mto:'var(--red)', transfer:'var(--blue)', replenish:'var(--green)', rework:'#ff2e63', sample:'var(--purple)'};
-    const labelMap = {mto:'MTO', transfer:'TRANSFER', replenish:'REPLENISH', rework:'REWORK', sample:'SAMPLE'};
-    const div = document.createElement('div');
-    div.className = 'so-row';
-    div.draggable = true;
-    div.dataset.id = sd.id;
-    div.dataset.status = sd.status;
-    div.dataset.special = 'true';
-    div.innerHTML = `
-      <div class="so-main" style="position:relative;" oncontextmenu="showCtxMenu(event,'${sd.id}',0)">
-        <div style="position:absolute;left:0;top:0;bottom:0;width:3px;background:${colorMap[sd.type]};border-radius:0 2px 2px 0;"></div>
-        <div class="so-check" onclick="event.stopPropagation();toggleSelectSpecial('${sd.id}')"><input type="checkbox"></div>
-        <div class="so-grip" onclick="event.stopPropagation()">⋮⋮</div>
-        <div></div>
-        <div style="font-family:var(--font-mono);font-weight:600;font-size:11.5px;"><span style="display:inline-block;padding:1px 5px;border-radius:3px;font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.5px;background:${colorMap[sd.type]}22;color:${colorMap[sd.type]};border:1px solid ${colorMap[sd.type]}44;margin-right:5px;">${labelMap[sd.type]}</span>${sd.id}</div>
-        <div style="color:var(--text-2);font-size:11.5px;">${sd.customer||sd.so||''}</div>
-        <div><span class="li-pn">${sd.part}</span> <span class="li-desc">${sd.desc}</span></div>
-        <div class="so-qty">${sd.qty}</div>
-        <div class="so-oh">-</div>
-        <div class="so-qty">-</div>
-        <div class="so-qty">-</div>
-        <div>${renderSiteCell(sd.id, sd.site, 'special')}</div>
-        <div class="so-ddl ${sd.ddl==='ASAP'?'urgent':''}">${sd.ddl==='ASAP'?'ASAP':fmtDate(sd.ddl)}</div>
-        <div style="display:flex;gap:4px;">
-          <button class="btn btn-primary btn-sm" onclick="event.stopPropagation();scheduleSpecial('${sd.id}')">排程</button>
-          <button class="btn btn-ghost btn-sm" onclick="event.stopPropagation();showSpecialDetail('${sd.id}')">详情</button>
-        </div>
-      </div>
-    `;
-    tbody.appendChild(div);
-    addDragEvents(div);
-  });
-  if (filtered.length === 0) {
-    tbody.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text-3);font-size:12px;">📭 此类型下暂无记录</div>';
-  }
-  renderMergeSuggestions();
-  updateBatchBar();
-}
-function showMergeConfig() { showToast('合并规则', '打开合并规则配置面板'); }
-function showCapacity() { showToast('产能报表', '打开产能报表'); }
-
-// ==================== DRAG & DROP (Row Reorder + Status Change) ====================
+// ==================== DRAG & DROP ====================
 function addDragEvents(row) {
   row.addEventListener('dragstart', e=>{
     row.classList.add('dragging');
     e.dataTransfer.setData('text/plain', row.dataset.id);
     e.dataTransfer.effectAllowed = 'move';
+    document.getElementById('filter-panel').classList.add('drag-active');
   });
   row.addEventListener('dragend', ()=>{
     row.classList.remove('dragging');
-    document.querySelectorAll('.drop-indicator').forEach(i=>i.remove());
+    document.getElementById('filter-panel').classList.remove('drag-active');
+    document.querySelectorAll('.drop-target').forEach(el=>el.classList.remove('drop-target'));
   });
-}
-
-// Tab drop
-function handleTabDragOver(e) {
-  e.preventDefault();
-  e.currentTarget.classList.add('drag-over');
-}
-function handleTabDragLeave(e) {
-  e.currentTarget.classList.remove('drag-over');
-}
-function handleTabDrop(e, newStatus) {
-  e.preventDefault();
-  e.currentTarget.classList.remove('drag-over');
-  const id = e.dataTransfer.getData('text/plain');
-  const so = allData.find(s=>s.id===id);
-  const sp = specialDemands.find(s=>s.id===id);
-  if (so && so.status !== newStatus) {
-    so.status = newStatus;
-    showToast('状态变更', `${id} 已移动到 ${statusLabel(newStatus)}`);
-    renderTable();
-  } else if (sp && sp.status !== newStatus) {
-    sp.status = newStatus;
-    showToast('状态变更', `${id} 已移动到 ${statusLabel(newStatus)}`);
-    renderTable();
-  }
-}
-function statusLabel(s) {
-  const map = {draft:'草稿',hold:'暂停',scheduled:'已排程',executing:'执行中',partial:'部分完成',completed:'已完成'};
-  return map[s]||s;
 }
 
 // ==================== CONTEXT MENU ====================
 function showCtxMenu(e, soId, lineNo) {
-  e.preventDefault();
-  e.stopPropagation();
+  e.preventDefault(); e.stopPropagation();
   ctxTarget = {soId, lineNo};
   const menu = document.getElementById('ctx-menu');
   menu.style.left = e.pageX+'px';
@@ -992,35 +1011,8 @@ function ctxCreateJob() {
   document.getElementById('cj-ddl').value = new Date().toISOString().split('T')[0];
   openDialog('dialog-create-job');
 }
-function ctxCreatePO() { showToast('创建PO', `为 ${ctxTarget.soId} 创建采购订单`); }
-function ctxSplit() { showSplitDialog(); }
-function ctxViewDetail() {
-  const so = allData.find(s=>s.id===ctxTarget.soId);
-  if (so) {
-    showToast('查看详情', `${ctxTarget.soId} Line ${ctxTarget.lineNo}`);
-  } else {
-    const sp = specialDemands.find(s=>s.id===ctxTarget.soId);
-    if (sp) showToast('查看详情', `${sp.id} | ${sp.part} - ${sp.desc}`);
-  }
-}
-
-// ==================== DIALOGS ====================
-function openDialog(id) { document.getElementById(id).classList.add('open'); }
-function closeDialog(id) { document.getElementById(id).classList.remove('open'); }
-
-function showCreateJobDialog() {
-  document.getElementById('cj-part').value = '';
-  document.getElementById('cj-qty').value = '';
-  openDialog('dialog-create-job');
-}
-function confirmCreateJob() {
-  const part = document.getElementById('cj-part').value;
-  const qty = document.getElementById('cj-qty').value;
-  closeDialog('dialog-create-job');
-  showToast('Job 已创建', `${part} × ${qty} 的 Job 已生成，BOM已自动展开`);
-}
-
-function showSplitDialog() {
+function ctxCreatePO() { showToast('创建PO', `${ctxTarget.soId} → PO`); }
+function ctxSplit() {
   const so = allData.find(s=>s.id===ctxTarget.soId);
   if (so) {
     const line = so.lines.find(l=>l.line===ctxTarget.lineNo);
@@ -1033,8 +1025,30 @@ function showSplitDialog() {
       document.getElementById('split-total').textContent = sp.qty;
     }
   }
-  openDialog('dialog-split');
-  updateSplitStats();
+  openDialog('dialog-split'); updateSplitStats();
+}
+function ctxViewDetail() {
+  const so = allData.find(s=>s.id===ctxTarget.soId);
+  if (so) showToast('详情', `${ctxTarget.soId} Line ${ctxTarget.lineNo}`);
+  else {
+    const sp = specialDemands.find(s=>s.id===ctxTarget.soId);
+    if (sp) showToast('详情', `${sp.id} | ${sp.part} - ${sp.desc}`);
+  }
+}
+
+// ==================== DIALOGS ====================
+function openDialog(id) { document.getElementById(id).classList.add('open'); }
+function closeDialog(id) { document.getElementById(id).classList.remove('open'); }
+function showCreateJobDialog() {
+  document.getElementById('cj-part').value = '';
+  document.getElementById('cj-qty').value = '';
+  openDialog('dialog-create-job');
+}
+function confirmCreateJob() {
+  const part = document.getElementById('cj-part').value;
+  const qty = document.getElementById('cj-qty').value;
+  closeDialog('dialog-create-job');
+  showToast('Job 已创建', `${part} × ${qty} → Job，BOM已展开`);
 }
 function onSplitModeChange() {
   const mode = document.getElementById('split-mode').value;
@@ -1059,20 +1073,13 @@ function updateSplitStats() {
   let entered = 0;
   if (mode==='manual') {
     document.querySelectorAll('#split-rows input').forEach(i=>{ entered += parseInt(i.value)||0; });
-  } else {
-    const parts = parseInt(document.getElementById('split-parts').value)||1;
-    entered = total;
-  }
+  } else { entered = total; }
   document.getElementById('split-entered').textContent = entered;
   document.getElementById('split-remaining').textContent = total - entered;
 }
 function confirmSplit() {
   closeDialog('dialog-split');
-  if (ctxTarget.special) {
-    showToast('拆分成功', `${ctxTarget.soId} (${ctxTarget.special?'特殊Demand':''}) 已拆分`);
-  } else {
-    showToast('拆分成功', `${ctxTarget.soId} Line ${ctxTarget.lineNo} 已拆分`);
-  }
+  showToast('拆分成功', `${ctxTarget.soId} 已拆分`);
 }
 
 // ==================== TOAST ====================

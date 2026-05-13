@@ -1,30 +1,30 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Scheduler — Schedule Board v11</title>
+<title>Scheduler - Schedule Board v11</title>
 <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;600;700&family=DM+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
 :root {
-  --bg-0: #090b10;
-  --bg-1: #0f1117;
-  --bg-2: #161922;
-  --bg-3: #1e212b;
-  --bg-4: #272d3a;
-  --border: #1e222e;
-  --border-light: #2a2f3e;
-  --text-1: #e8eaf0;
-  --text-2: #8b92a8;
-  --text-3: #5a6078;
-  --accent: #e85d04;
-  --accent-dim: #c44a00;
-  --blue: #4cc9f0;
-  --green: #2dc653;
-  --yellow: #f4d03f;
-  --red: #e63946;
+  --bg-0: #f1f5f9;
+  --bg-1: #ffffff;
+  --bg-2: #f8fafc;
+  --bg-3: #f1f5f9;
+  --bg-4: #e2e8f0;
+  --border: #e2e8f0;
+  --border-light: #cbd5e1;
+  --text-1: #1e293b;
+  --text-2: #64748b;
+  --text-3: #94a3b8;
+  --accent: #0ea5e9;
+  --accent-dim: #0284c7;
+  --blue: #3b82f6;
+  --green: #22c55e;
+  --yellow: #eab308;
+  --red: #ef4444;
   --purple: #a855f7;
-  --cyan: #22d3ee;
+  --cyan: #06b6d4;
   --font-mono: 'JetBrains Mono', monospace;
   --font-body: 'DM Sans', -apple-system, sans-serif;
 }
@@ -38,10 +38,10 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 .btn { padding: 5px 12px; border-radius: 5px; border: none; font-family: var(--font-body); font-weight: 600; font-size: 11.5px; cursor: pointer; transition: all .15s; display: inline-flex; align-items: center; gap: 5px; }
 .btn-primary { background: var(--accent); color:#fff; }
 .btn-primary:hover { background: var(--accent-dim); }
-.btn-secondary { background: var(--bg-3); color: var(--text-1); border:1px solid var(--border-light); }
-.btn-secondary:hover { background: var(--bg-4); }
+.btn-secondary { background: var(--bg-1); color: var(--text-1); border:1px solid var(--border-light); }
+.btn-secondary:hover { background: var(--bg-2); }
 .btn-ghost { background: transparent; color: var(--text-2); border: 1px solid transparent; }
-.btn-ghost:hover { background: var(--bg-3); color: var(--text-1); }
+.btn-ghost:hover { background: var(--bg-2); color: var(--text-1); }
 .btn-sm { padding: 3px 8px; font-size: 10.5px; }
 
 /* ========== MAIN LAYOUT ========== */
@@ -55,7 +55,7 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 .pool-tab:hover { color:var(--text-2); }
 .pool-tab.active { color:var(--accent); border-bottom-color:var(--accent); }
 .pool-tab .count { font-family:var(--font-mono); font-size:10px; background:var(--bg-3); padding:1px 5px; border-radius:3px; }
-.pool-tab.active .count { background:rgba(232,93,4,0.15); color:var(--accent); }
+.pool-tab.active .count { background:rgba(14,165,233,0.12); color:var(--accent); }
 
 .pool-actions { padding: 8px 12px; border-bottom: 1px solid var(--border); display: flex; align-items: center; gap: 8px; flex-shrink: 0; min-height: 40px; }
 .pool-actions.hidden { display: none; }
@@ -65,7 +65,7 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 .demand-row { border-bottom: 1px solid var(--border); }
 .demand-main { display: flex; align-items: center; gap: 6px; padding: 7px 12px; cursor: pointer; transition: background .1s; }
 .demand-main:hover { background: var(--bg-2); }
-.demand-main.selected { background: rgba(232,93,4,0.08); }
+.demand-main.selected { background: rgba(14,165,233,0.08); }
 .dc-expand { display:flex; align-items:center; justify-content:center; color:var(--text-3); font-size:10px; width:14px; transition:transform .2s; }
 .dc-expand.open { transform: rotate(90deg); color:var(--accent); }
 .dc-type { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; padding: 1px 5px; border-radius: 3px; flex-shrink: 0; }
@@ -76,9 +76,9 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 
 .line-detail { display: none; padding: 0 12px 6px 30px; }
 .line-detail.open { display: block; }
-.line-row { display: flex; align-items: center; gap: 6px; padding: 5px 0; border-bottom: 1px solid rgba(255,255,255,0.02); transition: background .1s; }
+.line-row { display: flex; align-items: center; gap: 6px; padding: 5px 0; border-bottom: 1px solid rgba(0,0,0,0.03); transition: background .1s; }
 .line-row:hover { background: var(--bg-2); }
-.line-row.selected { box-shadow: inset 2px 0 0 var(--accent); background: rgba(232,93,4,0.04); }
+.line-row.selected { box-shadow: inset 2px 0 0 var(--accent); background: rgba(14,165,233,0.04); }
 .li-check input { width: 12px; height: 12px; accent-color: var(--accent); cursor: pointer; }
 .li-pn { font-weight: 600; font-size: 11px; color: var(--text-1); }
 .li-desc { color: var(--text-3); font-size: 10.5px; }
@@ -86,8 +86,8 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 .li-oh { font-family: var(--font-mono); font-size: 10.5px; color: var(--text-3); }
 .li-shortage { color: var(--red); font-weight: 700; }
 
-.demand-group { background: rgba(232,93,4,0.04); border: 1px dashed var(--accent); border-radius: 6px; margin: 6px 12px; padding: 8px 10px; cursor: grab; transition: all .15s; }
-.demand-group:hover { background: rgba(232,93,4,0.08); }
+.demand-group { background: rgba(14,165,233,0.04); border: 1px dashed var(--accent); border-radius: 6px; margin: 6px 12px; padding: 8px 10px; cursor: grab; transition: all .15s; }
+.demand-group:hover { background: rgba(14,165,233,0.08); }
 .demand-group.dragging { opacity: 0.4; }
 .group-header { display: flex; align-items: center; gap: 8px; margin-bottom: 6px; }
 .group-icon { font-size: 14px; }
@@ -96,7 +96,7 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 .group-items { font-size: 10.5px; color: var(--text-2); line-height: 1.6; }
 .group-tag { display: inline-block; padding: 1px 5px; border-radius: 3px; background: var(--bg-3); font-size: 9px; color: var(--text-3); margin-right: 4px; }
 
-.suggest-card { background: rgba(244,208,63,0.05); border: 1px solid rgba(244,208,63,0.2); border-radius: 6px; margin: 6px 12px; padding: 8px 10px; }
+.suggest-card { background: rgba(234,179,8,0.05); border: 1px solid rgba(234,179,8,0.25); border-radius: 6px; margin: 6px 12px; padding: 8px 10px; }
 .suggest-title { font-size: 10px; font-weight: 700; color: var(--yellow); margin-bottom: 4px; }
 .suggest-body { font-size: 10.5px; color: var(--text-2); line-height: 1.5; }
 .suggest-actions { display: flex; gap: 6px; margin-top: 6px; }
@@ -117,12 +117,12 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 .col-show-trigger:hover { background: var(--bg-2); color: var(--text-1); }
 .col-show-dropdown {
   position: absolute; top: 100%; right: 0; margin-top: 4px;
-  background: var(--bg-2); border: 1px solid var(--border); border-radius: 6px;
-  padding: 6px 0; min-width: 120px; z-index: 100; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.3);
+  background: var(--bg-1); border: 1px solid var(--border); border-radius: 6px;
+  padding: 6px 0; min-width: 120px; z-index: 100; display: none; box-shadow: 0 4px 12px rgba(0,0,0,0.08);
 }
 .col-show-dropdown.open { display: block; }
 .col-show-option { padding: 5px 12px; font-size: 11px; cursor: pointer; display: flex; align-items: center; gap: 6px; color: var(--text-2); }
-.col-show-option:hover { background: var(--bg-3); color: var(--text-1); }
+.col-show-option:hover { background: var(--bg-2); color: var(--text-1); }
 .col-show-option input { accent-color: var(--accent); }
 
 .columns-wrapper { flex: 1; display: flex; flex-direction: row; overflow: hidden; }
@@ -138,13 +138,13 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 .col-toggle:hover { color: var(--text-2); background: var(--bg-2); }
 
 .col-list { flex: 1; overflow-y: auto; padding: 4px 0; min-height: 40px; }
-.col-list.drag-over { background: rgba(232,93,4,0.08); box-shadow: inset 0 0 0 1px rgba(232,93,4,0.25); }
-.col-item.drag-target { border-top: 2px dashed var(--accent); background: rgba(232,93,4,0.06); }
-.col-list:empty::before { content: '拖拽 Demand Group 到此处'; display: block; padding: 24px 8px; text-align: center; color: var(--text-3); font-size: 11px; }
+.col-list.drag-over { background: rgba(14,165,233,0.06); box-shadow: inset 0 0 0 1px rgba(14,165,233,0.2); }
+.col-item.drag-target { border-top: 2px dashed var(--accent); background: rgba(14,165,233,0.04); }
+.col-list:empty::before { content: 'Drag Demand Group here'; display: block; padding: 24px 8px; text-align: center; color: var(--text-3); font-size: 11px; }
 
 .col-item { border-bottom: 1px solid var(--border); cursor: pointer; transition: background .1s; }
 .col-item:hover { background: var(--bg-2); }
-.col-item.selected { background: rgba(232,93,4,0.08); }
+.col-item.selected { background: rgba(14,165,233,0.08); }
 .col-item.dragging { opacity: 0.3; }
 
 .col-item-main { display: flex; align-items: center; gap: 6px; padding: 7px 10px; }
@@ -156,9 +156,9 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 .ci-desc { font-size: 10px; color: var(--text-3); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .ci-site { font-family: var(--font-mono); font-size: 9px; color: var(--blue); margin-top: 1px; }
 .ci-priority { flex-shrink: 0; font-size: 8px; font-weight: 700; padding: 1px 4px; border-radius: 3px; text-transform: uppercase; }
-.ci-priority.critical { background: rgba(230,57,70,0.15); color: var(--red); }
-.ci-priority.high { background: rgba(232,93,4,0.15); color: var(--accent); }
-.ci-priority.normal { background: rgba(139,146,168,0.15); color: var(--text-2); }
+.ci-priority.critical { background: rgba(239,68,68,0.1); color: var(--red); }
+.ci-priority.high { background: rgba(14,165,233,0.1); color: var(--accent); }
+.ci-priority.normal { background: rgba(148,163,184,0.15); color: var(--text-2); }
 .ci-status { flex-shrink: 0; font-size: 9px; color: var(--text-3); }
 
 /* ========== BOTTOM PANEL ========== */
@@ -182,7 +182,7 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 .config-field { display: flex; flex-direction: column; gap: 4px; }
 .config-field label { font-size: 10px; font-weight: 600; color: var(--text-3); text-transform: uppercase; letter-spacing: 0.5px; }
 .config-field input, .config-field select {
-  background: var(--bg-2); border: 1px solid var(--border); border-radius: 5px;
+  background: var(--bg-1); border: 1px solid var(--border); border-radius: 5px;
   padding: 6px 10px; color: var(--text-1); font-family: var(--font-body); font-size: 12px; min-width: 100px;
 }
 .config-field input:focus, .config-field select:focus { outline: none; border-color: var(--accent); }
@@ -196,13 +196,13 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 .detail-section-content strong { color: var(--text-1); }
 .detail-flow { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
 .detail-step { padding: 3px 8px; border-radius: 4px; font-size: 10px; white-space: nowrap; }
-.detail-step.done { background: rgba(45,198,83,0.1); border: 1px solid rgba(45,198,83,0.3); color: var(--green); }
-.detail-step.active { background: rgba(232,93,4,0.1); border: 1px solid rgba(232,93,4,0.3); color: var(--accent); }
+.detail-step.done { background: rgba(34,197,94,0.1); border: 1px solid rgba(34,197,94,0.3); color: var(--green); }
+.detail-step.active { background: rgba(14,165,233,0.1); border: 1px solid rgba(14,165,233,0.3); color: var(--accent); }
 .detail-step.pending { background: var(--bg-2); border: 1px solid var(--border); color: var(--text-3); }
 .detail-arrow { color: var(--text-3); font-size: 10px; }
 
 /* ========== TOAST ========== */
-.toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg-2); border: 1px solid var(--border-light); border-radius: 8px; padding: 12px 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.4); z-index: 3000; transform: translateY(100px); opacity: 0; transition: all .3s; font-size: 12px; max-width: 320px; }
+.toast { position: fixed; bottom: 20px; right: 20px; background: var(--bg-1); border: 1px solid var(--border-light); border-radius: 8px; padding: 12px 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.1); z-index: 3000; transform: translateY(100px); opacity: 0; transition: all .3s; font-size: 12px; max-width: 320px; }
 .toast.open { transform: translateY(0); opacity: 1; }
 
 ::-webkit-scrollbar { width: 4px; height: 4px; }
@@ -214,8 +214,8 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 
 <div class="header">
   <div style="display:flex;align-items:center;gap:16px;">
-    <div class="logo">◈ SCHEDULER</div>
-    <span style="font-size:11px;color:var(--text-3);">合并 → 配置 → 排序 → 执行</span>
+    <div class="logo">PRAM SCHEDULER</div>
+    <span style="font-size:11px;color:var(--text-3);">Merge · Config · Sort · Execute</span>
   </div>
 </div>
 
@@ -226,9 +226,9 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
       <div class="pool-tab" id="tab-hold" onclick="switchPoolTab('hold')">On Hold <span class="count" id="count-hold">0</span></div>
     </div>
     <div class="pool-actions hidden" id="pool-actions">
-      <span style="font-size:11px;color:var(--text-2);"><strong id="sel-count" style="color:var(--accent);">0</strong> 项已选择</span>
-      <button class="btn btn-primary btn-sm" onclick="mergeSelected()">🔗 合并为Group</button>
-      <button class="btn btn-secondary btn-sm" onclick="clearPoolSelection()">清除</button>
+      <span style="font-size:11px;color:var(--text-2);"><strong id="sel-count" style="color:var(--accent);">0</strong> items selected</span>
+      <button class="btn btn-primary btn-sm" onclick="mergeSelected()">🔗 Merge to Group</button>
+      <button class="btn btn-secondary btn-sm" onclick="clearPoolSelection()">Clear</button>
     </div>
     <div class="pool-content" id="pool-content"></div>
   </div>
@@ -240,7 +240,7 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
         <button class="release-toggle-btn" id="btn-released" onclick="setReleaseFilter('released')">Released</button>
       </div>
       <div class="col-show-menu">
-        <div class="col-show-trigger" onclick="toggleColShowMenu()">📋 显示列 ▼</div>
+        <div class="col-show-trigger" onclick="toggleColShowMenu()">📋 Show Columns</div>
         <div class="col-show-dropdown" id="col-show-dropdown">
           <div class="col-show-option" onclick="event.stopPropagation();toggleColumn('job')"><input type="checkbox" id="chk-job" checked> <label for="chk-job">JOB</label></div>
           <div class="col-show-option" onclick="event.stopPropagation();toggleColumn('po')"><input type="checkbox" id="chk-po" checked> <label for="chk-po">PO</label></div>
@@ -254,14 +254,14 @@ body { font-family: var(--font-body); background: var(--bg-0); color: var(--text
 
 <div class="bottom-panel" id="bottom-panel">
   <div class="bottom-header">
-    <div class="bottom-title" id="bottom-title">点击左侧 Demand 或右侧任务查看详情</div>
+    <div class="bottom-title" id="bottom-title">Click a Demand on the left or a task on the right to view details</div>
     <div id="bottom-actions" style="display:none;">
-      <button class="btn btn-secondary btn-sm" onclick="cancelConfig()">取消</button>
-      <button class="btn btn-primary btn-sm" onclick="confirmConfig()">确认创建</button>
+      <button class="btn btn-secondary btn-sm" onclick="cancelConfig()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="confirmConfig()">Confirm Create</button>
     </div>
   </div>
   <div class="bottom-body" id="bottom-body">
-    <div style="color:var(--text-3);font-size:12px;">选择一项查看详细信息</div>
+    <div style="color:var(--text-3);font-size:12px;">Select an item to view details</div>
   </div>
 </div>
 
@@ -297,15 +297,15 @@ const topDemands = [
   { id:'SO-1017', type:'SO', customer:'Unassigned Corp B', pool:'normal', expanded:false, ddl:'2026-06-25',
     lines:[ { line:1, pn:'RS9992', desc:'Gearbox Assembly', qty:80, demand:100, oh:20 },
             { line:2, pn:'RS9993', desc:'Bearing Set 6204', qty:300, demand:350, oh:150 } ]},
-  { id:'MTO-001', type:'MTO', customer:'VIP-华为', pool:'normal', expanded:false, ddl:'2026-05-15',
+  { id:'MTO-001', type:'MTO', customer:'VIP-Huawei', pool:'normal', expanded:false, ddl:'2026-05-15',
     lines:[ { line:1, pn:'A-001', desc:'Custom PCB for Huawei', qty:100, demand:100, oh:0 } ]},
   { id:'MTO-003', type:'MTO', customer:'VIP-Samsung', pool:'normal', expanded:false, ddl:'2026-06-01',
     lines:[ { line:1, pn:'G-007', desc:'Galaxy S30 Frame', qty:180, demand:180, oh:0 } ]},
-  { id:'RP-002', type:'REPLENISH', customer:'库存补货', pool:'normal', expanded:false, ddl:'2026-05-22',
+  { id:'RP-002', type:'REPLENISH', customer:'Inventory Replenishment', pool:'normal', expanded:false, ddl:'2026-05-22',
     lines:[ { line:1, pn:'E-005', desc:'Safety Stock Washer SS', qty:300, demand:300, oh:80 } ]},
-  { id:'RP-003', type:'REPLENISH', customer:'库存补货', pool:'normal', expanded:false, ddl:'2026-06-15',
+  { id:'RP-003', type:'REPLENISH', customer:'Inventory Replenishment', pool:'normal', expanded:false, ddl:'2026-06-15',
     lines:[ { line:1, pn:'K-011', desc:'Safety Stock Spring 5mm', qty:800, demand:800, oh:200 } ]},
-  { id:'RW-002', type:'REWORK', customer:'返工', pool:'hold', expanded:false, ddl:'ASAP',
+  { id:'RW-002', type:'REWORK', customer:'Rework', pool:'hold', expanded:false, ddl:'ASAP',
     lines:[ { line:1, pn:'B-002', desc:'Surface Scratch Rework', qty:15, demand:15, oh:0 } ]},
 ];
 
@@ -314,28 +314,28 @@ let demandGroups = [
 ];
 
 const suggestions = [
-  { id:'SUG-001', type:'merge', demandIds:['SO-1001:1','SO-1003:1'], reason:'同Part可在同厂合并生产', suggestedType:'job', dismissed:false },
-  { id:'SUG-002', type:'split', demandId:'SO-1006', reason:'2000件超产能，建议拆分为2个Job', suggestedType:'job', dismissed:false },
+  { id:'SUG-001', type:'merge', demandIds:['SO-1001:1','SO-1003:1'], reason:'Same Part can be merged in same plant', suggestedType:'job', dismissed:false },
+  { id:'SUG-002', type:'split', demandId:'SO-1006', reason:'2000 pcs exceeds capacity, suggest splitting into 2 Jobs', suggestedType:'job', dismissed:false },
 ];
 
 let execItems = {
   job: [
-    { id:'JOB-111', desc:'Steel Bracket Assembly', qty:530, priority:'high', status:'执行中', releaseStatus:'released', demands:['SO-1001','RP-001'], site:null, process:['冲压✓','焊接▶','包装○'] },
-    { id:'JOB-444', desc:'Titanium Fastener M8', qty:2100, priority:'critical', status:'执行中', releaseStatus:'released', demands:['SO-1006'], site:null, process:['锻造✓','机加▶','热处理○'] },
-    { id:'JOB-555', desc:'LED Driver Module', qty:500, priority:'high', status:'执行中', releaseStatus:'released', demands:['SO-1007'], site:null, process:['SMT✓','测试▶','包装○'] },
-    { id:'JOB-888', desc:'Custom PCB', qty:100, priority:'critical', status:'执行中', releaseStatus:'released', demands:['MTO-001'], site:null, process:['SMT✓','测试▶'] },
-    { id:'JOB-333', desc:'Valve Component', qty:600, priority:'high', status:'已排程', releaseStatus:'not_released', demands:['SO-1004'], site:null, process:['铸造○','机加○'] },
-    { id:'JOB-666', desc:'Solar Panel Frame', qty:150, priority:'normal', status:'草稿', releaseStatus:'not_released', demands:['SO-1008'], site:null, process:['切割○','焊接○'] },
-    { id:'JOB-889', desc:'Titanium Enclosure', qty:250, priority:'high', status:'已排程', releaseStatus:'not_released', demands:['MTO-002'], site:null, process:['CNC○','表面处理○'] },
-    { id:'JOB-222', desc:'Sensor Module V2', qty:250, priority:'normal', status:'已完成', releaseStatus:'released', demands:['SO-1003'], site:null, process:['SMT✓','装配✓','测试✓'] },
-    { id:'JOB-202', desc:'Server Rack 42U', qty:25, priority:'normal', status:'已排程', releaseStatus:'not_released', demands:['SO-1015'], site:null, process:['切割○','折弯○','喷粉○'] },
+    { id:'JOB-111', desc:'Steel Bracket Assembly', qty:530, priority:'high', status:'In Progress', releaseStatus:'released', demands:['SO-1001','RP-001'], site:null, process:['Stamping','Welding','Packaging'] },
+    { id:'JOB-444', desc:'Titanium Fastener M8', qty:2100, priority:'critical', status:'In Progress', releaseStatus:'released', demands:['SO-1006'], site:null, process:['Forging✓','Machining','Heat Treatment○'] },
+    { id:'JOB-555', desc:'LED Driver Module', qty:500, priority:'high', status:'In Progress', releaseStatus:'released', demands:['SO-1007'], site:null, process:['SMT','Testing','Packaging'] },
+    { id:'JOB-888', desc:'Custom PCB', qty:100, priority:'critical', status:'In Progress', releaseStatus:'released', demands:['MTO-001'], site:null, process:['SMT','Testing'] },
+    { id:'JOB-333', desc:'Valve Component', qty:600, priority:'high', status:'Scheduled', releaseStatus:'not_released', demands:['SO-1004'], site:null, process:['Casting○','Machining'] },
+    { id:'JOB-666', desc:'Solar Panel Frame', qty:150, priority:'normal', status:'Draft', releaseStatus:'not_released', demands:['SO-1008'], site:null, process:['Cutting','Welding'] },
+    { id:'JOB-889', desc:'Titanium Enclosure', qty:250, priority:'high', status:'Scheduled', releaseStatus:'not_released', demands:['MTO-002'], site:null, process:['CNC','Surface Treatment'] },
+    { id:'JOB-222', desc:'Sensor Module V2', qty:250, priority:'normal', status:'Completed', releaseStatus:'released', demands:['SO-1003'], site:null, process:['SMT','Assembly','Testing'] },
+    { id:'JOB-202', desc:'Server Rack 42U', qty:25, priority:'normal', status:'Scheduled', releaseStatus:'not_released', demands:['SO-1015'], site:null, process:['Cutting','Bending','Powder Coating'] },
   ],
   po: [
-    { id:'PO-201', desc:'Bolt M8 采购', qty:500, priority:'normal', status:'收货中', releaseStatus:'released', demands:['RP-001'], site:'A', process:['下单✓','到货▶','入库○'] },
-    { id:'PO-967', desc:'Hydraulic Pump 采购', qty:100, priority:'high', status:'收货中', releaseStatus:'released', demands:['SO-1005'], site:'B', process:['下单✓','到货▶','入库○'] },
+    { id:'PO-201', desc:'Bolt M8 Procurement', qty:500, priority:'normal', status:'Receiving', releaseStatus:'released', demands:['RP-001'], site:'A', process:['Placed','Arriving','Inbound'] },
+    { id:'PO-967', desc:'Hydraulic Pump Procurement', qty:100, priority:'high', status:'Receiving', releaseStatus:'released', demands:['SO-1005'], site:'B', process:['Placed','Arriving','Inbound'] },
   ],
   to: [
-    { id:'TO-002', desc:'调拨 Aluminum Sheet', qty:150, priority:'normal', status:'运输中', releaseStatus:'released', demands:['TR-002'], site:'C', process:['拣货✓','运输▶'] },
+    { id:'TO-002', desc:'Transfer Aluminum Sheet', qty:150, priority:'normal', status:'In Transit', releaseStatus:'released', demands:['TR-002'], site:'C', process:['Picking','Shipping'] },
   ],
 };
 
@@ -357,7 +357,7 @@ function renderPool() {
   document.getElementById('count-hold').textContent = topDemands.filter(d=>d.pool==='hold').length;
   document.getElementById('tab-normal').classList.toggle('active', currentPoolTab==='normal');
   document.getElementById('tab-hold').classList.toggle('active', currentPoolTab==='hold');
-  
+
   const actionBar = document.getElementById('pool-actions');
   if (selectedPoolItems.size > 0) {
     actionBar.classList.remove('hidden');
@@ -365,34 +365,34 @@ function renderPool() {
   } else {
     actionBar.classList.add('hidden');
   }
-  
+
   let html = '';
   suggestions.filter(s => !s.dismissed).forEach(sug => {
     if (sug.type === 'merge') {
       html += `<div class="suggest-card">
-        <div class="suggest-title">💡 系统建议: 合并 ${sug.demandIds.length} 个Demand</div>
+        <div class="suggest-title">💡 System Suggestion: Merge ${sug.demandIds.length} Demands</div>
         <div class="suggest-body">${sug.reason}</div>
         <div class="suggest-actions">
-          <button class="btn btn-primary btn-sm" onclick="acceptSuggestion('${sug.id}')">✓ 确认合并</button>
-          <button class="btn btn-ghost btn-sm" onclick="dismissSuggestion('${sug.id}')">忽略</button>
+          <button class="btn btn-primary btn-sm" onclick="acceptSuggestion('${sug.id}')">✓ Confirm Merge</button>
+          <button class="btn btn-ghost btn-sm" onclick="dismissSuggestion('${sug.id}')">Dismiss</button>
         </div>
       </div>`;
     }
   });
-  
+
   demandGroups.forEach(g => {
     html += `<div class="demand-group" draggable="true" ondragstart="onGroupDragStart(event,'${g.id}')">
       <div class="group-header">
         <span class="group-icon">🔗</span>
         <span class="group-title">MERGED GROUP</span>
-        <span class="group-qty">${g.totalQty}件</span>
+        <span class="group-qty">${g.totalQty} pcs</span>
       </div>
       <div class="group-items">${g.demands.map(d => `<span class="group-tag">${d}</span>`).join('')}</div>
     </div>`;
   });
-  
+
   items.forEach(d => html += renderDemandRow(d));
-  container.innerHTML = html || '<div style="padding:24px;text-align:center;color:var(--text-3);">该分类下暂无 Demand</div>';
+  container.innerHTML = html || '<div style="padding:24px;text-align:center;color:var(--text-3);">No demands in this category</div>';
 }
 
 function renderDemandRow(d) {
@@ -401,7 +401,7 @@ function renderDemandRow(d) {
   const typeColors = {SO:'var(--yellow)', MTO:'var(--red)', REPLENISH:'var(--green)', REWORK:'#ff2e63', TRANSFER:'var(--blue)', SAMPLE:'var(--purple)'};
   const typeColor = typeColors[d.type] || 'var(--text-3)';
   const isSelected = selectedItem && selectedItem.demandId === d.id;
-  
+
   return `<div class="demand-row">
     <div class="demand-main ${isSelected?'selected':''}" onclick="selectDemand('${d.id}')">
       <div class="dc-expand ${d.expanded?'open':''}" onclick="event.stopPropagation();toggleExpand('${d.id}')">▶</div>
@@ -421,8 +421,8 @@ function renderDemandRow(d) {
           <div class="li-desc">${l.desc}</div>
           <div style="flex:1"></div>
           <div class="li-oh ${shortage?'li-shortage':''}">OH:${l.oh}</div>
-          <div class="li-demand">需:${l.demand}</div>
-          <div style="font-family:var(--font-mono);font-size:10.5px;color:var(--text-2);width:50px;text-align:right;">${l.qty}件</div>
+          <div class="li-demand">Req:${l.demand}</div>
+          <div style="font-family:var(--font-mono);font-size:10.5px;color:var(--text-2);width:50px;text-align:right;">${l.qty} pcs</div>
         </div>`;
       }).join('')}
     </div>
@@ -441,19 +441,19 @@ function renderColumns() {
   const colLabels = {job:'JOB', po:'PO', to:'TO'};
   const colColors = {job:'var(--purple)', po:'var(--blue)', to:'var(--cyan)'};
   const visibleCount = colTypes.filter(c => columnVisibility[c]).length;
-  
+
   wrapper.innerHTML = colTypes.map(colType => {
     const isVisible = columnVisibility[colType];
     const items = execItems[colType].filter(i => i.releaseStatus === releaseFilter);
-    
+
     return `<div class="exec-column ${isVisible?'':'hidden'}" data-col="${colType}" style="${visibleCount>0?'flex:'+(isVisible?1:0):''}">
       <div class="col-header">
         <div class="col-title">
-          <span style="color:${colColors[colType]};font-size:13px;">●</span>
+          <span style="color:${colColors[colType]};font-size:13px;">◆</span>
           ${colLabels[colType]}
           <span class="col-badge">${items.length}</span>
         </div>
-        <span class="col-toggle" onclick="toggleColumn('${colType}')" title="隐藏列">👁</span>
+        <span class="col-toggle" onclick="toggleColumn('${colType}')" title="Hide column">👁</span>
       </div>
       <div class="col-list" id="col-list-${colType}"
            ondragover="onColDragOver(event,'${colType}')"
@@ -463,7 +463,7 @@ function renderColumns() {
       </div>
     </div>`;
   }).join('');
-  
+
   document.getElementById('chk-job').checked = columnVisibility.job;
   document.getElementById('chk-po').checked = columnVisibility.po;
   document.getElementById('chk-to').checked = columnVisibility.to;
@@ -474,8 +474,8 @@ function renderColumns() {
 function renderColItem(item, colType, idx) {
   const isSelected = selectedItem && selectedItem.colType === colType && selectedItem.idx === idx;
   const priorityMap = {critical:'CRIT', high:'HIGH', normal:'NORM'};
-  const statusMap = {'执行中':'▶','收货中':'📦','运输中':'🚚','已完成':'✓','已排程':'○','草稿':'○'};
-  
+  const statusMap = {'In Progress':'⚡','Receiving':'📦','In Transit':'🚚','Completed':'✅','Scheduled':'📅','Draft':'📝'};
+
   return `<div class="col-item ${isSelected?'selected':''}" draggable="true"
        ondragstart="onItemDragStart(event,'${colType}',${idx})"
        ondragover="onItemDragOver(event,'${colType}',${idx})"
@@ -486,11 +486,11 @@ function renderColItem(item, colType, idx) {
       <div class="ci-grip">⋮⋮</div>
       <div class="ci-main">
         <div class="ci-id">${item.id}</div>
-        <div class="ci-desc">${item.desc} · ${item.qty}件</div>
-        ${item.site ? `<div class="ci-site">📍 ${item.site}厂</div>` : ''}
+        <div class="ci-desc">${item.desc} · ${item.qty} pcs</div>
+        ${item.site ? `<div class="ci-site">📍 ${item.site}</div>` : ''}
       </div>
       <div class="ci-priority ${item.priority}">${priorityMap[item.priority]}</div>
-      <div class="ci-status">${statusMap[item.status] || '○'} ${item.status}</div>
+      <div class="ci-status">${statusMap[item.status] || '◌'} ${item.status}</div>
     </div>
   </div>`;
 }
@@ -498,32 +498,32 @@ function renderColItem(item, colType, idx) {
 // ==================== BOTTOM PANEL ====================
 function showDetail(data) {
   if (bottomMode === 'config') return; // Don't overwrite config mode
-  
+
   const titleEl = document.getElementById('bottom-title');
   const bodyEl = document.getElementById('bottom-body');
   document.getElementById('bottom-actions').style.display = 'none';
-  
+
   if (data.type === 'demand') {
     const d = topDemands.find(x => x.id === data.id);
     if (!d) return;
     const totalQty = d.lines.reduce((a,l) => a + l.qty, 0);
-    const typeColors = {SO:'#f4d03f', MTO:'#e63946', REPLENISH:'#2dc653', REWORK:'#ff2e63'};
-    titleEl.innerHTML = `<span style="color:${typeColors[d.type]||'var(--text-1)'}">●</span> Demand: ${d.id}`;
+    const typeColors = {SO:'#eab308', MTO:'#ef4444', REPLENISH:'#22c55e', REWORK:'#ff2e63'};
+    titleEl.innerHTML = `<span style="color:${typeColors[d.type]||'var(--text-1)'}">◆</span> Demand: ${d.id}`;
     bodyEl.innerHTML = `
       <div class="detail-grid">
         <div class="detail-section">
-          <div class="detail-section-title">基础信息</div>
+          <div class="detail-section-title">Basic Info</div>
           <div class="detail-section-content">
-            类型: <strong>${d.type}</strong><br>
-            客户: <strong>${d.customer}</strong><br>
-            总数量: <strong>${totalQty}件</strong><br>
-            交期: <strong>${d.ddl}</strong>
+            Type: <strong>${d.type}</strong><br>
+            Customer: <strong>${d.customer}</strong><br>
+            Total Qty: <strong>${totalQty} pcs</strong><br>
+            Due Date: <strong>${d.ddl}</strong>
           </div>
         </div>
         <div class="detail-section">
           <div class="detail-section-title">Line Items</div>
           <div class="detail-section-content">
-            ${d.lines.map(l => `• ${l.pn} ${l.desc} — ${l.qty}件 (需:${l.demand} OH:${l.oh})`).join('<br>')}
+            ${d.lines.map(l => `• ${l.pn} ${l.desc} · ${l.qty} pcs (Req:${l.demand} OH:${l.oh})`).join('<br>')}
           </div>
         </div>
       </div>`;
@@ -531,34 +531,34 @@ function showDetail(data) {
     const item = execItems[data.colType][data.idx];
     if (!item) return;
     const colColors = {job:'var(--purple)', po:'var(--blue)', to:'var(--cyan)'};
-    titleEl.innerHTML = `<span style="color:${colColors[data.colType]}">●</span> ${item.id} · ${data.colType.toUpperCase()}`;
-    
+    titleEl.innerHTML = `<span style="color:${colColors[data.colType]}">◆</span> ${item.id} · ${data.colType.toUpperCase()}`;
+
     const processFlow = item.process ? item.process.map((p,i) => {
-      const done = p.includes('✓'); const active = p.includes('▶');
+      const done = p.includes('✓'); const active = !p.includes('✓') && !p.includes('○');
       const cls = done?'done':(active?'active':'pending');
       const arrow = i < item.process.length-1 ? '<span class="detail-arrow">→</span>' : '';
       return `<span class="detail-step ${cls}">${p}</span>${arrow}`;
     }).join('') : '';
-    
+
     bodyEl.innerHTML = `
       <div class="detail-grid">
         <div class="detail-section">
-          <div class="detail-section-title">基础信息</div>
+          <div class="detail-section-title">Basic Info</div>
           <div class="detail-section-content">
-            描述: <strong>${item.desc}</strong><br>
-            数量: <strong>${item.qty}件</strong><br>
-            优先级: <strong style="color:${item.priority==='critical'?'var(--red)':(item.priority==='high'?'var(--accent)':'var(--text-2)')}">${item.priority.toUpperCase()}</strong><br>
-            状态: <strong>${item.status}</strong><br>
-            ${item.site ? `目标Site: <strong>${item.site}厂</strong><br>` : ''}
-            Release: <strong>${item.releaseStatus === 'released' ? '已下达' : '未下达'}</strong>
+            Description: <strong>${item.desc}</strong><br>
+            Qty: <strong>${item.qty} pcs</strong><br>
+            Priority: <strong style="color:${item.priority==='critical'?'var(--red)':(item.priority==='high'?'var(--accent)':'var(--text-2)')}">${item.priority.toUpperCase()}</strong><br>
+            Status: <strong>${item.status}</strong><br>
+            ${item.site ? `Target Site: <strong>${item.site}</strong><br>` : ''}
+            Release: <strong>${item.releaseStatus === 'released' ? 'Released' : 'Not Released'}</strong>
           </div>
         </div>
         <div class="detail-section">
-          <div class="detail-section-title">关联Demand</div>
+          <div class="detail-section-title">Related Demands</div>
           <div class="detail-section-content">${item.demands.map(d => `<span style="font-family:var(--font-mono)">${d}</span>`).join(', ')}</div>
         </div>
         <div class="detail-section">
-          <div class="detail-section-title">执行链路</div>
+          <div class="detail-section-title">Execution Flow</div>
           <div class="detail-flow">${processFlow}</div>
         </div>
       </div>`;
@@ -571,52 +571,52 @@ function showConfigPanel() {
     const titleEl = document.getElementById('bottom-title');
     const bodyEl = document.getElementById('bottom-body');
     const actionsEl = document.getElementById('bottom-actions');
-    
+
     if (!configTarget) {
-      bodyEl.innerHTML = '<div style="color:var(--red)">错误: 未找到配置数据</div>';
+      bodyEl.innerHTML = '<div style="color:var(--red)">Error: config data not found</div>';
       return;
     }
-    
-    const colLabels = {job:'创建 Job', po:'创建 PO', to:'创建 TO'};
+
+    const colLabels = {job:'Create Job', po:'Create PO', to:'Create TO'};
     titleEl.textContent = '⚙️ ' + colLabels[configTarget.colType];
     actionsEl.style.display = 'flex';
-    
+
     let html = '<div class="config-form">';
-    
+
     html += '<div class="config-field"><label>Demand</label>';
     html += '<div style="font-size:12px;color:var(--text-2);padding:6px 0;">';
-    html += '<strong>' + configTarget.demandIds.length + '</strong> 个 · 共 <strong>' + configTarget.totalQty + '件</strong>';
+    html += '<strong>' + configTarget.demandIds.length + '</strong> items · Total: <strong>' + configTarget.totalQty + ' pcs</strong>';
     html += '<div style="font-size:10px;color:var(--text-3);margin-top:2px;">' + configTarget.demands.join(', ') + '</div>';
     html += '</div></div>';
-    
-    html += '<div class="config-field"><label>数量</label>';
+
+    html += '<div class="config-field"><label>Qty</label>';
     html += '<input type="number" id="cfg-qty" value="' + configTarget.totalQty + '" oninput="updateConfigPreview()">';
     html += '</div>';
-    
-    html += '<div class="config-field"><label>优先级</label>';
+
+    html += '<div class="config-field"><label>Priority</label>';
     html += '<select id="cfg-priority" onchange="updateConfigPreview()">';
     html += '<option value="critical">Critical</option>';
     html += '<option value="high">High</option>';
     html += '<option value="normal" selected>Normal</option>';
     html += '</select></div>';
-    
+
     if (configTarget.colType !== 'job') {
-      html += '<div class="config-field"><label>目标 Site</label>';
+      html += '<div class="config-field"><label>Target Site</label>';
       html += '<select id="cfg-site" onchange="updateConfigPreview()">';
-      html += '<option value="">请选择...</option>';
-      html += '<option value="A">A厂 · 深圳</option>';
-      html += '<option value="B">B厂 · 东莞</option>';
-      html += '<option value="C">C厂 · 苏州</option>';
+      html += '<option value="">Select...</option>';
+      html += '<option value="A">A Plant · Shenzhen</option>';
+      html += '<option value="B">B Plant · Dongguan</option>';
+      html += '<option value="C">C Plant · Suzhou</option>';
       html += '</select></div>';
     }
-    
+
     html += '<div class="config-preview-inline" id="cfg-preview"></div>';
     html += '</div>';
-    
+
     bodyEl.innerHTML = html;
     updateConfigPreview();
   } catch (err) {
-    document.getElementById('bottom-body').innerHTML = '<div style="color:var(--red);padding:10px;">配置面板错误: ' + err.message + '</div>';
+    document.getElementById('bottom-body').innerHTML = '<div style="color:var(--red);padding:10px;">Config panel error: ' + err.message + '</div>';
   }
 }
 
@@ -625,15 +625,15 @@ function updateConfigPreview() {
   const qtyEl = document.getElementById('cfg-qty');
   const priEl = document.getElementById('cfg-priority');
   const siteEl = document.getElementById('cfg-site');
-  
+
   const qty = qtyEl ? qtyEl.value : configTarget.totalQty;
   const priority = priEl ? priEl.value : 'normal';
   const site = siteEl ? siteEl.value : '';
-  
-  const typeLabels = {job:'Job（生产/返工）', po:'PO（采购）', to:'TO（调拨）'};
-  let html = '<strong>预览:</strong> 创建 ' + typeLabels[configTarget.colType] + ' · ' + qty + '件 · ' + priority.toUpperCase();
-  if (site) html += ' · ' + site + '厂';
-  
+
+  const typeLabels = {job:'Job (Production/Rework)', po:'PO (Procurement)', to:'TO (Transfer)'};
+  let html = '<strong>Preview:</strong> Create ' + typeLabels[configTarget.colType] + ' · ' + qty + ' pcs · ' + priority.toUpperCase();
+  if (site) html += ' · Site: ' + site;
+
   const previewEl = document.getElementById('cfg-preview');
   if (previewEl) previewEl.innerHTML = html;
 }
@@ -641,40 +641,40 @@ function updateConfigPreview() {
 function cancelConfig() {
   bottomMode = 'detail';
   configTarget = null;
-  document.getElementById('bottom-title').textContent = '点击左侧 Demand 或右侧任务查看详情';
-  document.getElementById('bottom-body').innerHTML = '<div style="color:var(--text-3);font-size:12px;">选择一项查看详细信息</div>';
+  document.getElementById('bottom-title').textContent = 'Click a Demand on the left or a task on the right to view details';
+  document.getElementById('bottom-body').innerHTML = '<div style="color:var(--text-3);font-size:12px;">Select an item to view details</div>';
   document.getElementById('bottom-actions').style.display = 'none';
 }
 
 function confirmConfig() {
   if (!configTarget) return;
-  
+
   const qty = parseInt(document.getElementById('cfg-qty').value) || configTarget.totalQty;
   const priority = document.getElementById('cfg-priority').value;
   const site = document.getElementById('cfg-site')?.value || '';
   const colType = configTarget.colType;
-  
+
   if (colType !== 'job' && !site) {
-    showToast('缺少 Site', 'PO 和 TO 必须选择目标 Site');
+    showToast('Site Required', 'PO & TO must select a target Site');
     return;
   }
-  
+
   const prefix = colType === 'job' ? 'JOB' : (colType === 'po' ? 'PO' : 'TO');
   const newId = prefix + '-NEW-' + Math.floor(Math.random() * 900 + 100);
-  const typeDescMap = { job: '生产任务', po: '采购任务', to: '调拨任务' };
-  
+  const typeDescMap = { job: 'Production Task', po: 'Procurement Task', to: 'Transfer Task' };
+
   execItems[colType].push({
     id: newId,
     desc: typeDescMap[colType] + ' ' + configTarget.demands[0].split(':')[0],
     qty,
     priority,
-    status: '草稿',
+    status: 'Draft',
     releaseStatus: 'not_released',
     demands: configTarget.demands.map(d => d.split(':')[0]),
     site: colType === 'job' ? null : site,
-    process: colType === 'job' ? ['创建○','BOM展开○','Recipe配置○'] : (colType === 'po' ? ['创建○','下单○','到货○'] : ['创建○','拣货○','运输○']),
+    process: colType === 'job' ? ['Created','BOM Explosion','Recipe Config'] : (colType === 'po' ? ['Created','Placed','Arriving'] : ['Created','Picking','Shipping']),
   });
-  
+
   configTarget.demands.forEach(key => {
     if (!key.includes(':')) return;
     const [did, line] = key.split(':');
@@ -685,14 +685,14 @@ function confirmConfig() {
       if (d.lines.length === 0) topDemands.splice(dIdx, 1);
     }
   });
-  
+
   if (configTarget.demands.length > 1) {
     demandGroups = demandGroups.filter(g => {
       return !(g.demands.length === configTarget.demands.length && g.demands.every(d => configTarget.demands.includes(d)));
     });
   }
-  
-  showToast('已创建', `${newId} → ${colType.toUpperCase()}列 · ${qty}件`);
+
+  showToast('Created', `${newId} ${colType.toUpperCase()} · ${qty} pcs`);
   cancelConfig();
   render();
 }
@@ -731,7 +731,7 @@ function clearPoolSelection() {
 
 function mergeSelected() {
   if (selectedPoolItems.size < 2) {
-    showToast('无法合并', '请至少选择 2 个 Line Item');
+    showToast('Cannot Merge', 'Please select at least 2 line items');
     return;
   }
   const ids = Array.from(selectedPoolItems);
@@ -746,7 +746,7 @@ function mergeSelected() {
   });
   demandGroups.push({ id: 'GRP-' + String(demandGroups.length + 1).padStart(3, '0'), demands: ids, suggestedType: 'job', totalQty });
   selectedPoolItems.clear();
-  showToast('已合并', `${ids.length} 个 Line Item → 新Group，共 ${totalQty}件`);
+  showToast('Merged', `${ids.length} line items merged into new Group, total ${totalQty} pcs`);
   renderPool();
 }
 
@@ -763,7 +763,7 @@ function acceptSuggestion(sugId) {
     demandGroups.push({ id: 'GRP-' + String(demandGroups.length + 1).padStart(3, '0'), demands: sug.demandIds, suggestedType: sug.suggestedType, totalQty });
   }
   sug.dismissed = true;
-  showToast('已采纳', '系统建议已处理');
+  showToast('Adopted', 'System suggestion processed');
   renderPool();
 }
 
@@ -834,9 +834,9 @@ function onColDrop(e, colType) {
   e.preventDefault();
   document.querySelectorAll('.col-list').forEach(l => l.classList.remove('drag-over'));
   document.querySelectorAll('.col-item').forEach(el => el.classList.remove('drag-target', 'drag-over', 'dragging'));
-  
+
   const data = e.dataTransfer.getData('text/plain') || '';
-  
+
   let demandIds = []; let totalQty = 0;
   if (data.startsWith('GROUP:')) {
     const groupId = data.replace('GROUP:', '');
@@ -848,12 +848,12 @@ function onColDrop(e, colType) {
     const d = topDemands.find(x => x.id === did);
     if (d) { const l = d.lines.find(x => x.line == line); if (l) totalQty = l.qty; }
   }
-  
+
   if (demandIds.length === 0) {
-    showToast('无法创建', '未找到有效的 Demand 数据');
+    showToast('Cannot Create', 'No valid demand data found');
     return;
   }
-  
+
   configTarget = { demandIds, colType, totalQty, demands: demandIds };
   dragSrcCol = null; dragSrcIndex = null;
   showConfigPanel();
@@ -863,7 +863,7 @@ function onItemDragOver(e, colType, idx) {
   const target = e.target.closest('.col-item');
   const list = document.getElementById('col-list-' + colType);
   if (!target || !list) return;
-  
+
   if (dragSrcCol === colType) {
     // Internal reorder: allow drop on item
     e.preventDefault();
@@ -885,30 +885,30 @@ function onItemDragLeave(e) {
 function onItemDrop(e, colType, targetIdx) {
   document.querySelectorAll('.col-item').forEach(el => el.classList.remove('drag-over', 'dragging', 'drag-target'));
   document.querySelectorAll('.col-list').forEach(l => l.classList.remove('drag-over'));
-  
+
   if (dragSrcCol !== colType) {
     // External drop: let event bubble to col-list ondrop
     dragSrcCol = null; dragSrcIndex = null;
     return;
   }
-  
+
   // Internal reorder
   e.preventDefault();
   e.stopPropagation();
   const data = e.dataTransfer.getData('text/plain');
   if (!data || !data.startsWith('ITEM:')) { dragSrcCol = null; dragSrcIndex = null; return; }
-  
+
   const parts = data.split(':');
   const srcCol = parts[1];
   const srcIdx = parseInt(parts[2]);
   if (srcCol !== colType) return;
-  
+
   const items = execItems[colType];
   const [moved] = items.splice(srcIdx, 1);
   items.splice(targetIdx, 0, moved);
   dragSrcCol = null; dragSrcIndex = null;
-  
-  showToast('优先级已更新', `${moved.id} 已调整位置`);
+
+  showToast('Priority Updated', `${moved.id} position adjusted`);
   renderColumns();
 }
 

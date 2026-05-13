@@ -1,9 +1,9 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Job 配置 - MES Prototype</title>
+<title>Job Configuration - MES Prototype</title>
 <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 <style>
 /* ===== Reset & Base ===== */
@@ -17,7 +17,7 @@ ul, ol { list-style: none; }
 .page-wrapper { display: flex; flex-direction: column; height: 100vh; }
 .top-header { height: 56px; background: #fff; border-bottom: 1px solid #e8e8e8; display: flex; align-items: center; justify-content: space-between; padding: 0 24px; flex-shrink: 0; }
 .page-body { display: flex; flex: 1; overflow: hidden; }
-.left-sidebar { width: 380px; background: #f5f5f5; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; }
+.left-sidebar { width: 420px; background: #f5f5f5; border-right: 1px solid #e0e0e0; display: flex; flex-direction: column; overflow: hidden; flex-shrink: 0; }
 .right-content { flex: 1; display: flex; flex-direction: column; overflow: hidden; background: #fff; }
 
 /* ===== Header ===== */
@@ -48,6 +48,21 @@ ul, ol { list-style: none; }
 .form-row-inline .form-row { flex: 1; margin-bottom: 0; }
 .sidebar-footer { padding: 12px 20px 16px; border-top: 1px solid #e0e0e0; }
 .sidebar-footer .btn { width: 100%; justify-content: center; }
+
+/* ===== SO Lines Panel ===== */
+.so-lines-panel { border: 1px solid #d9d9d9; border-radius: 4px; background: #fff; margin-top: 4px; }
+.so-lines-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 10px; background: #fafafa; border-bottom: 1px solid #e8e8e8; font-size: 12px; font-weight: 600; color: #262626; }
+.so-lines-list { max-height: 160px; overflow-y: auto; }
+.so-line-item { display: flex; align-items: center; padding: 6px 10px; border-bottom: 1px solid #f0f0f0; cursor: pointer; transition: background 0.15s; gap: 8px; }
+.so-line-item:hover { background: #f6ffed; }
+.so-line-item:last-child { border-bottom: none; }
+.so-line-item input[type="checkbox"] { cursor: pointer; flex-shrink: 0; }
+.so-line-info { flex: 1; min-width: 0; }
+.so-line-so { font-size: 12px; font-weight: 500; color: #262626; }
+.so-line-detail { font-size: 11px; color: #8c8c8c; margin-top: 1px; }
+.so-line-qty { font-size: 12px; font-weight: 600; color: #1890ff; flex-shrink: 0; }
+.so-lines-summary { padding: 8px 10px; background: #f6ffed; border-top: 1px solid #b7eb8f; font-size: 12px; color: #52c41a; font-weight: 500; text-align: right; }
+.so-lines-empty { padding: 12px; text-align: center; color: #bfbfbf; font-size: 12px; }
 
 /* ===== Step Indicator ===== */
 .step-bar { display: flex; align-items: center; padding: 16px 24px; border-bottom: 1px solid #e8e8e8; background: #fafafa; flex-shrink: 0; gap: 8px; }
@@ -172,13 +187,13 @@ ul, ol { list-style: none; }
   <header class="top-header">
     <div class="header-left">
       <i class="ri-settings-3-line" style="font-size:20px;color:#1890ff;"></i>
-      <h1>Job 配置</h1>
+      <h1>Job Configuration</h1>
       <span class="job-id-badge" id="jobIdBadge">JOB-2024001</span>
-      <span style="color:#8c8c8c;font-size:13px;">发动机总成生产任务</span>
+      <span style="color:#8c8c8c;font-size:13px;">Engine Assembly Production Task</span>
     </div>
     <div class="header-right">
-      <button class="btn btn-default" onclick="saveDraft()"><i class="ri-save-line"></i> 保存草稿</button>
-      <button class="btn btn-primary" id="submitBtn" onclick="submitJob()" disabled><i class="ri-calendar-check-line"></i> 提交排程</button>
+      <button class="btn btn-default" onclick="saveDraft()"><i class="ri-save-line"></i> Save Draft</button>
+      <button class="btn btn-primary" id="submitBtn" onclick="submitJob()" disabled><i class="ri-calendar-check-line"></i> Submit Scheduling</button>
     </div>
   </header>
 
@@ -186,7 +201,7 @@ ul, ol { list-style: none; }
   <div class="page-body">
     <!-- Left Sidebar -->
     <aside class="left-sidebar">
-      <div class="sidebar-title"><i class="ri-file-list-line" style="margin-right:6px;"></i>Job 基础信息</div>
+      <div class="sidebar-title"><i class="ri-file-list-line" style="margin-right:6px;"></i>Job Basic Info</div>
       <div class="sidebar-form">
         <div class="form-row">
           <label class="form-label">Job ID</label>
@@ -195,48 +210,62 @@ ul, ol { list-style: none; }
         <div class="form-row">
           <label class="form-label required">Part Number</label>
           <select class="form-select" id="partNumber">
-            <option value="ENG-001">ENG-001 发动机总成</option>
-            <option value="SHA-001">SHA-001 传动轴</option>
+            <option value="ENG-001">ENG-001 Engine Assembly</option>
+            <option value="SHA-001">SHA-001 Drive Shaft</option>
           </select>
         </div>
         <div class="form-row">
-          <label class="form-label required">生产数量</label>
-          <input type="number" class="form-input" value="100" min="1">
+          <label class="form-label required">Production Quantity</label>
+          <input type="number" class="form-input" id="prodQty" value="100" min="1">
         </div>
         <div class="form-row-inline">
           <div class="form-row">
             <label class="form-label">Make to Stock</label>
-            <input type="number" class="form-input" value="60" min="0">
+            <input type="number" class="form-input" id="makeToStock" value="60" min="0">
           </div>
           <div class="form-row">
             <label class="form-label">Make to Order</label>
-            <input type="number" class="form-input" value="40" min="0">
+            <input type="number" class="form-input" id="makeToOrder" value="40" min="0" readonly>
           </div>
         </div>
+
+        <!-- SO Lines -->
         <div class="form-row">
-          <label class="form-label">优先级</label>
+          <label class="form-label">SO Lines (Match Make to Order)</label>
+          <div class="so-lines-panel">
+            <div class="so-lines-header">
+              <span><i class="ri-shopping-cart-2-line" style="margin-right:4px;"></i>SO Lines</span>
+              <span style="font-size:11px;color:#8c8c8c;font-weight:400;">Select to match</span>
+            </div>
+            <div class="so-lines-list" id="soLinesList"></div>
+            <div class="so-lines-summary" id="soLinesSummary">Matched: 0 qty</div>
+          </div>
+        </div>
+
+        <div class="form-row">
+          <label class="form-label">Priority</label>
           <select class="form-select">
-            <option value="high">高</option>
-            <option value="medium" selected>中</option>
-            <option value="low">低</option>
+            <option value="high">High</option>
+            <option value="medium" selected>Medium</option>
+            <option value="low">Low</option>
           </select>
         </div>
         <div class="form-row">
-          <label class="form-label">计划开始日期</label>
+          <label class="form-label">Planned Start Date</label>
           <input type="date" class="form-input" value="2024-03-01">
         </div>
         <div class="form-row">
-          <label class="form-label">计划完成日期</label>
+          <label class="form-label">Planned Completion Date</label>
           <input type="date" class="form-input" value="2024-03-15">
         </div>
         <div class="form-row">
-          <label class="form-label">备注</label>
-          <textarea class="form-textarea" placeholder="请输入备注信息..."></textarea>
+          <label class="form-label">Remarks</label>
+          <textarea class="form-textarea" placeholder="Enter remarks..."></textarea>
         </div>
       </div>
       <div class="sidebar-footer">
         <button class="btn btn-primary" id="sidebarNextBtn" onclick="goStep(1)">
-          <span>下一步：选择 BOM</span><i class="ri-arrow-right-line"></i>
+          <span>Next: Select BOM</span><i class="ri-arrow-right-line"></i>
         </button>
       </div>
     </aside>
@@ -247,24 +276,24 @@ ul, ol { list-style: none; }
       <div class="step-bar">
         <div class="step-item active" data-step="0" onclick="goStep(0)">
           <div class="step-circle">1</div>
-          <span class="step-label">选择 BOM</span>
+          <span class="step-label">Select BOM</span>
         </div>
         <div class="step-arrow"><i class="ri-arrow-right-s-line"></i></div>
         <div class="step-item pending" data-step="1" onclick="goStep(1)">
           <div class="step-circle">2</div>
-          <span class="step-label">配置 Recipe</span>
+          <span class="step-label">Configure Recipe</span>
         </div>
         <div class="step-arrow"><i class="ri-arrow-right-s-line"></i></div>
         <div class="step-item pending" data-step="2" onclick="goStep(2)">
           <div class="step-circle">3</div>
-          <span class="step-label">总览确认</span>
+          <span class="step-label">Overview</span>
         </div>
         <div class="progress-hint" id="progressHint" style="display:none;">
-          已配置 <span class="progress-num" id="progressNum">0</span> / <span id="progressTotal">0</span> 个节点
+          Configured <span class="progress-num" id="progressNum">0</span> / <span id="progressTotal">0</span> nodes
         </div>
         <div class="view-toggle" id="viewToggle" style="display:none;">
-          <button class="btn btn-default active" data-view="config" onclick="toggleView('config')">配置视图</button>
-          <button class="btn btn-default" data-view="preview" onclick="toggleView('preview')">预览视图</button>
+          <button class="btn btn-default active" data-view="config" onclick="toggleView('config')">Config View</button>
+          <button class="btn btn-default" data-view="preview" onclick="toggleView('preview')">Preview View</button>
         </div>
       </div>
 
@@ -274,13 +303,13 @@ ul, ol { list-style: none; }
         <div class="step-content" id="step1">
           <div class="right-header">
             <div>
-              <div class="step-title">步骤 1：选择 BOM 结构</div>
-              <div class="step-desc">请确认并展开 BOM 结构，检查所有子节点是否完整</div>
+              <div class="step-title">Step 1: Select BOM Structure</div>
+              <div class="step-desc">Please confirm and expand the BOM structure, check all child nodes are complete</div>
             </div>
           </div>
           <div class="bom-tree" id="bomTree"></div>
           <div class="step-actions">
-            <button class="btn btn-primary" onclick="confirmBOM()">确认 BOM，进入 Recipe 配置 <i class="ri-arrow-right-line"></i></button>
+            <button class="btn btn-primary" onclick="confirmBOM()">Confirm BOM, Enter Recipe Config <i class="ri-arrow-right-line"></i></button>
           </div>
         </div>
 
@@ -288,15 +317,15 @@ ul, ol { list-style: none; }
         <div class="step-content" id="step2" style="display:none;">
           <div class="right-header">
             <div>
-              <div class="step-title">步骤 2：配置工艺路线</div>
-              <div class="step-desc">请从底层子节点开始，逐步向上配置每个需要 Recipe 的节点（点击蓝色圆圈节点）</div>
+              <div class="step-title">Step 2: Configure Process Route</div>
+              <div class="step-desc">Start from bottom child nodes, configure each node that needs Recipe (click blue circle nodes)</div>
             </div>
           </div>
           <div class="bom-tree" id="bomTreeReverse"></div>
           <div id="summaryContainerStep2" style="display:none;"></div>
           <div class="step-actions">
-            <button class="btn btn-default" onclick="goStep(0)"><i class="ri-arrow-left-line"></i> 返回 BOM 选择</button>
-            <button class="btn btn-primary" id="step2NextBtn" onclick="goStep(2)" disabled>进入总览确认 <i class="ri-arrow-right-line"></i></button>
+            <button class="btn btn-default" onclick="goStep(0)"><i class="ri-arrow-left-line"></i> Back to BOM Selection</button>
+            <button class="btn btn-primary" id="step2NextBtn" onclick="goStep(2)" disabled>Go to Overview <i class="ri-arrow-right-line"></i></button>
           </div>
         </div>
 
@@ -304,18 +333,18 @@ ul, ol { list-style: none; }
         <div class="step-content" id="step3" style="display:none;">
           <div class="right-header">
             <div>
-              <div class="step-title">步骤 3：工艺路线总览</div>
-              <div class="step-desc">按 Team 分组的 Recipe 汇总及 Process 预览</div>
+              <div class="step-title">Step 3: Process Route Overview</div>
+              <div class="step-desc">Recipe summary by Team and Process preview</div>
             </div>
           </div>
           <div id="summaryContainer"></div>
           <div class="process-preview">
-            <h4><i class="ri-flow-chart"></i> Process 分组预览</h4>
+            <h4><i class="ri-flow-chart"></i> Process Group Preview</h4>
             <div class="process-flow" id="processFlow"></div>
           </div>
           <div class="step-actions">
-            <button class="btn btn-default" onclick="goStep(1)"><i class="ri-arrow-left-line"></i> 返回 Recipe 配置</button>
-            <button class="btn btn-success" onclick="submitJob()"><i class="ri-calendar-check-line"></i> 确认并提交排程</button>
+            <button class="btn btn-default" onclick="goStep(1)"><i class="ri-arrow-left-line"></i> Back to Recipe Config</button>
+            <button class="btn btn-success" onclick="submitJob()"><i class="ri-calendar-check-line"></i> Confirm & Submit Scheduling</button>
           </div>
         </div>
       </div>
@@ -328,18 +357,18 @@ ul, ol { list-style: none; }
   <div class="recipe-panel">
     <div class="recipe-panel-header">
       <div>
-        <h3><i class="ri-settings-line" style="margin-right:6px;color:#1890ff;"></i>选择 Recipe</h3>
+        <h3><i class="ri-settings-line" style="margin-right:6px;color:#1890ff;"></i>Select Recipe</h3>
       </div>
       <button class="close-btn" onclick="closeRecipePanel()"><i class="ri-close-line"></i></button>
     </div>
     <div class="recipe-panel-body">
       <div class="node-info" id="nodeInfo"></div>
-      <div style="font-size:13px;color:#595959;margin-bottom:10px;font-weight:500;">可用 Recipe 列表：</div>
+      <div style="font-size:13px;color:#595959;margin-bottom:10px;font-weight:500;">Available Recipes:</div>
       <div class="recipe-cards" id="recipeCards"></div>
     </div>
     <div class="recipe-panel-footer">
-      <button class="btn btn-default" onclick="closeRecipePanel()">取消</button>
-      <button class="btn btn-primary" id="confirmRecipeBtn" onclick="confirmRecipe()" disabled>确认选择</button>
+      <button class="btn btn-default" onclick="closeRecipePanel()">Cancel</button>
+      <button class="btn btn-primary" id="confirmRecipeBtn" onclick="confirmRecipe()" disabled>Confirm Selection</button>
     </div>
   </div>
 </div>
@@ -348,80 +377,88 @@ ul, ol { list-style: none; }
 // ===== Mock Data =====
 const bomData = {
   id: "ENG-001",
-  name: "发动机总成",
+  name: "Engine Assembly",
   isRaw: false,
   children: [
     {
-      id: "BLK-001", name: "缸体组件", isRaw: false,
+      id: "BLK-001", name: "Cylinder Block Assembly", isRaw: false,
       children: [
-        { id: "BLK-CAST-001", name: "缸体铸件", isRaw: true },
-        { id: "SLV-001", name: "气缸套", isRaw: true },
-        { id: "SEAL-001", name: "水套密封圈", isRaw: true }
+        { id: "BLK-CAST-001", name: "Cylinder Block Casting", isRaw: true },
+        { id: "SLV-001", name: "Cylinder Liner", isRaw: true },
+        { id: "SEAL-001", name: "Water Jacket Seal", isRaw: true }
       ]
     },
     {
-      id: "CRK-001", name: "曲轴组件", isRaw: false,
+      id: "CRK-001", name: "Crankshaft Assembly", isRaw: false,
       children: [
-        { id: "CRK-RUF-001", name: "曲轴毛坯", isRaw: true },
-        { id: "BRG-001", name: "曲轴轴承", isRaw: true }
+        { id: "CRK-RUF-001", name: "Crankshaft Blank", isRaw: true },
+        { id: "BRG-001", name: "Crankshaft Bearing", isRaw: true }
       ]
     },
     {
-      id: "PST-001", name: "活塞连杆组", isRaw: false,
+      id: "PST-001", name: "Piston Connecting Rod Group", isRaw: false,
       children: [
         {
-          id: "PST-BDY-001", name: "活塞", isRaw: false,
+          id: "PST-BDY-001", name: "Piston", isRaw: false,
           children: [
-            { id: "PST-CAST-001", name: "活塞铸件", isRaw: true },
-            { id: "PIN-001", name: "活塞销", isRaw: true }
+            { id: "PST-CAST-001", name: "Piston Casting", isRaw: true },
+            { id: "PIN-001", name: "Piston Pin", isRaw: true }
           ]
         },
         {
-          id: "ROD-001", name: "连杆", isRaw: false,
+          id: "ROD-001", name: "Connecting Rod", isRaw: false,
           children: [
-            { id: "ROD-RUF-001", name: "连杆毛坯", isRaw: true },
-            { id: "ROD-BRG-001", name: "连杆轴承", isRaw: true }
+            { id: "ROD-RUF-001", name: "Connecting Rod Blank", isRaw: true },
+            { id: "ROD-BRG-001", name: "Connecting Rod Bearing", isRaw: true }
           ]
         },
-        { id: "RNG-001", name: "活塞环", isRaw: true }
+        { id: "RNG-001", name: "Piston Ring", isRaw: true }
       ]
     },
-    { id: "ASS-MAT-001", name: "装配辅料", isRaw: true }
+    { id: "ASS-MAT-001", name: "Assembly Accessories", isRaw: true }
   ]
 };
 
+const soLinesData = [
+  { soNo: "SO-2024-0001", customer: "Customer A", partNo: "ENG-001", qty: 15, dueDate: "2024-03-10" },
+  { soNo: "SO-2024-0002", customer: "Customer B", partNo: "ENG-001", qty: 10, dueDate: "2024-03-12" },
+  { soNo: "SO-2024-0003", customer: "Customer C", partNo: "ENG-001", qty: 8, dueDate: "2024-03-15" },
+  { soNo: "SO-2024-0004", customer: "Customer D", partNo: "SHA-001", qty: 20, dueDate: "2024-03-18" },
+  { soNo: "SO-2024-0005", customer: "Customer E", partNo: "ENG-001", qty: 7, dueDate: "2024-03-20" }
+];
+
 const recipeDB = {
   "BLK-001": [
-    { id: "RCP-BLK-001", name: "缸体标准机加", team: "机加组-A", teamColor: "#1890ff",
-      tasks: ["领料", "粗铣", "精铣", "钻孔", "攻丝", "清洗", "质检"], estHours: 8.5 },
-    { id: "RCP-BLK-002", name: "缸体快速机加", team: "机加组-B", teamColor: "#52c41a",
-      tasks: ["领料", "CNC一次成型", "清洗", "质检"], estHours: 5.0 }
+    { id: "RCP-BLK-001", name: "Cylinder Block Standard Machining", team: "Machining Team A", teamColor: "#1890ff",
+      tasks: ["Material Picking", "Rough Milling", "Finish Milling", "Drilling", "Tapping", "Cleaning", "QC"], estHours: 8.5 },
+    { id: "RCP-BLK-002", name: "Cylinder Block Fast Machining", team: "Machining Team B", teamColor: "#52c41a",
+      tasks: ["Material Picking", "CNC One-shot Forming", "Cleaning", "QC"], estHours: 5.0 }
   ],
   "CRK-001": [
-    { id: "RCP-CRK-001", name: "曲轴精加工", team: "机加组-A", teamColor: "#1890ff",
-      tasks: ["领料", "车削", "磨削", "动平衡", "清洗", "质检"], estHours: 10.0 },
-    { id: "RCP-CRK-002", name: "曲轴磨削专线", team: "机加组-C", teamColor: "#722ed1",
-      tasks: ["领料", "粗磨", "精磨", "抛光", "质检"], estHours: 7.5 }
+    { id: "RCP-CRK-001", name: "Crankshaft Precision Machining", team: "Machining Team A", teamColor: "#1890ff",
+      tasks: ["Material Picking", "Turning", "Grinding", "Dynamic Balancing", "Cleaning", "QC"], estHours: 10.0 },
+    { id: "RCP-CRK-002", name: "Crankshaft Grinding Line", team: "Machining Team C", teamColor: "#722ed1",
+      tasks: ["Material Picking", "Rough Grinding", "Fine Grinding", "Polishing", "QC"], estHours: 7.5 }
   ],
   "PST-001": [
-    { id: "RCP-PST-001A", name: "活塞连杆组装配", team: "装配组-A", teamColor: "#52c41a",
-      tasks: ["领料", "活塞组装", "连杆组装", "活塞环安装", "质检"], estHours: 4.0 }
+    { id: "RCP-PST-001A", name: "Piston Rod Assembly", team: "Assembly Team A", teamColor: "#52c41a",
+      tasks: ["Material Picking", "Piston Assembly", "Rod Assembly", "Piston Ring Install", "QC"], estHours: 4.0 }
   ],
   "PST-BDY-001": [
-    { id: "RCP-PST-001", name: "活塞铸造+机加", team: "铸造组", teamColor: "#fa8c16",
-      tasks: ["领料", "熔炼", "浇筑", "脱模", "去毛刺", "机加", "质检"], estHours: 12.0 },
-    { id: "RCP-PST-002", name: "活塞锻造+机加", team: "锻造组", teamColor: "#eb2f96",
-      tasks: ["领料", "锻造", "热处理", "机加", "质检"], estHours: 9.0 }
+    { id: "RCP-PST-001", name: "Piston Casting + Machining", team: "Casting Team", teamColor: "#fa8c16",
+      tasks: ["Material Picking", "Melting", "Pouring", "Demolding", "Deburring", "Machining", "QC"], estHours: 12.0 },
+    { id: "RCP-PST-002", name: "Piston Forging + Machining", team: "Forging Team", teamColor: "#eb2f96",
+      tasks: ["Material Picking", "Forging", "Heat Treatment", "Machining", "QC"], estHours: 9.0 }
   ],
   "ROD-001": [
-    { id: "RCP-ROD-001", name: "连杆标准机加", team: "机加组-B", teamColor: "#52c41a",
-      tasks: ["领料", "铣削", "钻孔", "去毛刺", "质检"], estHours: 6.0 }
+    { id: "RCP-ROD-001", name: "Connecting Rod Standard Machining", team: "Machining Team B", teamColor: "#52c41a",
+      tasks: ["Material Picking", "Milling", "Drilling", "Deburring", "QC"], estHours: 6.0 }
   ],
   "ENG-001": [
-    { id: "RCP-ENG-001", name: "发动机总装", team: "装配组-A", teamColor: "#52c41a",
-      tasks: ["领料", "缸体装配", "曲轴装配", "活塞连杆装配", "缸盖装配", "调试", "质检"], estHours: 16.0 },
-    { id: "RCP-ENG-002", name: "发动机快速装配", team: "装配组-B", teamColor: "#13c2c2",
-      tasks: ["领料", "预组装", "总装", "调试", "质检"], estHours: 10.0 }
+    { id: "RCP-ENG-001", name: "Engine Final Assembly", team: "Assembly Team A", teamColor: "#52c41a",
+      tasks: ["Material Picking", "Block Assembly", "Crankshaft Assembly", "Piston Rod Assembly", "Cylinder Head Assembly", "Testing", "QC"], estHours: 16.0 },
+    { id: "RCP-ENG-002", name: "Engine Fast Assembly", team: "Assembly Team B", teamColor: "#13c2c2",
+      tasks: ["Material Picking", "Pre-assembly", "Final Assembly", "Testing", "QC"], estHours: 10.0 }
   ]
 };
 
@@ -433,6 +470,7 @@ let recipeSelections = {}; // nodeId -> recipeId
 let currentRecipeNode = null;
 let selectedRecipeId = null;
 let currentView = "config";
+let selectedSOLines = new Set();
 
 // ===== Helpers =====
 function getAllNodes(node, list=[]) {
@@ -462,6 +500,79 @@ function buildParentRefs(node, parent=null) {
 }
 buildParentRefs(bomData);
 
+// ===== SO Lines =====
+function renderSOLines() {
+  const listEl = document.getElementById("soLinesList");
+  const summaryEl = document.getElementById("soLinesSummary");
+  const partNo = document.getElementById("partNumber").value;
+  const matched = soLinesData.filter(l => l.partNo === partNo);
+
+  if (matched.length === 0) {
+    listEl.innerHTML = '<div class="so-lines-empty">No matching SO Lines</div>';
+    summaryEl.textContent = "Matched: 0 qty";
+    selectedSOLines.clear();
+    updateMakeToOrder();
+    return;
+  }
+
+  let html = "";
+  matched.forEach((line, idx) => {
+    const key = line.soNo;
+    const checked = selectedSOLines.has(key) ? "checked" : "";
+    html += `
+      <label class="so-line-item" for="so-${idx}">
+        <input type="checkbox" id="so-${idx}" data-sono="${key}" ${checked} onchange="toggleSOLine(this)">
+        <div class="so-line-info">
+          <div class="so-line-so">${line.soNo} <span style="color:#8c8c8c;font-weight:400;">· ${line.customer}</span></div>
+          <div class="so-line-detail">Due: ${line.dueDate} · Part: ${line.partNo}</div>
+        </div>
+        <div class="so-line-qty">${line.qty}</div>
+      </label>
+    `;
+  });
+  listEl.innerHTML = html;
+  updateSOLinesSummary();
+}
+
+function toggleSOLine(checkbox) {
+  const soNo = checkbox.dataset.sono;
+  if (checkbox.checked) selectedSOLines.add(soNo);
+  else selectedSOLines.delete(soNo);
+  updateMakeToOrder();
+  updateSOLinesSummary();
+}
+
+function updateMakeToOrder() {
+  const partNo = document.getElementById("partNumber").value;
+  let total = 0;
+  selectedSOLines.forEach(soNo => {
+    const line = soLinesData.find(l => l.soNo === soNo && l.partNo === partNo);
+    if (line) total += line.qty;
+  });
+  document.getElementById("makeToOrder").value = total;
+  updateProdQty();
+}
+
+function updateProdQty() {
+  const stock = parseInt(document.getElementById("makeToStock").value) || 0;
+  const order = parseInt(document.getElementById("makeToOrder").value) || 0;
+  document.getElementById("prodQty").value = stock + order;
+}
+
+function updateSOLinesSummary() {
+  const partNo = document.getElementById("partNumber").value;
+  let total = 0;
+  selectedSOLines.forEach(soNo => {
+    const line = soLinesData.find(l => l.soNo === soNo && l.partNo === partNo);
+    if (line) total += line.qty;
+  });
+  const count = Array.from(selectedSOLines).filter(soNo => {
+    const line = soLinesData.find(l => l.soNo === soNo && l.partNo === partNo);
+    return !!line;
+  }).length;
+  document.getElementById("soLinesSummary").textContent = `Matched: ${count} line(s), ${total} qty`;
+}
+
 // ===== Tree Rendering =====
 function renderTree(node, container, reversed=false, depth=0) {
   const hasChildren = node.children && node.children.length > 0;
@@ -489,7 +600,7 @@ function renderTree(node, container, reversed=false, depth=0) {
     toggleHtml = `<div class="tree-toggle-placeholder"></div>`;
   }
 
-  let tagHtml = isRaw ? `<span class="tree-tag raw">原材料</span>` : "";
+  let tagHtml = isRaw ? `<span class="tree-tag raw">Raw Material</span>` : "";
   let checkHtml = configuredRecipe ? `<span class="config-icon"><i class="ri-checkbox-circle-line"></i></span><span style="margin-left:4px;font-size:12px;color:#52c41a;font-weight:500;">${configuredRecipe}</span>` : "";
 
   el.innerHTML = `
@@ -560,7 +671,7 @@ function openRecipePanel(node) {
     <div class="node-icon"><i class="ri-settings-3-line"></i></div>
     <div>
       <div class="node-title">${node.name}</div>
-      <div class="node-code">${node.id} · ${node.isRaw ? "原材料" : "需要配置 Recipe"}</div>
+      <div class="node-code">${node.id} · ${node.isRaw ? "Raw Material" : "Recipe Required"}</div>
     </div>
   `;
 
@@ -579,7 +690,7 @@ function openRecipePanel(node) {
       </div>
       <div class="recipe-meta">
         <span class="team-tag" style="background:${r.teamColor};">${r.team}</span>
-        <span class="est-hours"><i class="ri-time-line"></i> 预估 ${r.estHours} 小时</span>
+        <span class="est-hours"><i class="ri-time-line"></i> Est. ${r.estHours} hrs</span>
       </div>
       <div class="task-timeline">
         ${r.tasks.map((t, i) => `
@@ -645,15 +756,15 @@ function goStep(step) {
   // Sidebar button
   const sbBtn = document.getElementById("sidebarNextBtn");
   if (step === 0) {
-    sbBtn.innerHTML = '<span>下一步：选择 BOM</span><i class="ri-arrow-right-line"></i>';
+    sbBtn.innerHTML = '<span>Next: Select BOM</span><i class="ri-arrow-right-line"></i>';
     sbBtn.onclick = () => goStep(1);
     sbBtn.disabled = false;
   } else if (step === 1) {
-    sbBtn.innerHTML = '<span>返回基础信息</span><i class="ri-arrow-left-line"></i>';
+    sbBtn.innerHTML = '<span>Back to Basic Info</span><i class="ri-arrow-left-line"></i>';
     sbBtn.onclick = () => goStep(0);
     sbBtn.disabled = false;
   } else {
-    sbBtn.innerHTML = '<span>返回 Recipe 配置</span><i class="ri-arrow-left-line"></i>';
+    sbBtn.innerHTML = '<span>Back to Recipe Config</span><i class="ri-arrow-left-line"></i>';
     sbBtn.onclick = () => goStep(1);
     sbBtn.disabled = false;
   }
@@ -700,8 +811,8 @@ function checkAllConfigured() {
 function checkStep2Complete() {
   const btn = document.getElementById("step2NextBtn");
   btn.disabled = !checkAllConfigured();
-  if (!btn.disabled) btn.innerHTML = '进入总览确认 <i class="ri-arrow-right-line"></i>';
-  else btn.innerHTML = '进入总览确认 <i class="ri-arrow-right-line"></i>';
+  if (!btn.disabled) btn.innerHTML = 'Go to Overview <i class="ri-arrow-right-line"></i>';
+  else btn.innerHTML = 'Go to Overview <i class="ri-arrow-right-line"></i>';
 }
 
 // ===== View Toggle =====
@@ -743,11 +854,11 @@ function renderSummary() {
         <div class="team-group-header">
           <span class="team-dot" style="background:${data.color};"></span>
           <span>${team}</span>
-          <span style="margin-left:auto;font-size:12px;color:#8c8c8c;">${data.items.length} 个节点 · 合计 ${data.items.reduce((s, i) => s + i.recipe.estHours, 0).toFixed(1)} 小时</span>
+          <span style="margin-left:auto;font-size:12px;color:#8c8c8c;">${data.items.length} node(s) · Total ${data.items.reduce((s, i) => s + i.recipe.estHours, 0).toFixed(1)} hrs</span>
         </div>
         <table class="summary-table">
           <thead>
-            <tr><th>Part Number</th><th>名称</th><th>Recipe</th><th>Tasks</th><th>工时</th></tr>
+            <tr><th>Part Number</th><th>Name</th><th>Recipe</th><th>Tasks</th><th>Hours</th></tr>
           </thead>
           <tbody>
             ${data.items.map(it => `
@@ -803,19 +914,27 @@ function renderProcessFlow() {
 
 // ===== Global Actions =====
 function saveDraft() {
-  alert("草稿已保存！");
+  alert("Draft saved!");
 }
 function submitJob() {
   if (!checkAllConfigured()) {
-    alert("请先完成所有 Recipe 配置！");
+    alert("Please complete all Recipe configurations first!");
     return;
   }
-  alert("Job 已提交排程！");
+  alert("Job submitted for scheduling!");
 }
 
 // ===== Init =====
 document.addEventListener("DOMContentLoaded", () => {
+  renderSOLines();
   refreshTree();
+
+  document.getElementById("partNumber").addEventListener("change", () => {
+    selectedSOLines.clear();
+    renderSOLines();
+  });
+
+  document.getElementById("makeToStock").addEventListener("input", updateProdQty);
 });
 </script>
 </body>

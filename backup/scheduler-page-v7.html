@@ -228,24 +228,24 @@ const topDemands = [
 
 // Bottom: planned items per site (JOB / PO / TO)
 const siteItems = [
-  // Site A · Not Released
+  // A厂 · Not Released
   { id:'JOB-333', type:'job', site:'A', releaseStatus:'not_released', priority:'high', desc:'Valve Component 3/4"', qty:600, status:'已排程', progress:0, demands:['SO-1004'], process:['铸造○','机加○'] },
   { id:'PO-201', type:'po', site:'A', releaseStatus:'not_released', priority:'normal', desc:'Bolt M8 采购', qty:500, status:'待下单', progress:0, demands:['RP-001'], process:['下单○','到货○'] },
   { id:'JOB-666', type:'job', site:'A', releaseStatus:'not_released', priority:'normal', desc:'Solar Panel Frame', qty:150, status:'草稿', progress:0, demands:['SO-1008'], process:['切割○','焊接○'] },
-  // Site A · Released
+  // A厂 · Released
   { id:'JOB-111', type:'job', site:'A', releaseStatus:'released', priority:'high', desc:'Steel Bracket Assembly', qty:500, status:'执行中', progress:60, demands:['SO-1001'], process:['冲压✓','焊接▶','包装○'] },
   { id:'JOB-444', type:'job', site:'A', releaseStatus:'released', priority:'critical', desc:'Titanium Fastener M8', qty:2000, status:'执行中', progress:35, demands:['SO-1006'], process:['锻造✓','机加▶','热处理○'] },
 
-  // Site B · Not Released
+  // B厂 · Not Released
   { id:'JOB-889', type:'job', site:'B', releaseStatus:'not_released', priority:'high', desc:'Titanium Enclosure', qty:250, status:'已排程', progress:0, demands:['MTO-002'], process:['CNC○','表面处理○'] },
   { id:'TO-003', type:'to', site:'B', releaseStatus:'not_released', priority:'normal', desc:'调拨 Steel Coil', qty:200, status:'待执行', progress:0, demands:['TR-001'], process:['拣货○','运输○'] },
-  // Site B · Released
+  // B厂 · Released
   { id:'JOB-555', type:'job', site:'B', releaseStatus:'released', priority:'high', desc:'LED Driver Module', qty:500, status:'执行中', progress:40, demands:['SO-1007'], process:['SMT✓','测试▶','包装○'] },
   { id:'PO-967', type:'po', site:'B', releaseStatus:'released', priority:'high', desc:'Hydraulic Pump 采购', qty:100, status:'收货中', progress:50, demands:['SO-1005'], process:['下单✓','到货▶','入库○'] },
 
-  // Site C · Not Released
+  // C厂 · Not Released
   { id:'JOB-202', type:'job', site:'C', releaseStatus:'not_released', priority:'normal', desc:'Server Rack 42U', qty:25, status:'已排程', progress:0, demands:['SO-1015'], process:['切割○','折弯○','喷粉○'] },
-  // Site C · Released
+  // C厂 · Released
   { id:'JOB-222', type:'job', site:'C', releaseStatus:'released', priority:'normal', desc:'Sensor Module V2', qty:250, status:'已完成', progress:100, demands:['SO-1003'], process:['SMT✓','装配✓','测试✓'] },
   { id:'JOB-888', type:'job', site:'C', releaseStatus:'released', priority:'critical', desc:'Custom PCB', qty:100, status:'执行中', progress:75, demands:['MTO-001'], process:['SMT✓','测试▶'] },
   { id:'JOB-901', type:'job', site:'C', releaseStatus:'released', priority:'high', desc:'Dimension Rework', qty:20, status:'执行中', progress:30, demands:['RW-001'], process:['返工▶','质检○'] },

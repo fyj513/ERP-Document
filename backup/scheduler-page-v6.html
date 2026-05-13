@@ -241,7 +241,7 @@ const sites = [
 ];
 
 const jobs = [
-  // Site A
+  // A厂
   { id:'JOB-111', site:'A', start:'2026-05-05', end:'2026-05-12', status:'executing', progress:60, part:'RS1234', partName:'Steel Bracket', qty:530, demands:['SO-1001','RP-001'], processes:[
     {code:'P-STAMP', name:'冲压', status:'completed'},
     {code:'P-WELD', name:'焊接', status:'active'},
@@ -260,7 +260,7 @@ const jobs = [
     {code:'P-CUT', name:'切割', status:'pending'},
     {code:'P-WELD', name:'焊接', status:'pending'},
   ]},
-  // Site B
+  // B厂
   { id:'JOB-555', site:'B', start:'2026-05-08', end:'2026-05-18', status:'executing', progress:40, part:'RS8642', partName:'LED Driver', qty:500, demands:['SO-1007'], processes:[
     {code:'P-SMT', name:'SMT贴片', status:'completed'},
     {code:'P-TEST', name:'功能测试', status:'active'},
@@ -277,7 +277,7 @@ const jobs = [
     {code:'P-REWORK', name:'返工', status:'hold'},
     {code:'P-QC', name:'质检', status:'pending'},
   ]},
-  // Site C
+  // C厂
   { id:'JOB-222', site:'C', start:'2026-05-06', end:'2026-05-12', status:'completed', progress:100, part:'RS3456', partName:'Sensor Module V2', qty:250, demands:['SO-1003'], processes:[
     {code:'P-SMT', name:'SMT贴片', status:'completed'},
     {code:'P-ASSY', name:'装配', status:'completed'},
