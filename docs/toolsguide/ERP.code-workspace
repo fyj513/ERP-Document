@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "../../.."
+		},
+		{
+			"path": "../../../ERP-Code/pram3_corelibs"
+		}
+	],
+	"settings": {
+		"liveServer.settings.multiRootWorkspaceName": "ERP"
+	}
+}
