@@ -152,9 +152,515 @@ DefaultFilter("张三",    "~[invalid") // false ✗ 无效正则 = 当作不匹
 2. **对象** → 用 JSON.stringify 转字符串处理，还是另有方案？### 
 
 
+## DefaultFilter 完整梳理
+
+### 函数签名
+
+```
+DefaultFilter(data, filtervalue): bool
+永远只返回 true 或 false
+```
+
+---
+
+### 一、参数规则
+
+#### `data` — 接受任意类型，宽松处理
+
+```
+✅ string            → 直接做字符串匹配
+✅ number            → toString() 转字符串再匹配
+✅ boolean           → 转成 "true"/"false" 再匹配
+✅ object            → key排序后 JSON.stringify 再匹配
+✅ null              → 当空字符串 "" 处理
+✅ undefined         → 当空字符串 "" 处理
+✅ array             → toString() 转字符串再匹配
+
+❌ 以上全部不报错，宽松处理
+```
+
+#### `filtervalue` — 必须是 string | null | undefined
+
+```
+✅ null              → 永远返回 true
+✅ undefined         → 永远返回 true
+✅ ""                → 永远返回 true
+✅ string            → 见下方格式规则
+
+❌ 报错：number
+❌ 报错：boolean
+❌ 报错：object
+❌ 报错：array
+```
+
+---
+
+### 二、data 转字符串规则
+
+```
+data类型       转换方式                          结果例子
+──────────────────────────────────────────────────────────────────
+string         直接用，转小写                    "Apple" → "apple"
+number         toString() 转字符串               5000 → "5000"
+boolean        true→"true" false→"false"         true → "true"
+null           当 ""                             null → ""
+undefined      当 ""                             undefined → ""
+object         key排序后JSON.stringify，转小写    {b:2,a:1} → '{"a":1,"b":2}'
+array          toString()，转小写                [1,2] → "1,2"
+```
+
+---
+
+### 三、filtervalue 处理顺序
+
+```
+第一步：filtervalue 是否为空/null/undefined → 直接返回 true
+
+第二步：filtervalue 是否以 ! 开头 → 记录需要取反，去掉 !
+
+第三步：识别模式（按以下顺序判断）：
+
+        以 @  开头 → 日期模式（见第五节，待确认）
+        以 ~  开头 → 正则匹配
+        以 >  开头 → 数字比较
+        以 <  开头 → 数字比较
+        以 >= 开头 → 数字比较
+        以 <= 开头 → 数字比较
+        含有 *     → 通配符匹配
+        以 ^  开头 → 开头匹配
+        以 $  结尾 → 结尾匹配
+        ^ 和 $ 同时 → 完全等于匹配
+        其他        → 包含匹配（逗号分隔AND逻辑）
+
+第四步：执行对应模式的匹配
+
+第五步：如果第二步记录了取反 → 对结果取反
+
+第六步：返回最终 bool
+```
+
+---
+
+### 四、各模式详细规则
+
+#### 模式一：包含匹配（默认）
+
+```
+触发：普通字符串，没有任何特殊符号
+规则：string.includes(keyword)，不区分大小写
+逗号：逗号分隔多关键词，AND逻辑，全部包含才true
+
+例子：
+  "张"        → data含"张"返回true
+  "apple"     → 不区分大小写
+  "张三,销售"  → 同时含"张三"和"销售"才true
+```
+
+#### 模式二：开头匹配（`^`）
+
+```
+触发：filtervalue 以 ^ 开头，且不以 $ 结尾
+规则：string.startsWith(keyword)，不区分大小写
+
+例子：
+  "^张"   → data以"张"开头返回true
+  "^PO"   → data以"PO"开头返回true
+```
+
+#### 模式三：结尾匹配（`$`）
+
+```
+触发：filtervalue 以 $ 结尾，且不以 ^ 开头
+规则：string.endsWith(keyword)，不区分大小写
+
+例子：
+  "丰$"    → data以"丰"结尾返回true
+  "123$"   → data以"123"结尾返回true
+```
+
+#### 模式四：完全等于（`^...$`）
+
+```
+触发：filtervalue 同时以 ^ 开头且以 $ 结尾
+规则：string === keyword，不区分大小写
+
+例子：
+  "^张三$"     → data完全等于"张三"返回true
+  "^approved$" → 不区分大小写
+```
+
+#### 模式五：通配符（`*`）
+
+```
+触发：filtervalue 含有 *
+规则：* 替换成正则 .*，做正则匹配，不区分大小写
+
+例子：
+  "PO*001"   → PO开头001结尾
+  "*三"       → 以三结尾
+  "张*"       → 以张开头
+  "*2024*"   → 含2024
+  "A*D*G*"   → 多段通配
+```
+
+#### 模式六：正则匹配（`~`）
+
+```
+触发：filtervalue 以 ~ 开头
+规则：去掉~，转小写，new RegExp，做match
+注意：无效正则不报错，返回false
+
+例子：
+  "~^\d{4}$"           → 匹配纯4位数字
+  "~^PO-\d{4}-\d{3}$"  → 匹配采购单格式
+  "~[invalid"           → 无效正则，返回false
+```
+
+#### 模式七：数字比较（`>` `<` `>=` `<=`）
+
+```
+触发：filtervalue 以 > 或 < 开头
+规则：data能转成数字才比较，转不了就跳过走包含匹配
+支持：> < >= <=
+
+例子：
+  ">3000"    → data > 3000
+  "<=200"    → data <= 200
+  ">=99.5"   → 支持小数
+  
+注意：
+  data="hello" + filtervalue=">3000"
+  → hello转不成数字 → 跳过数字比较 → 走包含匹配 → false
+  → 不报错
+```
+
+#### 模式八：取反（`!`）
+
+```
+触发：filtervalue 以 ! 开头
+规则：对最终结果取反，可叠加到任意模式
+注意：! 只在最前面，处理完后去掉再走其他模式
+
+例子：
+  "!张"        → 不含"张"返回true
+  "!^张"       → 不以"张"开头返回true
+  "!^张三$"    → 不完全等于"张三"返回true
+  "!张三,销售"  → 不是(同时含张三和销售)返回true
+```
+
+#### 模式九：日期（`@`）⚠️ 待确认
+
+```
+触发：filtervalue 以 @ 开头
+详见待确认清单
+```
+
+---
+
+### 五、待确认清单
+
+```
+⚠️ 日期处理：
+  "@2024"           只有年，怎么处理？
+  "@2024-01"        只有年月，怎么处理？
+  "@2024-01-15"     完整日期，怎么处理？
+  "@2024-01-01|2024-12-31"  日期范围，怎么处理？
+
+  方案A：转字符串匹配（简单，不需要改datetime库）
+  方案B：转时间戳数值比较（严谨，需要datetime库新增接口）
+```
+
+---
+
+### 六、边界情况
+
+```
+filtervalue=""        → true（空条件保留所有）
+filtervalue=null      → true
+filtervalue=undefined → true
+data=null + fv="张"   → "" 不含"张" → false
+data=null + fv=""     → true（空条件）
+data="" + fv=""       → true
+"~[invalid"           → 无效正则，返回false，不报错
+">abc"                → abc转不成数字，跳过，走包含匹配
+```
+
+---
+
+### 七、一张图总结
+
+```
+DefaultFilter(data, filtervalue)
+         │
+         ├─ filtervalue是null/undefined/"" → 返回 true
+         ├─ filtervalue不是string          → 报错
+         │
+         ▼
+    data转成字符串（见第二节）
+         │
+         ├─ filtervalue以!开头 → 记录取反，去掉!
+         │
+         ▼
+    识别模式：
+         ├─ @ → 日期模式（待确认）
+         ├─ ~ → 正则匹配
+         ├─ >/< → 数字比较（转不了数字→跳过→包含匹配）
+         ├─ 含* → 通配符
+         ├─ ^开头且$结尾 → 完全等于
+         ├─ ^开头 → 开头匹配
+         ├─ $结尾 → 结尾匹配
+         └─ 其他 → 包含匹配（逗号AND逻辑）
+         │
+         ▼
+    需要取反 → 结果翻转
+         │
+         ▼
+    返回 true 或 false
+```
 
 
 
+## DefaultSort 完整梳理
+
+### 函数签名
+
+```
+DefaultSort(data, reverse=false, sortBy=null) → array
+永远返回新数组，不修改原数组
+```
+
+---
+
+### 一、参数规则
+
+#### `data` — 必须是数组，否则报错
+
+```
+✅ 允许：[]                        空数组，直接返回[]
+✅ 允许：[1, 2, 3]                 数字数组
+✅ 允许：['a', 'b']                字符串数组
+✅ 允许：[true, false]             布尔数组
+✅ 允许：[[1,'a'], [2,'b']]        数组套数组
+✅ 允许：[{name:'Alice'}, ...]     对象数组
+✅ 允许：含null/undefined的数组    → null/undefined排最后，不报错
+✅ 允许：混搭数组                  → 按类型分组排序，不报错
+
+❌ 报错：null
+❌ 报错：undefined
+❌ 报错："hello"
+❌ 报错：42
+❌ 报错：{}
+❌ 报错：true
+```
+
+---
+
+#### `reverse` — 必须是布尔值，否则报错
+
+```
+✅ 允许：false  → 升序（默认）
+✅ 允许：true   → 降序
+
+❌ 报错：null
+❌ 报错："true" / "false"
+❌ 报错：0 / 1
+❌ 报错：{}
+```
+
+---
+
+#### `sortBy` — 五种合法类型
+
+```
+✅ 允许：null                → 直接比元素本身
+✅ 允许：string（非空）      → 取对象的这个key的value来比
+✅ 允许：number（正整数）    → 取数组/JSONB对象的第N个位置来比
+✅ 允许：string[]（非空）    → 多个key依次比
+✅ 允许：number[]（非空）    → 多个位置依次比
+
+❌ 报错：""                  空字符串
+❌ 报错：-1                  负数
+❌ 报错：1.5                 小数
+❌ 报错：NaN
+❌ 报错：Infinity
+❌ 报错：[]                  空数组
+❌ 报错：['name', 0]         混合类型数组
+❌ 报错：['', 'name']        含空字符串
+❌ 报错：[0, -1]             含负数
+❌ 报错：true / false
+❌ 报错：{}
+❌ 报错：function
+```
+
+---
+
+### 二、混搭数据的优先级规则
+
+**data里元素类型混杂时，按以下优先级排列，不报错：**
+
+```
+优先级（升序，从小到大）：
+
+第一组  number + string   → 混在一起，按自然排序比较
+第二组  boolean           → false 排 true 前面
+第三组  array             → 多个array之间正常逐元素比较
+第四组  object            → 多个object之间保持原顺序
+第五组  null              → 排最后
+第六组  undefined         → 压底
+
+示例：
+DefaultSort([{a:1}, 'hello', 42, true, null, [1,2], undefined, false])
+→ [42, 'hello', false, true, [1,2], {a:1}, null, undefined]
+```
+
+**reverse=true 时：**
+
+```
+第一到四组整体翻转
+null / undefined 永远压底，不参与翻转
+
+示例：
+DefaultSort([{a:1}, 'hello', 42, true, null, [1,2], undefined], true)
+→ [42, 'hello', true, [1,2], {a:1}, null, undefined]
+```
+
+---
+
+### 三、sortBy=null 时的处理规则
+
+#### data 是普通值数组
+
+```
+number         → 直接数值比较          [3, 1, 2]      → [1, 2, 3]
+string         → localeCompare         自然排序，'10'在'5'后面
+boolean        → false < true          [true, false]  → [false, true]
+null           → 排最后                [3, null, 1]   → [1, 3, null]
+undefined      → 压底                  [3, undefined] → [3, undefined]
+```
+
+#### data 是数组套数组
+
+```
+→ 逐元素比较，先比第0个，相同再比第1个，以此类推
+→ 子数组长度不一致：短的排前面（和短字符串一样）
+   [1,2] < [1,2,3]（前两个相同，短的排前面）
+→ 元素含null/undefined：null/undefined排最后
+→ 子数组之间的元素混搭：按混搭优先级处理
+```
+
+#### data 是对象数组
+
+```
+→ 取第一个对象的key顺序作为标准
+→ 按key顺序逐个value比较
+→ 某个对象缺少key：当null处理，排最后
+→ key顺序不同：不报错，强制按第一个对象的key顺序比
+→ value是对象或数组：按混搭优先级，排在普通值后面
+```
+
+---
+
+### 四、sortBy=字符串 时的处理规则
+
+```
+→ data是对象数组
+→ 取每个对象的 obj[sortBy] 的value来比
+→ 某个对象没有这个key：当null处理，排最后
+→ value是对象或数组：按混搭优先级，排在普通值后面
+→ value比较规则见第七节
+```
+
+---
+
+### 五、sortBy=数字 时的处理规则
+
+```
+→ data是数组套数组：取 arr[sortBy] 的value来比
+→ data是JSONB对象数组：取对象第N个key对应的value来比
+   （JSONB的key是字符串，但可以用数字索引定位到第N个key）
+→ 某个位置缺失：当null处理，排最后
+→ value比较规则见第七节
+```
+
+---
+
+### 六、sortBy=字符串数组 时的处理规则
+
+```
+→ data是对象数组
+→ 依次按每个key比，相同才看下一个
+→ 某个对象缺key：当null处理，排最后
+→ value比较规则见第七节
+```
+
+---
+
+### 七、sortBy=数字数组 时的处理规则
+
+```
+→ data是数组套数组 或 JSONB对象数组
+→ 依次按每个位置比，相同才看下一个
+→ 某个位置缺失：当null处理，排最后
+→ value比较规则见第七节
+```
+
+---
+
+### 八、value 比较的统一规则
+
+**每次两两PK，按以下顺序判断：**
+
+```
+1. 两个都是 null        → 相等，顺序不变
+2. 两个都是 undefined   → 相等，顺序不变
+3. 一个null一个undefined → null排undefined前面
+4. 其中一个是null/undefined → null/undefined排后面，另一个排前面
+5. 两个都是 object      → 相等，顺序不变（保持原顺序）
+6. 一个object一个非object → object排后面
+7. 两个都是 array       → 逐元素比较
+8. 一个array一个非array  → array排后面（但object在array后面，见混搭规则）
+9. 两个都是 boolean     → false < true
+10. 一个boolean一个非boolean → boolean排后面
+11. 两个都是 number     → 数值比较
+12. 两个都是 string     → localeCompare + numeric:true（'10'在'5'后面）
+13. 一个string一个number → 统一转string再用localeCompare
+```
+
+---
+
+### 九、一张图总结
+
+```
+DefaultSort(data, reverse, sortBy)
+         │
+         ├─ data不是数组        → 报错
+         ├─ reverse不是布尔     → 报错
+         └─ sortBy类型非法      → 报错
+         │
+         ▼
+    浅拷贝data（不修改原数组）
+         │
+         ├─ sortBy=null
+         │      ├─ 元素是普通值  → 直接比
+         │      ├─ 元素是数组    → 逐元素比
+         │      ├─ 元素是对象    → 按第一个对象key顺序比
+         │      └─ 元素混搭      → 按类型优先级分组排
+         │
+         ├─ sortBy=string       → obj[key] 取value比
+         ├─ sortBy=number       → item[n] 取value比
+         ├─ sortBy=string[]     → 多key依次比
+         └─ sortBy=number[]     → 多位置依次比
+                  │
+                  ▼
+         比较时遇到混搭值 → 按混搭优先级处理
+         缺失key/位置    → 当null处理排最后
+                  │
+                  ▼
+         reverse=true → 翻转（null/undefined仍压底）
+                  │
+                  ▼
+            返回新数组
+```
 ## `DefaultSort` 功能示例清单
 
 ## 一、`data` 参数(仅数组)
@@ -290,30 +796,59 @@ expectResult(original, [3, 1, 2], "原数组不被修改");
 expectResult(DefaultSort([2, 2, 2]),                                 [2, 2, 2],               "全相同元素-数字");
 expectResult(DefaultSort(['a', 'a', 'a']),                           ['a', 'a', 'a'],          "全相同元素-字符串");
 
-// ❌ 报错：对象数组key数量不一致
+// ❌ 删掉这两条：
 expectError(() => DefaultSort([
-    { dept: '销售部', level: '10' },
-    { dept: '技术部' },                // 少了level
-]), "对象数组-key数量不一致");
+    {dept:'销售部', level:'10'},
+    {dept:'技术部'},
+]), "对象数组-key数量不一致")
 
-// ❌ 报错：对象数组key名字不一致
 expectError(() => DefaultSort([
-    { dept: '销售部', level: '10' },
-    { dept: '技术部', salary: '5' },   // salary和level不一样
-]), "对象数组-key名字不一致");
+    {dept:'销售部', level:'10'},
+    {dept:'技术部', salary:'5'},
+]), "对象数组-key名字不一致")
 
-// ❌ 报错：同位置value类型不一致
-expectError(() => DefaultSort([
-    { dept: '销售部', level: '10' },
-    { dept: '技术部', level: 5    },   // level一个字符串一个数字
-]), "对象数组-同位置value类型不一致");
+// ✅ 改成这些：
+expectResult(
+    DefaultSort([
+        {name:'Bob',  dept:'Sales'},
+        {name:'Alice'            },   // 没有dept
+        {name:'Charlie',dept:'IT'},
+    ], false, 'dept'),
+    [
+        {name:'Charlie', dept:'IT'   },
+        {name:'Bob',     dept:'Sales'},
+        {name:'Alice'                },   // dept缺失=null → 排最后
+    ],
+    "sortBy字符串-缺失key当null排最后")
 
-// ❌ 报错：子数组长度不一致
-expectError(() => DefaultSort([
-    ['a', 1],
-    ['b'],          // 少了第二个元素
-]), "子数组长度不一致");
-```
+expectResult(
+    DefaultSort([
+        {dept:'Sales', level:'10'},
+        {dept:'IT'              },    // 没有level
+        {dept:'IT',    level:'5'},
+    ], false, ['dept','level']),
+    [
+        {dept:'IT',    level:'5' },
+        {dept:'IT'               },   // level缺失=null → 排最后
+        {dept:'Sales', level:'10'},
+    ],
+    "sortBy字符串数组-缺失key当null排最后")
+
+
+
+// ❌ 删掉这条：
+expectError(() => DefaultSort([['a',1],['b']]), "子数组长度不一致")
+
+// ✅ 改成这些：
+expectResult(
+    DefaultSort([['b',2],['a'],['a',1]], false, null),
+    [['a'],['a',1],['b',2]],
+    "子数组长度不一致-短的排前面")
+
+// 原理和字符串一样：
+// 'a' < 'ab' < 'b'
+// ['a'] < ['a',1] < ['b',2]```
+
 对对象怎么比
 ---
 ```javascript// sortBy=null 且 data是对象数组时
@@ -398,41 +933,7 @@ expectResult(
     [['c','3'],['a','5'],['b','10']],
     "sortBy数字-数组套数组-数字字符串正确排序");
 
-// ✅ 正常：JSONB对象数组-按index0排序
-expectResult(
-    DefaultSort([{0:'b',1:2},{0:'a',1:3},{0:'c',1:1}], false, 0),
-    [{0:'a',1:3},{0:'b',1:2},{0:'c',1:1}],
-    "sortBy数字-JSONB对象-按index0排序");
 
-// ✅ 正常：JSONB对象数组-按index1排序
-expectResult(
-    DefaultSort([{0:'b',1:2},{0:'a',1:3},{0:'c',1:1}], false, 1),
-    [{0:'c',1:1},{0:'b',1:2},{0:'a',1:3}],
-    "sortBy数字-JSONB对象-按index1排序");
-
-// ✅ 正常：JSONB对象数组-降序
-expectResult(
-    DefaultSort([{0:'b',1:2},{0:'a',1:3},{0:'c',1:1}], true, 0),
-    [{0:'c',1:1},{0:'b',1:2},{0:'a',1:3}],
-    "sortBy数字-JSONB对象-降序");
-
-// ✅ 正常：JSONB对象数组-数字字符串正确排序('10'在'5'后面)
-expectResult(
-    DefaultSort([{0:'b',1:'10'},{0:'a',1:'5'},{0:'c',1:'3'}], false, 1),
-    [{0:'c',1:'3'},{0:'a',1:'5'},{0:'b',1:'10'}],
-    "sortBy数字-JSONB对象-数字字符串正确排序");
-
-// ✅ 正常：JSONB对象数组-单字段
-expectResult(
-    DefaultSort([{0:'b'},{0:'a'},{0:'c'}], false, 0),
-    [{0:'a'},{0:'b'},{0:'c'}],
-    "sortBy数字=0-JSONB对象-合法边界值");
-
-// ✅ 正常：所有value相同-保持原顺序
-expectResult(
-    DefaultSort([{0:'a'},{0:'a'},{0:'a'}], false, 0),
-    [{0:'a'},{0:'a'},{0:'a'}],
-    "sortBy数字-JSONB对象-所有value相同保持原顺序");
 
 // ❌ 报错：负索引
 expectError(() => DefaultSort([[1,2]], false, -1),
@@ -458,17 +959,17 @@ expectError(() => DefaultSort([[1,2]], false, 99),
 expectError(() => DefaultSort([{0:'a',1:'b'}], false, 99),
     "sortBy数字-JSONB对象-key不存在");
 
-// ❌ 报错：同索引位置value类型不一致
-expectError(() => DefaultSort([[1,'a'],[2,3]], false, 1),
-    "sortBy数字-数组套数组-同索引value类型不一致");
 
-// ❌ 报错：同索引位置value含null
-expectError(() => DefaultSort([[1,null],[2,3]], false, 1),
-    "sortBy数字-数组套数组-同索引value含null");
+// ✅ 改成这些：
+expectResult(
+    DefaultSort([[2,3],[1,null],[1,1]], false, [0,1]),
+    [[1,1],[1,null],[2,3]],
+    "子数组含null-null排最后")
 
-// ❌ 报错：同索引位置value含undefined
-expectError(() => DefaultSort([[1,undefined],[2,3]], false, 1),
-    "sortBy数字-数组套数组-同索引value含undefined");
+expectResult(
+    DefaultSort([[2,3],[1,undefined],[1,1]], false, 1),
+    [[1,1],[2,3],[1,undefined]],
+    "子数组含undefined-undefined排最后")
 // ❌ 报错
 expectError(() => DefaultSort([[1,2]], false, -1),       "sortBy=-1（负索引）");
 expectError(() => DefaultSort([[1,2]], false, 1.5),      "sortBy=1.5（小数索引）");
@@ -567,35 +1068,7 @@ expectResult(
     [[2,'b'],[2,'a'],[1,'z'],[1,'a']],
     "sortBy数字数组-数组套数组-降序");
 
-// ✅ 正常：JSONB对象数组-单级索引
-expectResult(
-    DefaultSort([{0:'b'},{0:'a'},{0:'c'}], false, [0]),
-    [{0:'a'},{0:'b'},{0:'c'}],
-    "sortBy数字数组-JSONB对象-单级索引");
 
-// ✅ 正常：JSONB对象数组-两级索引
-expectResult(
-    DefaultSort([{0:'b',1:2},{0:'a',1:3},{0:'a',1:1}], false, [0, 1]),
-    [{0:'a',1:1},{0:'a',1:3},{0:'b',1:2}],
-    "sortBy数字数组-JSONB对象-两级索引");
-
-// ✅ 正常：JSONB对象数组-三级索引
-expectResult(
-    DefaultSort([{0:'b',1:2,2:'z'},{0:'a',1:3,2:'m'},{0:'a',1:3,2:'a'}], false, [0, 1, 2]),
-    [{0:'a',1:3,2:'a'},{0:'a',1:3,2:'m'},{0:'b',1:2,2:'z'}],
-    "sortBy数字数组-JSONB对象-三级索引");
-
-// ✅ 正常：JSONB对象数组-数字字符串正确排序('10'在'5'后面)
-expectResult(
-    DefaultSort([{0:'销售部',1:'10'},{0:'技术部',1:'5'},{0:'销售部',1:'3'},{0:'技术部',1:'10'}], false, [0, 1]),
-    [{0:'技术部',1:'5'},{0:'技术部',1:'10'},{0:'销售部',1:'3'},{0:'销售部',1:'10'}],
-    "sortBy数字数组-JSONB对象-数字字符串正确排序");
-
-// ✅ 正常：JSONB对象数组-reverse=true
-expectResult(
-    DefaultSort([{0:'a',1:1},{0:'b',1:2},{0:'a',1:3}], true, [0, 1]),
-    [{0:'b',1:2},{0:'a',1:3},{0:'a',1:1}],
-    "sortBy数字数组-JSONB对象-降序");
 
 // ✅ 正常：所有value相同-保持原顺序
 expectResult(
@@ -623,18 +1096,18 @@ expectError(() => DefaultSort([[1,2]], false, [0, 99]),
 expectError(() => DefaultSort([[1,2]], false, []),
     "sortBy数字数组-空数组");
 
-// ❌ 报错：同一索引位置value类型不一致
-expectError(() => DefaultSort([[1,'a'],['b',2]], false, [0]),
-    "sortBy数字数组-同索引value类型不一致");
 
-// ❌ 报错：同一索引位置value含null
-expectError(() => DefaultSort([[1,null],[2,3]], false, [0, 1]),
-    "sortBy数字数组-同索引value含null");
 
-// ❌ 报错：同一索引位置value含undefined
-expectError(() => DefaultSort([[1,undefined],[2,3]], false, [0, 1]),
-    "sortBy数字数组-同索引value含undefined");```
+// ✅ 改成这些：
+expectResult(
+    DefaultSort([[2,3],[1,null],[1,1]], false, [0,1]),
+    [[1,1],[1,null],[2,3]],
+    "子数组含null-null排最后")
 
+expectResult(
+    DefaultSort([[2,3],[1,undefined],[1,1]], false, 1),
+    [[1,1],[2,3],[1,undefined]],
+    "子数组含undefined-undefined排最后")
 ## 八、`sortBy` 其他非法类型
 
 ```javascript
@@ -644,27 +1117,276 @@ expectError(() => DefaultSort([1,2], false, {}),        "sortBy=普通对象");
 expectError(() => DefaultSort([1,2], false, ()=>{}),    "sortBy=函数");
 ```
 
+
+```
+// ✅ 全部新增：
+
+// sortBy=null 直接排boolean
+expectResult(
+    DefaultSort([true, false, true, false]),
+    [false, false, true, true],
+    "boolean升序-false排前面")
+
+expectResult(
+    DefaultSort([true, false, true, false], true),
+    [true, true, false, false],
+    "boolean降序-true排前面")
+
+// 对象数组里有boolean字段
+expectResult(
+    DefaultSort([
+        {name:'Bob',   approved:true },
+        {name:'Alice', approved:false},
+        {name:'Carol', approved:true },
+    ], false, 'approved'),
+    [
+        {name:'Alice', approved:false},
+        {name:'Bob',   approved:true },
+        {name:'Carol', approved:true },
+    ],
+    "sortBy字符串-boolean字段升序")
+
+expectResult(
+    DefaultSort([
+        {name:'Bob',   approved:true },
+        {name:'Alice', approved:false},
+    ], true, 'approved'),
+    [
+        {name:'Bob',   approved:true },
+        {name:'Alice', approved:false},
+    ],
+    "sortBy字符串-boolean字段降序")
+
+// boolean和null混合
+expectResult(
+    DefaultSort([true, null, false, undefined, true], false),
+    [false, true, true, null, undefined],
+    "boolean含null和undefined-null排最后")
+```
 ---
 
-## ERP 场景建议：该不该"卡死"边界？
+```
+// ✅ 正常：JSONB对象-sortBy=数字-按第0个key的value排序
+expectResult(
+    DefaultSort([
+        { dept:'Sales', level:'10', name:'Alice' },
+        { dept:'IT',    level:'5',  name:'Bob'   },
+        { dept:'HR',    level:'3',  name:'Carol'  },
+    ], false, 0),
+    [
+        { dept:'HR',    level:'3',  name:'Carol' },
+        { dept:'IT',    level:'5',  name:'Bob'   },
+        { dept:'Sales', level:'10', name:'Alice' },
+    ],
+    "sortBy数字-JSONB对象-按第0个key(dept)排序");
 
-| 参数                      | 建议         | 理由                                                                            |
-| ----------------------- | ---------- | ----------------------------------------------------------------------------- |
-| `data` 非数组              | ✅ **必须报错** | ERP里传进来非数组100%是代码bug，静默返回只会让问题藏得更深                                            |
-| `data = null`           | ✅ **必须报错** | API返回null说明上游没处理，让调用方自己写 `DefaultSort(apiData ?? [])` 更清晰                     |
-| `reverse` 非布尔           | ✅ **建议报错** | 数据库字段 `0/1` 在ERP里很常见，**不报错会造成排序方向静默错误**，不如强制转换：`DefaultSort(data, !!dbValue)` |
-| `sortBy = ''`           | ✅ **必须报错** | 空字符串键在JSONB对象里永远取不到值，100%是笔误                                                  |
-| `sortBy = []`           | ✅ **必须报错** | 传了空数组等于什么都没传，但代码看起来像传了，必然是bug                                                 |
-| `sortBy` 混合数组           | ✅ **必须报错** | 字符串键和数字索引混在一起逻辑上自相矛盾                                                          |
-| `sortBy` 负数/小数          | ✅ **必须报错** | 数组不存在负索引或小数索引，没有任何合法场景                                                        |
-| `sortBy` 其他类型（布尔/对象/函数） | ✅ **必须报错** | 同上，传这些进来100%是写错了                                                              |
+// ✅ 正常：JSONB对象-sortBy=数字-按第1个key的value排序（数字字符串）
+expectResult(
+    DefaultSort([
+        { dept:'Sales', level:'10', name:'Alice' },
+        { dept:'IT',    level:'5',  name:'Bob'   },
+        { dept:'HR',    level:'3',  name:'Carol' },
+    ], false, 1),
+    [
+        { dept:'HR',    level:'3',  name:'Carol' },
+        { dept:'IT',    level:'5',  name:'Bob'   },
+        { dept:'Sales', level:'10', name:'Alice' },
+    ],
+    "sortBy数字-JSONB对象-按第1个key(level)排序-数字字符串正确排序");
 
-**总结一句话：** ERP的数据可以乱，但**传给这个函数的参数不能乱**。把所有非法参数在入口处报错，比让它在排序时静默失效要安全得多——调试一个"排序结果全一样"的bug比处理一个报错难多了。
+// ✅ 正常：JSONB对象-sortBy=数字-降序
+expectResult(
+    DefaultSort([
+        { dept:'Sales', level:'10', name:'Alice' },
+        { dept:'IT',    level:'5',  name:'Bob'   },
+        { dept:'HR',    level:'3',  name:'Carol' },
+    ], true, 0),
+    [
+        { dept:'Sales', level:'10', name:'Alice' },
+        { dept:'IT',    level:'5',  name:'Bob'   },
+        { dept:'HR',    level:'3',  name:'Carol' },
+    ],
+    "sortBy数字-JSONB对象-降序");
+
+// ✅ 正常：JSONB对象-sortBy=数字数组-先按第0个key再按第1个key
+expectResult(
+    DefaultSort([
+        { dept:'Sales', level:'10', name:'Alice' },
+        { dept:'IT',    level:'5',  name:'Bob'   },
+        { dept:'Sales', level:'3',  name:'Carol' },
+        { dept:'IT',    level:'10', name:'Dave'  },
+    ], false, [0, 1]),
+    [
+        { dept:'IT',    level:'5',  name:'Bob'   },
+        { dept:'IT',    level:'10', name:'Dave'  },
+        { dept:'Sales', level:'3',  name:'Carol' },
+        { dept:'Sales', level:'10', name:'Alice' },
+    ],
+    "sortBy数字数组-JSONB对象-先按第0个key(dept)再按第1个key(level)");
+
+// ✅ 正常：JSONB对象-sortBy=数字数组-三级索引
+expectResult(
+    DefaultSort([
+        { dept:'Sales', level:'10', name:'Zoe'   },
+        { dept:'IT',    level:'5',  name:'Bob'   },
+        { dept:'Sales', level:'10', name:'Alice' },
+        { dept:'Sales', level:'3',  name:'Carol' },
+    ], false, [0, 1, 2]),
+    [
+        { dept:'IT',    level:'5',  name:'Bob'   },
+        { dept:'Sales', level:'3',  name:'Carol' },
+        { dept:'Sales', level:'10', name:'Alice' },  // 前两个key相同，比第三个key name
+        { dept:'Sales', level:'10', name:'Zoe'   },
+    ],
+    "sortBy数字数组-JSONB对象-三级索引");
+
+// ✅ 正常：JSONB对象-sortBy=数字数组-降序
+expectResult(
+    DefaultSort([
+        { dept:'Sales', level:'10', name:'Alice' },
+        { dept:'IT',    level:'5',  name:'Bob'   },
+        { dept:'Sales', level:'3',  name:'Carol' },
+    ], true, [0, 1]),
+    [
+        { dept:'Sales', level:'10', name:'Alice' },
+        { dept:'Sales', level:'3',  name:'Carol' },
+        { dept:'IT',    level:'5',  name:'Bob'   },
+    ],
+    "sortBy数字数组-JSONB对象-降序");
+
+// ✅ 正常：JSONB对象-缺失key当null排最后
+expectResult(
+    DefaultSort([
+        { dept:'Sales', level:'10' },
+        { dept:'IT'               },   // 没有level，第1个key=null
+        { dept:'HR',    level:'3'  },
+    ], false, 1),
+    [
+        { dept:'HR',    level:'3'  },
+        { dept:'Sales', level:'10' },
+        { dept:'IT'                },   // null排最后
+    ],
+    "sortBy数字-JSONB对象-缺失key当null排最后");
+
+// ✅ 正常：所有value相同-保持原顺序
+expectResult(
+    DefaultSort([
+        { dept:'Sales', level:'10' },
+        { dept:'Sales', level:'10' },
+        { dept:'Sales', level:'10' },
+    ], false, [0, 1]),
+    [
+        { dept:'Sales', level:'10' },
+        { dept:'Sales', level:'10' },
+        { dept:'Sales', level:'10' },
+    ],
+    "sortBy数字数组-JSONB对象-所有value相同保持原顺序");
+
+// ❌ 报错：index超出对象key数量
+expectError(() => DefaultSort([
+    { dept:'Sales', level:'10' },
+], false, 99),
+    "sortBy数字-JSONB对象-index超出key数量");
+
+// ❌ 报错：数字数组含负数
+expectError(() => DefaultSort([
+    { dept:'Sales', level:'10' },
+], false, [0, -1]),
+    "sortBy数字数组-JSONB对象-含负数");
+
+// ❌ 报错：数字数组含小数
+expectError(() => DefaultSort([
+    { dept:'Sales', level:'10' },
+], false, [0, 1.5]),
+    "sortBy数字数组-JSONB对象-含小数");
+```
 
 
+## 混搭排序优先级
 
+```
+第一组：number + string   → 正常比较，混在一起按自然排序
+第二组：boolean           → false 先，true 后
+第三组：array             → 保持原顺序
+第四组：object            → 保持原顺序，排array后面
+第五组：null              → 排最后
+第六组：undefined         → 压底
+```
 
+```
+// ✅ 完整混搭
+expectResult(
+    DefaultSort([{a:1}, 'hello', 42, true, null, [1,2], undefined, false, 'world', 10]),
+    [10, 42, 'hello', 'world', false, true, [1,2], {a:1}, null, undefined],
+    "混搭-完整优先级排序");
 
+// ✅ number 和 string 混在一起自然排序
+expectResult(
+    DefaultSort([10, '9', 3, '20', 5]),
+    [3, 5, '9', 10, '20'],
+    "混搭-数字和数字字符串自然排序");
+
+// ✅ boolean 排在数字字符串后面
+expectResult(
+    DefaultSort([true, 1, 'hello', false]),
+    [1, 'hello', false, true],
+    "混搭-boolean排在数字字符串后面");
+
+// ✅ array 排在 boolean 后面
+expectResult(
+    DefaultSort([[1,2], true, 'hello', false]),
+    ['hello', false, true, [1,2]],
+    "混搭-array排在boolean后面");
+
+// ✅ object 排在 array 后面
+expectResult(
+    DefaultSort([{a:1}, [1,2], 'hello', {b:2}]),
+    ['hello', [1,2], {a:1}, {b:2}],
+    "混搭-object排在array后面");
+
+// ✅ null 排在 object 后面
+expectResult(
+    DefaultSort([null, {a:1}, 'hello', [1,2]]),
+    ['hello', [1,2], {a:1}, null],
+    "混搭-null排在object后面");
+
+// ✅ undefined 压底
+expectResult(
+    DefaultSort([undefined, null, {a:1}, 'hello']),
+    ['hello', {a:1}, null, undefined],
+    "混搭-undefined压底");
+
+// ✅ reverse=true 整体翻转，但null/undefined仍排最后
+expectResult(
+    DefaultSort([{a:1}, 'hello', 42, true, null, [1,2], undefined], true),
+    [42, 'hello', true, [1,2], {a:1}, null, undefined],
+    "混搭-降序-null和undefined仍排最后");
+
+// ✅ 多个array保持原顺序
+expectResult(
+    DefaultSort([[3,2], [1,2], [3,1]]),
+    [[1,2], [3,1], [3,2]],
+    "混搭-多个array之间正常比较");
+
+// ✅ 多个object保持原顺序
+expectResult(
+    DefaultSort([{b:2}, {a:1}, {c:3}]),
+    [{b:2}, {a:1}, {c:3}],
+    "混搭-多个object之间保持原顺序");
+```
+
+排序优先级（升序）：
+  1. number + string  ← 最小，排最前
+  2. boolean
+  3. array
+  4. object
+  5. null
+  6. undefined        ← 最大，排最后
+
+reverse=true：
+  1~4 整体翻转
+  5~6 null/undefined 永远压底，不参与翻转
+  
 ## DefaultFilter 函数清单
 
 ### 函数签名
@@ -824,160 +1546,3 @@ javascript
 "^true"     → 报错，boolean不支持开头匹配
 ```
 
-## DefaultSort 函数清单
-
-### 主函数签名
-
-```
-DefaultSort(data, reverse=false, sortBy=null): array
-
-输入：data     → array                        非法一律报错
-输入：reverse  → boolean                      非法一律报错
-输入：sortBy   → string | number | string[] | number[] | null
-输出：          → array                        永远返回新数组，不修改原数组
-```
-
----
-
-### 入口参数校验函数
-
-```
-函数名                        输入类型              输出        报错条件
-────────────────────────────────────────────────────────────────────────────
-validateData(data)            any                  void        不是array → 报错
-                                                               null/undefined/string/number/object/boolean → 报错
-
-validateReverse(reverse)      any                  void        不是boolean → 报错
-                                                               null/"true"/"false"/0/1/{} → 报错
-
-validateSortBy(sortBy)        any                  void        不是 string|number|string[]|number[]|null → 报错
-                                                               string 且是空字符串 "" → 报错
-                                                               number 且是负数 → 报错
-                                                               number 且是小数 → 报错
-                                                               number 且是 NaN → 报错
-                                                               number 且是 Infinity → 报错
-                                                               array 且是空数组 [] → 报错
-                                                               array 且混了字符串和数字 → 报错
-                                                               array 且元素含 null/undefined/"" → 报错
-                                                               array 且元素含负数/小数/NaN/Infinity → 报错
-                                                               boolean/object/function → 报错
-```
-
----
-
-### data 内部结构校验函数
-
-```
-函数名                           输入类型                    输出      报错条件
-────────────────────────────────────────────────────────────────────────────────────
-validateDataElements(data)       array                       void      元素含 null/undefined 且 sortBy 是数字/数字数组 → 报错
-                                                                       同位置value类型不一致 → 报错
-
-validateSubArrays(data)          array<array>                void      子数组长度不一致 → 报错
-                                                                       索引越界（sortBy指定的index超出子数组长度）→ 报错
-
-validateObjects(data, sortBy)    array<object>, string|      void      key数量不一致 → 报错
-                                 string[]|null                         key名字不一致 → 报错
-                                                                       sortBy指定的key不存在于所有对象 → 报错（sortBy是字符串时）
-                                                                       sortBy是数字且对象里没有该数字key → 报错
-```
-
----
-
-### 取值函数
-
-```
-函数名                           输入类型                         输出          说明
-────────────────────────────────────────────────────────────────────────────────────────
-extractValue(item, sortBy)       any, string|number|null          any           从item里按sortBy取出要比较的值
-                                                                                sortBy=null   → 返回item本身
-                                                                                sortBy=string → 返回item[sortBy]
-                                                                                sortBy=number → 返回item[sortBy]
-```
-
----
-
-### 比较函数
-
-```
-函数名                           输入类型              输出        说明
-────────────────────────────────────────────────────────────────────────
-compareValues(a, b)              any, any              number      返回负数/0/正数（同 sort 回调）
-                                                                   两个都是 null/undefined → 返回 0
-                                                                   其中一个是 null/undefined → 排最后（返回正数）
-                                                                   两个都是 number → 直接相减
-                                                                   两个都是 string → localeCompare + numeric:true
-                                                                   类型不一致 → 报错
-
-compareArrays(a, b)              array, array          number      逐元素调用 compareValues
-                                                                   元素长度不一致 → 报错
-
-compareObjects(a, b, keys)       object, object,       number      按 keys 顺序逐个取value
-                                 string[]                          调用 compareValues 逐个比
-                                                                   相同继续比下一个key
-```
-
----
-
-### sortBy 是数组时的多级比较函数
-
-```
-函数名                              输入类型                      输出      说明
-──────────────────────────────────────────────────────────────────────────────────────
-compareByMultipleKeys(a, b,         any, any, string[]|number[]   number    循环取每个key/index的value
-    sortByArr)                                                               调用 compareValues 逐个比
-                                                                             不同 → 停止返回结果
-                                                                             相同 → 继续下一个
-```
-
----
-
-### 对象key标准化函数
-
-```
-函数名                           输入类型              输出          说明
-────────────────────────────────────────────────────────────────────────
-normalizeObjectKeys(data)        array<object>         string[]      取第一个对象的 Object.keys() 作为标准
-                                                                      检查所有对象：
-                                                                      key数量不同 → 报错
-                                                                      key名字不同 → 报错
-                                                                      key顺序不同 → 不报错，强制用标准顺序
-                                                                      返回标准key顺序数组
-```
-
----
-
-### 主流程串联
-
-```
-函数名                           输入类型                          输出      说明
-──────────────────────────────────────────────────────────────────────────────
-DefaultSort(data,                array,                            array     1. validateData
-    reverse, sortBy)             boolean,                                    2. validateReverse
-                                 string|number|                              3. validateSortBy
-                                 string[]|number[]|null                      4. 浅拷贝data（不修改原数组）
-                                                                             5. 判断data元素类型走不同分支
-                                                                             6. 调用对应compare函数排序
-                                                                             7. reverse=true → 翻转结果
-                                                                             8. 返回新数组
-```
-
----
-
-### 类型卡死总览表
-
-```
-参数/场景                              合法类型                        非法类型
-──────────────────────────────────────────────────────────────────────────────────────
-data                                   array                           其他一切
-reverse                                boolean                         其他一切（含null/0/1）
-sortBy                                 string(非空)                    ""
-                                       number(非负非小数非NaN非Infinity) 负数/小数/NaN/Infinity
-                                       string[](非空,元素非空字符串)    空数组/含空字符串/含null
-                                       number[](非空,元素合法)          含负数/小数/NaN/Infinity
-                                       null                            boolean/object/function
-compareValues 两个值                   类型必须一致                    类型不一致 → 报错
-子数组                                 长度必须一致                    长度不一致 → 报错
-对象数组                               key名字和数量必须一致            不一致 → 报错
-输出                                   array(新数组)                   永远不修改原数组
-```
