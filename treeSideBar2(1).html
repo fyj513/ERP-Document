@@ -1,0 +1,3531 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Template</title>
+
+    <!-- 独立导航 CSS -->
+    <link rel="stylesheet" href="./index.css">
+    <link rel="stylesheet" href="./frosted-glass.css">
+    <link rel="stylesheet" href="./module/icon.css">
+    <link rel="stylesheet" href="./from.css">
+    <style>
+        /* 基础重置 */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            color: var(--frosted-text-secondary);
+        }
+
+        html {
+            width: 100vw;
+            height: 100vh;
+        }
+
+        body {
+            background: var(--frosted-surface-bg-gradient);
+            transition: background-color 0.3s ease;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* 主题变量定义 - 合并完整版 */
+        :root {
+            /* Light Theme */
+            --frosted-text-primary: #1e293b;
+            --frosted-text-secondary: #475569;
+            --frosted-text-tertiary: #94a3b8;
+            --frosted-bg-default: rgb(228, 234, 241);
+            --frosted-bg-subtle: rgb(235, 240, 246);
+            --frosted-bg-transparent: rgba(255, 255, 255, 0.5);
+            --frosted-border-default: rgba(226, 232, 240, 0.8);
+            --frosted-border-subtle: rgba(226, 232, 240, 0.5);
+            --frosted-border-emphasis: rgba(203, 213, 225, 1);
+            --frosted-cyan-bg: rgba(6, 182, 212, 0.1);
+            --frosted-cyan-text: #06b6d4;
+            --frosted-purple-text: #9333ea;
+            --frosted-green-text: #10b981;
+            --frosted-orange-text: #f97316;
+            --frosted-red-text: ef4444;
+
+            /* 模糊半径 */
+            --frosted-blur-sm: 4px;
+            --frosted-blur-md: 8px;
+            --frosted-blur-lg: 12px;
+            --frosted-blur-xl: 16px;
+
+            /* 圆角 */
+            --frosted-radius-sm: 6px;
+            --frosted-radius-md: 10px;
+            --frosted-radius-lg: 16px;
+            --frosted-radius-xl: 20px;
+            --frosted-radius-full: 999px;
+
+            /* 背景 */
+            --frosted-bg-emphasis: rgba(255, 255, 255, 0.85);
+
+            /* 高光 */
+            --frosted-highlight-default: rgba(255, 255, 255, 0.6);
+            --frosted-highlight-subtle: rgba(255, 255, 255, 0.4);
+
+            /* 阴影 */
+            --frosted-shadow-sm: 0 1px 4px rgba(0, 0, 0, 0.06);
+            --frosted-shadow-md: 0 2px 6px rgba(0, 0, 0, 0.08);
+            --frosted-shadow-lg: 0 4px 12px rgba(0, 0, 0, 0.12);
+            --frosted-shadow-xl: 0 8px 24px rgba(0, 0, 0, 0.15);
+
+            /* 青色主题 */
+            --frosted-cyan-border: rgba(6, 182, 212, 0.4);
+            --frosted-cyan-glow: 0 0 16px rgba(6, 182, 212, 0.3);
+
+            /* 紫色 */
+            --frosted-purple-bg: rgba(168, 85, 247, 0.1);
+            --frosted-purple-border: rgba(168, 85, 247, 0.4);
+            --frosted-purple-glow: 0 0 16px rgba(168, 85, 247, 0.3);
+
+            /* 绿色 */
+            --frosted-green-bg: rgba(34, 197, 94, 0.1);
+            --frosted-green-border: rgba(34, 197, 94, 0.4);
+            --frosted-green-glow: 0 0 16px rgba(34, 197, 94, 0.3);
+
+            /* 橙色 */
+            --frosted-orange-bg: rgba(249, 115, 22, 0.1);
+            --frosted-orange-border: rgba(249, 115, 22, 0.4);
+            --frosted-orange-glow: 0 0 16px rgba(249, 115, 22, 0.3);
+
+            /* 红色 */
+            --frosted-red-bg: rgba(239, 68, 68, 0.1);
+            --frosted-red-border: rgba(239, 68, 68, 0.4);
+            --frosted-red-glow: 0 0 16px rgba(239, 68, 68, 0.3);
+
+            /* 背景渐变 */
+            --frosted-surface-bg-gradient: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+
+            /* 图标色 */
+            --frosted-icon-color: rgba(15, 23, 42, 0.9);
+            ;
+        }
+
+        [data-theme="dark"] {
+            /* Dark Theme */
+            --frosted-text-primary: #f8fafc;
+            --frosted-text-secondary: #e2e8f0;
+            --frosted-text-tertiary: #94a3b8;
+            --frosted-bg-default: rgba(15, 23, 42, 0.9);
+            --frosted-bg-subtle: rgba(15, 23, 42, 0.7);
+            --frosted-bg-transparent: rgba(15, 23, 42, 0.5);
+            --frosted-border-default: rgba(51, 65, 85, 0.8);
+            --frosted-border-subtle: rgba(51, 65, 85, 0.5);
+            --frosted-border-emphasis: rgba(71, 85, 105, 1);
+            --frosted-cyan-bg: rgba(6, 182, 212, 0.2);
+            --frosted-cyan-text: #22d3ee;
+            --frosted-purple-text: #a855f7;
+            --frosted-green-text: #34d399;
+            --frosted-orange-text: #fb923c;
+            --frosted-red-text: #f87171;
+            --frosted-surface-bg-gradient: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+            --frosted-icon-color: rgb(228, 234, 241);
+            --frosted-highlight-default: rgba(255, 255, 255, 0.06);
+        }
+
+        :root[data-theme=dark] {
+            --frosted-bg-emphasis: rgba(17, 24, 39, 0.85);
+        }
+
+        /* 磨砂卡片基础 */
+        .frosted-card {
+            margin: 20px 10px;
+            position: relative;
+            padding: 20px;
+            border-radius: var(--frosted-radius-lg);
+            background: linear-gradient(180deg,
+                    rgba(255, 255, 255, 0.08) 0%,
+                    var(--frosted-bg-subtle) 15%,
+                    var(--frosted-bg-subtle) 85%,
+                    rgba(0, 0, 0, 0.02) 100%);
+            backdrop-filter: blur(var(--frosted-blur-md)) saturate(150%);
+            -webkit-backdrop-filter: blur(var(--frosted-blur-md)) saturate(150%);
+            border: 1px solid var(--frosted-border-default);
+            box-shadow:
+                0 1px 0 0 var(--frosted-highlight-default) inset,
+                0 -2px 6px rgba(0, 0, 0, 0.04) inset,
+                1px 0 0 rgba(255, 255, 255, 0.2) inset,
+                -1px 0 0 rgba(0, 0, 0, 0.02) inset,
+                var(--frosted-shadow-md);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .frosted-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: linear-gradient(180deg,
+                    rgba(255, 255, 255, 0.12) 0%,
+                    transparent 100%);
+            pointer-events: none;
+        }
+
+        [data-theme="dark"] .frosted-card::before {
+            background: linear-gradient(180deg,
+                    rgba(255, 255, 255, 0.03) 0%,
+                    transparent 100%);
+        }
+
+        .frosted-card:hover {
+            transform: translateY(-2px);
+            box-shadow:
+                0 1px 0 0 var(--frosted-highlight-default) inset,
+                0 -2px 6px rgba(0, 0, 0, 0.04) inset,
+                1px 0 0 rgba(255, 255, 255, 0.2) inset,
+                -1px 0 0 rgba(0, 0, 0, 0.02) inset,
+                var(--frosted-shadow-lg);
+        }
+
+        .frosted-card-Turn-off-animation:hover {
+            transform: none !important;
+            box-shadow:
+                0 1px 0 0 var(--frosted-highlight-default) inset,
+                0 -2px 6px rgba(0, 0, 0, 0.04) inset,
+                1px 0 0 rgba(255, 255, 255, 0.2) inset,
+                -1px 0 0 rgba(0, 0, 0, 0.02) inset,
+                var(--frosted-shadow-md) !important;
+        }
+
+        /* 彩色卡片 */
+        .frosted-card-cyan {
+            background: linear-gradient(180deg,
+                    rgba(255, 255, 255, 0.15) 0%,
+                    var(--frosted-cyan-bg) 15%,
+                    var(--frosted-cyan-bg) 85%,
+                    rgba(6, 182, 212, 0.2) 100%);
+            border-color: var(--frosted-cyan-border);
+        }
+
+        .frosted-card-purple {
+            background: linear-gradient(180deg,
+                    rgba(255, 255, 255, 0.15) 0%,
+                    var(--frosted-purple-bg) 15%,
+                    var(--frosted-purple-bg) 85%,
+                    rgba(168, 85, 247, 0.2) 100%);
+            border-color: var(--frosted-purple-border);
+        }
+
+        .frosted-card-green {
+            background: linear-gradient(180deg,
+                    rgba(255, 255, 255, 0.15) 0%,
+                    var(--frosted-green-bg) 15%,
+                    var(--frosted-green-bg) 85%,
+                    rgba(34, 197, 94, 0.2) 100%);
+            border-color: var(--frosted-green-border);
+        }
+
+        .frosted-card-orange {
+            background: linear-gradient(180deg,
+                    rgba(255, 255, 255, 0.15) 0%,
+                    var(--frosted-orange-bg) 15%,
+                    var(--frosted-orange-bg) 85%,
+                    rgba(249, 115, 22, 0.2) 100%);
+            border-color: var(--frosted-orange-border);
+        }
+
+        /* 按钮 */
+        .frosted-button {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            padding: 0 16px;
+            border-radius: 8px;
+            border: 1px solid var(--frosted-border-default);
+            background: var(--frosted-bg-subtle);
+            color: var(--frosted-text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        .frosted-button:hover {
+            background: var(--frosted-bg-transparent);
+            border-color: var(--frosted-border-emphasis);
+        }
+
+        .frosted-button-cyan {
+            background: linear-gradient(180deg, rgba(6, 182, 212, 0.15) 0%, rgba(6, 182, 212, 0.08) 100%);
+            border-color: rgba(6, 182, 212, 0.3);
+            color: var(--frosted-cyan-text);
+        }
+
+        .frosted-button-cyan:hover {
+            background: linear-gradient(180deg, rgba(6, 182, 212, 0.2) 0%, rgba(6, 182, 212, 0.12) 100%);
+            border-color: rgba(6, 182, 212, 0.4);
+        }
+
+        .frosted-button-purple {
+            background: linear-gradient(180deg, rgba(147, 51, 234, 0.15) 0%, rgba(147, 51, 234, 0.08) 100%);
+            border-color: rgba(147, 51, 234, 0.3);
+            color: var(--frosted-purple-text);
+        }
+
+        .frosted-button-purple:hover {
+            background: linear-gradient(180deg, rgba(147, 51, 234, 0.2) 0%, rgba(147, 51, 234, 0.12) 100%);
+            border-color: rgba(147, 51, 234, 0.4);
+        }
+
+        /* 图标按钮 */
+        .frosted-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 36px;
+            height: 36px;
+            border-radius: 8px;
+            border: 1px solid transparent;
+            background: transparent;
+            color: var(--frosted-text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease;
+            border-radius: 15%;
+        }
+
+        .frosted-icon:hover {
+            background: var(--frosted-bg-subtle);
+            border-color: var(--frosted-border-default);
+        }
+
+        .frosted-icon-active {
+            background: var(--frosted-cyan-bg);
+            color: var(--frosted-cyan-text);
+            border-color: rgba(6, 182, 212, 0.2);
+        }
+
+        /* 徽章 */
+        .frosted-badge {
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 500;
+            background: var(--frosted-bg-subtle);
+            border: 1px solid var(--frosted-border-default);
+        }
+
+        .frosted-badge-cyan {
+            color: var(--frosted-cyan-text);
+            border-color: rgba(6, 182, 212, 0.3);
+            background: rgba(6, 182, 212, 0.1);
+        }
+
+        .frosted-badge-purple {
+            color: var(--frosted-purple-text);
+            border-color: rgba(147, 51, 234, 0.3);
+            background: rgba(147, 51, 234, 0.1);
+        }
+
+        .frosted-badge-green {
+            color: var(--frosted-green-text);
+            border-color: rgba(16, 185, 129, 0.3);
+            background: rgba(16, 185, 129, 0.1);
+        }
+
+        .frosted-badge-orange {
+            color: var(--frosted-orange-text);
+            border-color: rgba(249, 115, 22, 0.3);
+            background: rgba(249, 115, 22, 0.1);
+        }
+
+        .frosted-badge-red {
+            color: var(--frosted-red-text);
+            border-color: rgba(239, 68, 68, 0.3);
+            background: rgba(239, 68, 68, 0.1);
+        }
+
+        /* 输入框 */
+        .frosted-input {
+            display: flex;
+            align-items: center;
+            border-radius: 8px;
+            border: 1px solid var(--frosted-border-default);
+            background: var(--frosted-bg-subtle);
+            padding: 0 12px;
+        }
+
+        /* 左侧导航搜索框 */
+        .sidebar-search-box {
+            position: relative;
+            height: 36px;
+            margin: 8px 20px;
+            width: calc(100% - 40px);
+            border-radius: 8px;
+            border: 1px solid var(--frosted-border-default);
+            background: var(--frosted-bg-subtle);
+            padding: 0 12px;
+            transition: all 0.2s ease;
+        }
+
+        .sidebar-search-box:focus-within {
+            /* border-color: var(--frosted-border-emphasis);
+            background: var(--frosted-bg-default);
+            box-shadow: 0 0 0 3px rgba(6, 182, 212, 0.15);*/
+        }
+
+        .sidebar-search-box .search-icon {
+            position: absolute;
+            left: 12px;
+            top: 50%;
+            transform: translateY(-50%);
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .sidebar-search-box input {
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            border: none;
+            outline: none;
+            padding: 0 0 0 28px;
+            color: var(--frosted-text-primary);
+            font-size: 14px;
+        }
+
+        .sidebar-search-box input::placeholder {
+            color: var(--frosted-text-tertiary);
+        }
+
+        .frosted-modal {
+            background: var(--frosted-bg-default);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--frosted-border-default);
+            border-radius: 16px;
+            padding: 24px;
+            box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+        }
+
+        /* 速度输入框 */
+        .speed-input {
+            width: 100%;
+            height: 40px;
+            padding: 0 12px;
+            font-size: 14px;
+            background: transparent;
+            border: 1px solid var(--frosted-border-default);
+            border-radius: 8px;
+            color: var(--frosted-text-primary);
+            outline: none;
+            transition: all 0.15s ease;
+        }
+
+        .speed-input:focus {
+            border-color: var(--frosted-border-emphasis);
+            background: var(--frosted-bg-subtle);
+        }
+
+        .speed-input::placeholder {
+            color: var(--frosted-text-tertiary);
+        }
+
+        .speed-line-input {
+            position: absolute;
+            bottom: 0;
+            left: 12px;
+            right: 12px;
+            height: 2px;
+            border-radius: 1px;
+            background: var(--frosted-cyan-text);
+            width: 0%;
+            opacity: 0;
+            transition: all 0.2s ease-out;
+            box-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
+            pointer-events: none;
+        }
+
+        .speed-input:focus+.speed-line-input,
+        .speed-input:not(:placeholder-shown)+.speed-line-input {
+            width: calc(100% - 24px);
+            opacity: 1;
+        }
+
+        /* 速度选择框 */
+        .speed-select {
+            width: 100%;
+            height: 40px;
+            padding: 0 12px;
+            font-size: 14px;
+            border: 1px solid var(--frosted-border-default);
+            border-radius: 8px;
+            color: var(--frosted-text-tertiary);
+            background: transparent;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            transition: all 0.15s ease;
+        }
+
+        .speed-select:hover {
+            border-color: var(--frosted-border-emphasis);
+            background: var(--frosted-bg-subtle);
+        }
+
+        .speed-select.has-value {
+            color: var(--frosted-text-primary);
+        }
+
+        .speed-line-select {
+            position: absolute;
+            bottom: 0;
+            left: 12px;
+            right: 12px;
+            height: 2px;
+            border-radius: 1px;
+            background: var(--frosted-cyan-text);
+            width: 0%;
+            opacity: 0;
+            transition: all 0.2s ease-out;
+            box-shadow: 0 0 8px rgba(6, 182, 212, 0.4);
+            pointer-events: none;
+        }
+
+        .speed-select:hover+.speed-line-select,
+        .speed-select.open+.speed-line-select,
+        .speed-select.has-value+.speed-line-select {
+            width: calc(100% - 24px);
+            opacity: 1;
+        }
+
+        .select-dropdown {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            right: 0;
+            margin-top: 4px;
+            padding: 4px 0;
+            border-radius: 8px;
+            background: var(--frosted-bg-default);
+            border: 1px solid var(--frosted-border-default);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+            display: none;
+        }
+
+        .select-dropdown.open {
+            display: block;
+        }
+
+        .select-option {
+            padding: 0 12px;
+            height: 36px;
+            display: flex;
+            align-items: center;
+            font-size: 14px;
+            color: var(--frosted-text-secondary);
+            cursor: pointer;
+            transition: background 0.15s ease;
+            position: relative;
+        }
+
+        .select-option:hover {
+            background: var(--frosted-bg-subtle);
+        }
+
+        .select-option.selected {
+            color: var(--frosted-cyan-text);
+        }
+
+        .select-option.selected::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 50%;
+            transform: translateY(-50%);
+            width: 2px;
+            height: 16px;
+            border-radius: 1px;
+            background: var(--frosted-cyan-text);
+            box-shadow: 0 0 6px rgba(6, 182, 212, 0.5);
+        }
+
+        /* 复选框 / 单选框 */
+        .crystal-checkbox,
+        .crystal-radio {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            cursor: pointer;
+        }
+
+        .checkbox-box,
+        .radio-box {
+            position: relative;
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            overflow: hidden;
+            transition: all 0.15s ease;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.15) 0%, var(--frosted-bg-subtle) 20%, var(--frosted-bg-subtle) 80%, rgba(0, 0, 0, 0.06) 100%);
+            border: 1px solid var(--frosted-border-default);
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.5) inset, 0 -1px 3px rgba(0, 0, 0, 0.1) inset, 0 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        .radio-box {
+            border-radius: 50%;
+        }
+
+        .checkbox-box.checked,
+        .radio-box.checked {
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.25) 0%, rgba(6, 182, 212, 0.6) 20%, rgba(6, 182, 212, 0.6) 80%, rgba(8, 145, 178, 0.8) 100%);
+            border: 1px solid rgba(6, 182, 212, 0.6);
+            box-shadow: 0 1px 0 0 rgba(255, 255, 255, 0.5) inset, 0 -1px 3px rgba(0, 0, 0, 0.12) inset, 0 2px 8px rgba(6, 182, 212, 0.35), 0 0 16px rgba(6, 182, 212, 0.25);
+        }
+
+        .checkbox-glint,
+        .radio-glint {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            right: 2px;
+            height: 33%;
+            border-radius: 2px 2px 0 0;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.4) 0%, transparent 100%);
+            pointer-events: none;
+        }
+
+        .radio-glint {
+            border-radius: 50% 50% 0 0;
+            left: 4px;
+            right: 4px;
+        }
+
+        .checkbox-bead,
+        .radio-bead {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .checked .checkbox-bead,
+        .checked .radio-bead {
+            display: flex;
+        }
+
+        .bead-inner {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #ffffff 0%, #22d3ee 35%, #06b6d4 100%);
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.25), 0 0 0 1px rgba(255, 255, 255, 0.4) inset;
+            position: relative;
+        }
+
+        .radio-bead .bead-inner {
+            width: 10px;
+            height: 10px;
+        }
+
+        .bead-highlight {
+            position: absolute;
+            top: 2px;
+            left: 2px;
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.9) 0%, rgba(255, 255, 255, 0.3) 100%);
+        }
+
+        .radio-bead .bead-highlight {
+            width: 2px;
+            height: 2px;
+            background: rgba(255, 255, 255, 0.95);
+        }
+
+        .bead-secondary {
+            position: absolute;
+            bottom: 2px;
+            right: 2px;
+            width: 2px;
+            height: 2px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.5);
+            filter: blur(1px);
+        }
+
+        .radio-bead .bead-secondary {
+            width: 2px;
+            height: 2px;
+            filter: blur(0.5px);
+        }
+
+        .checkbox-label,
+        .radio-label {
+            font-size: 14px;
+            color: var(--frosted-text-secondary);
+            transition: color 0.15s ease;
+        }
+
+        .checked+.checkbox-label,
+        .checked+.radio-label {
+            color: var(--frosted-cyan-text);
+        }
+
+        /* 布局 */
+        .section {
+            margin-bottom: 32px;
+        }
+
+        .section-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 16px;
+        }
+
+        .section-title {
+            font-size: 20px;
+            font-weight: 600;
+            color: var(--frosted-text-primary);
+        }
+
+        ul li {
+            list-style: none;
+        }
+
+        .grid-cols-2 {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 24px;
+        }
+
+        .grid-cols-4 {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 16px;
+        }
+
+        .grid-cols-5 {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            gap: 16px;
+        }
+
+        .flex-row {
+            display: flex;
+            flex-direction: row;
+            gap: 24px;
+        }
+
+        .flex-col {
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+        }
+
+        .items-center {
+            align-items: center;
+        }
+
+        .justify-between {
+            justify-content: space-between;
+        }
+
+        .gap-3 {
+            gap: 12px;
+        }
+
+        .gap-4 {
+            gap: 16px;
+        }
+
+        .gap-6 {
+            gap: 24px;
+        }
+
+        .space-y-1>*+* {
+            margin-top: 4px;
+        }
+
+        .space-y-2>*+* {
+            margin-top: 8px;
+        }
+
+        .space-y-3>*+* {
+            margin-top: 12px;
+        }
+
+        .space-y-4>*+* {
+            margin-top: 16px;
+        }
+
+        .text-sm {
+            font-size: 14px;
+        }
+
+        .text-xs {
+            font-size: 12px;
+        }
+
+        .font-semibold {
+            font-weight: 600;
+        }
+
+        .font-medium {
+            font-weight: 500;
+        }
+
+        .text-tertiary {
+            color: var(--frosted-text-tertiary);
+        }
+
+        .text-secondary {
+            color: var(--frosted-text-secondary);
+        }
+
+        .text-primary {
+            color: var(--frosted-text-primary);
+        }
+
+        .text-cyan {
+            color: var(--frosted-cyan-text);
+        }
+
+        .p-3 {
+            padding: 12px;
+        }
+
+        .p-4 {
+            padding: 16px;
+        }
+
+        .pt-2 {
+            padding-top: 8px;
+        }
+
+        .pt-4 {
+            padding-top: 16px;
+        }
+
+        .mb-4 {
+            margin-bottom: 16px;
+        }
+
+        .mt-4 {
+            margin-top: 16px;
+        }
+
+        .rounded-lg {
+            border-radius: 8px;
+        }
+
+        .rounded-2xl {
+            border-radius: 16px;
+        }
+
+        .w-56 {
+            width: 224px;
+        }
+
+        .flex-1 {
+            flex: 1;
+        }
+
+        .relative {
+            position: relative;
+        }
+
+        .absolute {
+            position: absolute;
+        }
+
+        .top-4 {
+            top: 16px;
+        }
+
+        .right-4 {
+            right: 16px;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .flex {
+            display: flex;
+        }
+
+        .items-start {
+            align-items: flex-start;
+        }
+
+        .items-end {
+            align-items: flex-end;
+        }
+
+        .justify-center {
+            justify-content: center;
+        }
+
+        .justify-around {
+            justify-content: space-around;
+        }
+
+        .justify-start {
+            justify-content: flex-start;
+        }
+
+        .justify-end {
+            justify-content: flex-end;
+        }
+
+        .flex-wrap {
+            flex-wrap: wrap;
+        }
+
+        .flex-nowrap {
+            flex-wrap: nowrap;
+        }
+
+        /* 侧边栏 */
+        .sidebarView {
+            display: flex;
+            height: calc(100vh - 48px);
+            width: 100%;
+        }
+
+        .sidebar-container {
+            width: 240px;
+            background: var(--frosted-bg-subtle);
+            backdrop-filter: blur(8px);
+            border: 1px solid var(--frosted-border-default);
+            border-radius: var(--frosted-radius-lg);
+            margin: 0;
+            box-shadow: var(--frosted-shadow-md);
+            display: flex;
+            flex-direction: column;
+            gap: 16px;
+            height: calc(100%);
+            border-radius: 0;
+            padding-right: 0;
+            padding-left: 0;
+            transition: width 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            overflow: hidden;
+        }
+
+        .sidebar-container.collapsed {
+            width: 60px;
+            justify-content: flex-start !important;
+            padding: 0;
+        }
+
+        .sidebar-container .sidebar-nav-content,
+        .sidebar-container .sidebar-footer {
+            opacity: 1;
+            transition: opacity 0.15s ease;
+        }
+
+        .sidebar-container.collapsed .sidebar-nav-content,
+        .sidebar-container.collapsed .sidebar-footer {
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .sidebar-container.collapsed #leftsidebarBtns {
+            flex-direction: column !important;
+            justify-content: flex-start !important;
+            align-items: center !important;
+            gap: 16px !important;
+            padding: 16px 0 !important;
+            width: 100%;
+            height: 100%;
+        }
+
+        .sidebar-container.collapsed .frosted-icon-left {
+            width: 40px;
+            height: 40px;
+        }
+
+        .sidebar-container.collapsed #closeLeftsidebar svg {
+            transform: rotate(180deg);
+            transition: transform 0.3s ease;
+        }
+
+        #closeLeftsidebar svg {
+            transition: transform 0.3s ease;
+        }
+
+        .contentView {
+            width: calc(100% - 40px);
+            height: calc(100%);
+            margin: 0;
+            z-index: 1;
+            position: relative;
+            border-radius: 0;
+        }
+
+        .contentView>iframe {
+            width: 100%;
+            height: 100%;
+        }
+
+        .sidebar-list {
+            gap: 4px;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            /* 靠左贴紧 */
+            width: 100%;
+            /* 占满父级宽度 */
+            flex-shrink: 0;
+            /* 禁止容器整体收缩 */
+            overflow-y: auto;
+            /* 内容超出时滚动，避免高度溢出 */
+        }
+
+        #sidebarList {
+            height: calc(100% - 36px - 8px);
+            padding: 0 20px;
+        }
+
+        /* 全局滚动条 */
+        ::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: var(--frosted-bg-subtle);
+            border-radius: 999px;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: var(--frosted-text-tertiary);
+            border-radius: 999px;
+            transition: background 0.2s ease;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--frosted-cyan-text);
+        }
+
+        ::-webkit-scrollbar-button {
+            display: none;
+        }
+
+        ::-webkit-scrollbar-corner {
+            background: transparent;
+        }
+
+        .sidebar-item {
+            gap: 12px;
+            height: 44px;
+            padding: 0 12px;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            color: var(--frosted-text-secondary);
+            font-size: 13px;
+            font-weight: 500;
+            border: 1px solid transparent;
+            user-select: none;
+            position: relative;
+
+            /* 子项内部内容垂直居中（可选） */
+
+            width: 100%;
+            /* 占满容器宽度（贴紧） */
+            padding: 0;
+            /* 清除内边距（贴紧） */
+            margin: 0;
+            /* 清除外边距（贴紧） */
+            flex-shrink: 0;
+            /* 关键：禁止节点高度收缩！ */
+            min-height: 40px;
+            /* 给节点设置最小高度，避免缩成一条线 */
+            display: flex;
+            flex-direction: row;
+            align-items: center;
+            /* 子菜单垂直排列 */
+        }
+
+        .sidebar-item i {
+            width: 18px;
+            height: 18px;
+            flex-shrink: 0;
+        }
+
+        .sidebar-item.active {
+            background: linear-gradient(90deg, rgba(6, 182, 212, 0.15) 0%, rgba(6, 182, 212, 0.08) 100%);
+            border-color: rgba(6, 182, 212, 0.3);
+            color: var(--frosted-cyan-text);
+        }
+
+        .sidebar-item:hover:not(.active) {
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        .expand-icon {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 16px;
+            height: 16px;
+            color: var(--frosted-text-tertiary);
+            transition: all 0.2s ease;
+            flex-shrink: 0;
+        }
+
+        .expand-icon .icon {
+            width: 100%;
+            height: 100%;
+        }
+
+        .expand-icon .icon-minus {
+            display: none;
+        }
+
+        .sidebar-item.open .expand-icon .icon-plus {
+            display: none;
+        }
+
+        .sidebar-item.open .expand-icon .icon-minus {
+            display: inline-block;
+        }
+
+        .sidebar-divider {
+            height: 1px;
+            background: var(--frosted-border-subtle);
+            margin: 8px 0;
+        }
+
+        .sidebar-footer {
+            border-top: 1px solid var(--frosted-border-subtle);
+        }
+
+        .create-button {
+            width: 100%;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            border-radius: 10px;
+            background: rgba(147, 51, 234, 0.1);
+            border: 1px solid rgba(147, 51, 234, 0.3);
+            color: var(--frosted-purple-text);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .create-button:hover {
+            background: rgba(147, 51, 234, 0.15);
+        }
+
+        .treesidebaricon {
+            width: 16px;
+            height: 16px;
+            color: var(--frosted-icon-color);
+            flex-shrink: 0;
+        }
+
+        .nav-children {
+            max-height: 0;
+            overflow: hidden;
+            padding-left: 10px;
+            transition: max-height 0.3s ease-out;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+            width: 100%;
+            height: auto;
+        }
+
+        .nav-children.open {
+            max-height: 1000px;
+            overflow: visible;
+        }
+
+        .leftsidebar {
+            display: flex;
+            flex-direction: column;
+            /* 垂直排列 */
+            padding: 0 !important;
+            /* 清除容器内边距 */
+            margin: 0 !important;
+            /* 清除容器外边距 */
+            align-items: center;
+            /* 子项靠左贴紧（关键） */
+            width: 100%;
+            margin-top: 20px;
+            padding-right: 20px;
+
+        }
+
+        .leftsidebar>img {
+            width: 40%;
+            height: 40%;
+        }
+
+        .clear-cache-btn {
+            height: 32px;
+            padding: 0 12px;
+            background: rgba(239, 68, 68, 0.1);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            user-select: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            font-size: 14px;
+            color: #ef4444;
+            white-space: nowrap;
+            margin-right: 8px;
+            transition: all 150ms ease;
+        }
+
+        .clear-cache-btn:hover {
+            background: rgba(239, 68, 68, 0.2);
+            border-color: rgba(239, 68, 68, 0.3);
+        }
+
+        /* Tabs 标签页 */
+        .tab-card {
+            background: rgba(255, 255, 255, 0.7);
+            backdrop-filter: blur(10px);
+            border-radius: 12px;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.06);
+            overflow: hidden;
+        }
+
+        .tab-header {
+            padding: 16px 20px;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .tab-title {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 20px;
+            font-weight: 600;
+            color: #1a1a1a;
+        }
+
+        .tab-title::before {
+            content: '⚡';
+        }
+
+        .tab-desc {
+            color: #666;
+            font-size: 14px;
+        }
+
+        .tabs-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 4px;
+            padding: 5px 20px;
+            background: var(--frosted-bg-default);
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            overflow: hidden;
+        }
+
+        .tabs-left {
+            display: flex;
+            gap: 4px;
+            align-items: center;
+            overflow-x: auto;
+            flex: 1;
+        }
+
+        .tabs-right {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+            flex-shrink: 0;
+            margin-left: 12px;
+        }
+
+        .tab-item {
+            height: 28px;
+            padding: 0 16px;
+            background: linear-gradient(180deg, rgba(255, 255, 255, 0.08) 0%, var(--frosted-bg-subtle) 15%, var(--frosted-bg-subtle) 85%, rgba(0, 0, 0, 0.02) 100%);
+            border: 1px solid rgba(0, 0, 0, 0.08);
+            border-radius: 6px 6px 0 0;
+            cursor: pointer;
+            user-select: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            position: relative;
+            transition: all 150ms ease;
+            font-size: 12px;
+            color: var(--frosted-text-primary);
+            white-space: nowrap;
+        }
+
+        .tab-item::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            right: 0;
+            height: 2px;
+            background: transparent;
+            transition: all 150ms ease;
+            border-radius: 1px 1px 0 0;
+        }
+
+        .tab-item:hover {
+            background: var(--frosted-cyan-bg);
+            color: var(--frosted-cyan-text);
+        }
+
+        .tab-item.active {
+            background: var(--frosted-cyan-bg);
+            color: var(--frosted-cyan-text);
+            border-bottom-color: transparent;
+        }
+
+        .tab-item.active::after {
+            background: #06b6d4;
+            box-shadow: 0 0 8px rgba(6, 182, 212, 0.3);
+        }
+
+        .tab-item:hover::after {
+            background: rgba(6, 182, 212, 0.2);
+        }
+
+        .tab-close {
+            width: 16px;
+            height: 16px;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.1);
+            color: #666;
+            font-size: 12px;
+            line-height: 1;
+            transition: all 150ms ease;
+        }
+
+        .tab-item:hover .tab-close {
+            display: flex;
+        }
+
+        .tab-close:hover {
+            background: rgba(255, 77, 79, 0.2);
+            color: #ff4d4f;
+        }
+
+        .tab-placeholder {
+            width: 80px;
+            height: 32px;
+            background: rgba(22, 163, 255, 0.1);
+            border: 1px dashed rgba(22, 163, 255, 0.4);
+            border-radius: 6px 6px 0 0;
+        }
+
+        .tabs-content {
+            min-height: 400px;
+            height: calc(100% - 44px);
+            background: var(--frosted-bg-default);
+        }
+
+        .tab-info {
+            padding: 16px 20px;
+            font-size: 14px;
+            color: #555;
+            background: rgba(255, 255, 255, 0.5);
+            border-top: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .tab-info p {
+            margin: 6px 0;
+        }
+
+        .closeSideBarClass {
+            width: 8px;
+            height: 8px;
+        }
+
+        .closeAllbutton {
+            /*height: 32px !important;*/
+        }
+
+        .sm-closeAllbutton {
+            height: 28px !important;
+        }
+
+        /* 三卡片拖拽布局 */
+        .panel-container {
+            display: flex;
+            align-items: stretch;
+            gap: 0;
+            width: 100%;
+            height: 100%;
+
+            box-sizing: border-box;
+            overflow: visible;
+            position: relative;
+        }
+
+        .panel-item {
+
+            flex: none;
+            width: 300px;
+            height: calc(100% - 20px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            color: var(--frosted-text-primary);
+            box-sizing: border-box;
+            min-width: 200px;
+            margin: 0 2px;
+            flex-direction: column;
+            justify-content: flex-start;
+            padding-top: 0;
+        }
+
+        #panel1 {
+            width: 250px;
+            overflow: hidden;
+        }
+
+        #panel2 {
+            width: 200px;
+            overflow: hidden;
+        }
+
+        #panel1::after,
+        #panel2::after {
+            content: '';
+            position: absolute;
+            top: 0;
+            right: -4px;
+            width: 8px;
+            height: 100%;
+            cursor: col-resize;
+            z-index: 10;
+            background: transparent;
+            transition: background 0.2s;
+        }
+
+        #panel1.resizing::after,
+        #panel2.resizing::after {
+            background: var(--frosted-cyan-text);
+            opacity: 0.3;
+        }
+
+        .panel-item.flex-fill {
+            flex: 1 !important;
+            width: auto !important;
+            overflow: hidden;
+        }
+
+        .panel-status-bar {
+            position: absolute;
+            left: -76px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+            z-index: 1200;
+            background-color: var(--frosted-bg-default);
+            padding: 8px;
+            border-radius: 10px;
+            pointer-events: auto;
+            align-items: flex-start;
+            min-width: 48px;
+            transition: min-width 320ms cubic-bezier(.2, .9, .2, 1), padding 320ms cubic-bezier(.2, .9, .2, 1);
+            box-shadow:
+                0 1px 0 0 rgba(255, 255, 255, 0.5) inset,
+                0 -2px 4px rgba(0, 0, 0, 0.05) inset,
+                var(--frosted-cyan-glow);
+        }
+
+        .panel-status-bar.top {
+            top: 12px;
+        }
+
+        .panel-status-bar.bottom {
+            top: auto;
+        }
+
+        #panelStatusBarBottom {
+            top: 84px;
+        }
+
+        .panel-status-icon {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 6px 8px;
+            border-radius: 8px;
+            color: var(--frosted-text-secondary);
+            cursor: pointer;
+            transition: all 0.15s ease, transform 120ms ease;
+            min-width: 44px;
+            height: 44px;
+            font-weight: 600;
+            justify-content: center;
+        }
+
+        .panel-status-icon .status-label {
+            margin-left: 6px;
+            color: var(--frosted-text-secondary);
+            font-size: 16px;
+            white-space: nowrap;
+            display: inline-block;
+            opacity: 1;
+            max-width: 200px;
+            overflow: hidden;
+            transition: opacity 320ms cubic-bezier(.2, .9, .2, 1), max-width 320ms cubic-bezier(.2, .9, .2, 1);
+        }
+
+        .panel-status-icon.inactive {
+            opacity: 0.45;
+            filter: grayscale(40%);
+        }
+
+        .panel-status-bar.minimized {
+            gap: 6px;
+            left: -30px;
+            top: 18px;
+            padding: 6px;
+            min-width: 40px;
+        }
+
+        .panel-status-bar.minimized .panel-status-icon {
+            height: 36px;
+            min-width: 36px;
+            padding: 6px;
+            font-size: 13px;
+        }
+
+        .panel-status-bar.minimized .status-label {
+            opacity: 0;
+            max-width: 0;
+            overflow: hidden;
+        }
+
+        .panel-status-bar.minimized .panel-status-icon {
+            width: 100%;
+        }
+
+        .panel-status-bar.minimized:hover {
+            min-width: 140px;
+            padding-left: 12px;
+            padding-right: 12px;
+        }
+
+        .panel-status-bar.minimized:hover .status-label {
+            opacity: 1;
+            max-width: 180px;
+        }
+
+        .status-sep {
+            width: 100%;
+            height: 12px;
+            display: block;
+        }
+
+        .panel-item {
+            transition: transform 320ms cubic-bezier(.2, .9, .2, 1), opacity 320ms ease;
+            will-change: transform, opacity;
+            margin: 10px 0 10px 10px;
+            padding: 0;
+            padding-bottom: 10px;
+        }
+
+        .panel-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 8px 12px;
+            border-bottom: 1px solid var(--frosted-border-subtle);
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        #panel1>.panel-header {
+            border-bottom: 1px solid var(--frosted-border-subtle);
+        }
+
+        #panel2>.panel-header {
+            border-bottom: 1px solid var(--frosted-border-subtle);
+        }
+
+        #panel1,
+        #panel2,
+        #panel3 {
+            background: none;
+            border: none;
+        }
+
+        #panel1::before,
+        #panel2::before,
+        #panel3::before {
+            background: linear-gradient(180deg, rgb(171 160 160 / 7%) 0%, transparent 100%);
+            border: none;
+        }
+
+        .panel-title {
+            font-weight: 600;
+            color: var(--frosted-text-primary);
+            font-size: 14px;
+        }
+
+        .panel-collapse-btn {
+            width: 32px;
+            height: 32px;
+            border-radius: 8px;
+            border: 1px solid var(--frosted-border-default);
+            background: var(--frosted-bg-subtle);
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 16px;
+            transition: all 0.15s ease;
+        }
+
+        .panel-collapse-btn:hover {
+            background: var(--frosted-bg-transparent);
+            border-color: var(--frosted-border-emphasis);
+        }
+
+        .hidden-panel {
+            display: none !important;
+        }
+
+        .noCardtransition {
+            transform: none;
+            border-radius: 0;
+        }
+
+        /* 物料列表 */
+        .material-list-item {
+            padding: 6px 12px;
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.15s ease;
+        }
+
+        .material-list-item:hover {
+            background: rgba(6, 182, 212, 0.05);
+        }
+
+        .material-list-item.active {
+            background: rgba(6, 182, 212, 0.1);
+            border-left-color: var(--frosted-cyan-text);
+        }
+
+        .material-list-item .item-code {
+            font-size: 13px;
+            font-weight: 600;
+            color: var(--frosted-text-primary);
+            margin-bottom: 2px;
+        }
+
+        .material-list-item .item-name {
+            font-size: 11px;
+            color: #9d4edd;
+            line-height: 1.3;
+        }
+
+        .material-list-item.active .item-code,
+        .material-list-item.active .item-name {
+            color: var(--frosted-cyan-text);
+        }
+
+        .card2-list-item {
+            padding: 8px 16px;
+            font-size: 13px;
+            color: var(--frosted-text-primary);
+            cursor: pointer;
+            border-left: 3px solid transparent;
+            transition: all 0.15s ease;
+        }
+
+        .card2-list-item:hover {
+            background: rgba(6, 182, 212, 0.05);
+        }
+
+        .card2-list-item.active {
+            background: rgba(6, 182, 212, 0.1);
+            border-left-color: #06b6d4;
+            color: #06b6d4;
+        }
+
+        /* 下拉菜单 */
+        .dropdown-menu {
+            position: absolute;
+            top: 28px;
+            left: 0;
+            min-width: 150px;
+            background: var(--frosted-bg-card, #fff);
+            border: 1px solid var(--frosted-border-default, #e5e7eb);
+            border-radius: 8px;
+            padding: 6px 0;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 99999;
+            display: none;
+        }
+
+        .dropdown-item {
+            padding: 8px 14px;
+            font-size: 14px;
+            color: var(--frosted-text-primary);
+            cursor: pointer;
+            transition: 0.2s;
+        }
+
+        .dropdown-item:hover {
+            background: var(--frosted-bg-subtle);
+            color: var(--frosted-cyan-text, #06b6d4);
+        }
+
+        #moreDropdown {
+            position: absolute;
+            z-index: 9999;
+            top: 100%;
+            right: 0;
+            background: var(--frosted-bg-default);
+            backdrop-filter: blur(var(--frosted-blur-md));
+            border: 1px solid var(--frosted-border-default);
+            border-radius: var(--frosted-radius-md);
+            box-shadow: var(--frosted-shadow-xl);
+            padding: 8px 0;
+            min-width: 180px;
+        }
+
+        /* 响应式 */
+        @media (min-width: 768px) {
+            .md\:flex {
+                display: flex;
+            }
+
+            .md\:hidden {
+                display: none;
+            }
+
+            .md\:grid-cols-2 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .md\:grid-cols-4 {
+                grid-template-columns: repeat(4, 1fr);
+            }
+
+            .md\:grid-cols-5 {
+                grid-template-columns: repeat(5, 1fr);
+            }
+        }
+
+        @media (min-width: 1024px) {
+            .lg\:grid-cols-2 {
+                grid-template-columns: repeat(2, 1fr);
+            }
+
+            .lg\:flex-row {
+                flex-direction: row;
+            }
+        }
+
+        .headerClass {
+            z-index: 99;
+            box-shadow: 0 -5px 12px rgba(0, 0, 0, 0.1);
+            border-radius: 0;
+            background-color: var(--frosted-surface-bg-gradient);
+            padding: 1px 16px;
+            transition: transform 0.35s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.35s ease;
+            transform-origin: top;
+        }
+
+        .headerClass.hidden-header {
+            transform: translateY(-100%);
+            opacity: 0;
+            pointer-events: none;
+        }
+
+        .sidebarView {
+            transition: height 0.35s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .tabsrightIcon {
+            padding: 0;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+        }
+    </style>
+
+</head>
+
+<body>
+    <style>
+        /* 默认 / 明亮模式 */
+        .frosted-icon-herder>svg,
+        svg.frosted-icon-herder {
+            width: 16px;
+            height: 16px;
+            fill: #1e293b;
+            /* 实心颜色 */
+            stroke: #1e293b;
+            /* 线条颜色（不需要可删除） */
+        }
+
+        /* 暗黑模式 */
+        [data-theme="dark"] .frosted-icon-herder>svg {
+            fill: #f8fafc;
+            /* 暗黑图标颜色 */
+            stroke: #f8fafc;
+        }
+
+        .treesidebariconAvatar {
+            border-radius: 50%;
+
+        }
+
+        .frosted-icon-left {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+        }
+
+        .form-label,
+        .text-input-field {
+            font-size: 12px;
+        }
+
+        .sidebar-container-left {
+            display: flex;
+            justify-content: space-between;
+            z-index: 10;
+        }
+    </style>
+    <div class=" frosted-highlight rounded-2xl p-4 headerClass">
+        <div class="flex items-center justify-between">
+            <div class="flex items-center gap-6">
+                <div class="flex items-center gap-2" style="position: relative; display: flex; align-items: center;">
+                    <div>
+                        <!-- 下拉框（修复嵌套结构）   <span class="icon icon-menu treesidebaricon" ></span>-->
+                        <div class="dropdown-menu" id="moreDropdown">
+                            <div class="dropdown-item">Nvidia</div>
+                            <div class="dropdown-item">AMD</div>
+                            <div class="dropdown-item">Intel</div>
+                            <div class="dropdown-item">PRAM</div>
+                        </div>
+                    </div>
+                    <button id="moreIcon" class="frosted-button" style="height: 26px;">
+                        <span style="color: var(--frosted-text-primary); font-weight: 600;margin-left: 5px;"
+                            id="moreIconText">
+                            PRAM
+                        </span>
+                        <span class="icon icon-arrow-down" style="width: 10px;height: 10px;"></span>
+                    </button>
+                </div>
+            </div>
+            <div class="flex items-center gap-3">
+                <button class="frosted-icon frosted-icon-herder">
+                    <span class="icon icon-search"></span>
+                </button>
+                <button class="frosted-icon frosted-icon-herder">
+                    <span class="icon icon-star-rating"></span>
+                </button>
+                <button class="frosted-icon frosted-icon-herder" id="fmThemeToggle">
+                    <span class="icon icon-theme-dark theme-icon"></span>
+                </button>
+                <!--<button id="fmThemeToggle" class="frosted-button frosted-button-cyan" style="height:36px"
+                    data-i18n-key="switchTheme">
+                    Switch Theme</button>-->
+                <span>
+                    Niro
+                </span>
+                <button class="frosted-icon frosted-icon-herder treesidebariconAvatar">
+                    <img class="" src="./images/Avatar.png" alt="" srcset="">
+                </button>
+
+                <!--
+                <button class="frosted-button frosted-button-cyan text-sm" style="height: 32px;">
+                    Share
+                </button>
+                -->
+
+            </div>
+        </div>
+    </div>
+    <div class="sidebarView">
+        <!-- 独立左侧导航 -->
+        <div class="sidebar-container frosted-card frosted-card-Turn-off-animation sidebar-container-left"
+            id="leftsidebarView">
+            <div style="height: calc(100% - 40px);">
+                <div id="leftsidebarBtns"
+                    style="display: flex;justify-content: space-between;padding: 0 10px;    flex-direction: row-reverse;">
+                    <button class="frosted-icon frosted-icon-herder frosted-icon-left" id="closeLeftsidebar">
+                        <span class="icon icon-arrow-left-bold" style="width: 20px;height: 20px;"></span>
+                    </button>
+                    <button class="icon-nobtnclass icon-btn hover:bg-primary/10" style="width: 28px;height: 28px;">
+                        <span class="icon icon-calendar"></span>
+                    </button>
+                    <button class="icon-nobtnclass icon-btn hover:bg-primary/10" style="width: 28px;height: 28px;">
+                        <span class="icon icon-chat"></span>
+                    </button>
+                    <button class="icon-nobtnclass icon-btn hover:bg-primary/10" style="width: 28px;height: 28px;">
+                        <span class="icon icon-lock"></span>
+                    </button>
+                    <button class="icon-nobtnclass icon-btn hover:bg-primary/10" style="width: 28px;height: 28px;">
+                        <span class="icon icon-index"></span>
+                    </button>
+
+                </div>
+                <!-- 左侧导航搜索框 -->
+                <div class="sidebar-nav-content" style="height: calc(100% - 28px)">
+                    <div class="sidebar-search-box text-input-wrapper">
+                        <span class="icon icon-search treesidebaricon search-icon"></span>
+                        <input id="sidebarSearch" type="text" class="text-input-field" placeholder="Search menu...">
+                        <div class="text-input-line"></div>
+                    </div>
+
+                    <div class="sidebar-list" id="sidebarList"></div>
+                </div>
+            </div>
+
+            <div class="sidebar-footer">
+                <button class="w-full frosted-button frosted-button-purple text-sm" style="height: 36px;display: none;">
+                    <img src="./images/add.png" class="treesidebaricon" alt="">
+                    CREATE
+                </button>
+                <div class="leftsidebar">
+                    <img src="./images/pram.png" alt="">
+                </div>
+            </div>
+        </div>
+        <div class="contentView noCardtransition" style="padding: 0;z-index: 1;">
+            <!--<iframe src="./inputdemo.html" frameborder="0"></iframe>-->
+
+
+
+            <!-- 标签栏（按钮式） -->
+            <div class="tabs-bar" id="tabsBar">
+
+            </div>
+
+            <!-- 中间的页面容器 -->
+            <div class="tabs-content" id="tabsContent"></div>
+
+
+
+
+
+        </div>
+    </div>
+    <script>
+        // 树形导航数据
+        const navTreeData = [
+            {
+                id: "product", label: "Product", icon: "icon-file",
+                children: [
+                    { id: "part", label: "Part" },
+                    { id: "bom", label: "BOM" },
+                    { id: "recipe", label: "Recipe" },
+                    { id: "where-used", label: "Where Used" },
+                    { id: "miss-part", label: "Miss part Replace/Add/Remove" }
+                ]
+            },
+            {
+                id: "sales", label: "Sales", icon: "icon-file",
+                children: [
+                    { id: "quotes", label: "Quotes" },
+                    { id: "sales-order", label: "Sales Order" },
+                    { id: "customer", label: "Customer" },
+                    { id: "price-list", label: "Price List" },
+                    { id: "return-warranty", label: "Return/Warranty" }
+                ]
+            },
+            {
+                id: "purchasing", label: "Purchasing", icon: "icon-modular",
+                children: [
+                    { id: "supplier", label: "Supplier" },
+                    { id: "purchase-order", label: "Purchase Order" },
+                    { id: "receipt-po", label: "Receipt PO" }
+                ]
+            },
+            {
+                id: "schedule", label: "Schedule", icon: "icon-calendar",
+                children: [
+                    { id: "production", label: "Production" },
+                    { id: "process", label: "Process" },
+                    { id: "drum-beat", label: "Drum Beat" }
+                ]
+            },
+            {
+                id: "inventory", label: "Inventory", icon: "icon-calendar",
+                children: [
+                    { id: "locations-bins", label: "Locations and Bins" },
+                    { id: "qty-adjustment", label: "QTY Adjustment & STK Transfer" }
+                ]
+            },
+            {
+                id: "shipping", label: "Shipping", icon: "icon-folder-close",
+                children: [
+                    { id: "ship-sales-order", label: "Ship Sales Order" },
+                    { id: "miscellaneous-ship", label: "Miscellaneous Ship" },
+                    { id: "request-3rd-party", label: "Request 3rd Party to Ship" }
+                ]
+            },
+            {
+                id: "finance", label: "Finance", icon: "icon-setting",
+                children: [
+                    { id: "ar-invoice", label: "AR Invoice" },
+                    { id: "ap-invoice", label: "AP Invoice" },
+                    { id: "monthly-ap-invoices", label: "Monthly AP Invoices" },
+                    { id: "credit-card-report", label: "Credit Card Report" },
+                    { id: "costing", label: "Costing" },
+                    { id: "account", label: "Account" }
+                ]
+            }
+        ];
+
+        let activeId = null;
+
+        // 渲染树形导航（支持模糊搜索，命中父菜单自动展开）
+        function renderSidebar(searchKey = "") {
+            const list = document.getElementById("sidebarList");
+            list.innerHTML = "";
+            // 模糊搜索：转小写，不区分大小写
+            const key = searchKey.toLowerCase().trim();
+
+            navTreeData.forEach(group => {
+                // 判断当前分组是否命中搜索（父菜单/子菜单包含关键词）
+                const groupMatch = group.label.toLowerCase().includes(key);
+                const hasChildMatch = group.children.some(item => item.label.toLowerCase().includes(key));
+                const isMatch = groupMatch || hasChildMatch;
+
+                // 无搜索关键词 或 匹配到数据，才渲染
+                if (!key || isMatch) {
+                    // 父菜单
+                    const parent = document.createElement("div");
+                    parent.className = "sidebar-item";
+                    parent.style.justifyContent = "space-between";
+                    parent.innerHTML = `
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <span class="icon ${group.icon} treesidebaricon"></span>
+                        <span>${group.label}</span>
+                    </div>
+                    <span class="expand-icon">
+                        <span class="icon icon-add icon-plus"></span>
+                        <span class="icon icon-minus"></span>
+                    </span>
+                    `;
+
+                    // 子菜单容器（带过渡）
+                    const childWrap = document.createElement("div");
+                    childWrap.className = "nav-children";
+
+                    // 过滤子菜单（搜索时只显示匹配项）
+                    const filteredChildren = key
+                        ? group.children.filter(item => item.label.toLowerCase().includes(key))
+                        : group.children;
+
+                    // 渲染子菜单
+                    filteredChildren.forEach(item => {
+                        const li = document.createElement("div");
+                        li.className = "sidebar-item";
+                        li.dataset.id = item.id;
+                        li.innerHTML = `<span style="padding-left:10px">${item.label}</span>`;
+                        li.onclick = () => {
+                            setActive(item.id);
+                            onMenuClick(item);
+                        };
+                        childWrap.appendChild(li);
+                    });
+
+                    // ✅ 核心：搜索命中时，父菜单默认展开
+                    if (key && isMatch) {
+                        childWrap.classList.add("open");
+                        parent.classList.add("open");
+                    }
+
+                    // 点击展开/收起
+                    parent.onclick = () => {
+                        childWrap.classList.toggle("open");
+                        parent.classList.toggle("open");
+                    };
+
+                    list.appendChild(parent);
+                    list.appendChild(childWrap);
+                }
+            });
+        }
+        // 激活高亮
+        function setActive(id) {
+            activeId = id;
+            document.querySelectorAll(".sidebar-item").forEach(el => {
+                el.classList.toggle("active", el.dataset.id === id);
+            });
+        }
+
+        // 点击跳转
+        function onMenuClick(item) {
+            console.log("跳转：", item.label);
+            openTabFromMenu({
+                id: item.id,
+                title: item.label,
+                content: `<h2>${item.label}</h2><p>这里是 ${item.label} 的内容区域。</p>`
+            })
+        }
+
+        // 初始化渲染
+        renderSidebar();
+
+        // 绑定左侧导航搜索事件
+        const searchInput = document.getElementById("sidebarSearch");
+        searchInput.addEventListener("input", (e) => {
+            renderSidebar(e.target.value);
+        });
+
+        // 绑定左侧导航折叠/展开事件
+        const closeLeftsidebarBtn = document.getElementById("closeLeftsidebar");
+        const sidebarContainer = document.querySelector(".sidebar-container");
+        const sidebarNavContent = document.querySelector(".sidebar-nav-content");
+        const sidebarFooter = document.querySelector(".sidebar-footer");
+        let isSidebarAnimating = false;
+
+
+        if (closeLeftsidebarBtn && sidebarContainer) {
+            closeLeftsidebarBtn.addEventListener("click", () => {
+                if (isSidebarAnimating) return;
+                isSidebarAnimating = true;
+
+                if (sidebarContainer.classList.contains("collapsed")) {
+                    // ===== 展开：先展开宽度，完全展开后再显示内容 =====
+                    sidebarContainer.classList.remove("collapsed");
+
+                    const onExpandEnd = (e) => {
+                        if (e.propertyName === "width") {
+                            sidebarContainer.removeEventListener("transitionend", onExpandEnd);
+                            if (sidebarNavContent) {
+                                sidebarNavContent.style.display = "";
+                                sidebarNavContent.style.visibility = "visible";
+                                sidebarNavContent.style.opacity = "1";
+                            }
+                            if (sidebarFooter) {
+                                sidebarFooter.style.display = "";
+                                sidebarFooter.style.visibility = "visible";
+                                sidebarFooter.style.opacity = "1";
+                            }
+                            isSidebarAnimating = false;
+                        }
+                    };
+                    sidebarContainer.addEventListener("transitionend", onExpandEnd);
+                    closeLeftsidebarBtn.querySelector("span").classList.replace("icon-arrow-right-bold", "icon-arrow-left-bold");
+                } else {
+                    // ===== 折叠：先隐藏内容，再缩小宽度 =====
+                    if (sidebarNavContent) sidebarNavContent.style.opacity = "0";
+                    if (sidebarFooter) sidebarFooter.style.opacity = "0";
+
+                    setTimeout(() => {
+                        if (sidebarNavContent) {
+                            sidebarNavContent.style.visibility = "hidden";
+                            sidebarNavContent.style.display = "none";
+                        }
+                        if (sidebarFooter) {
+                            sidebarFooter.style.visibility = "hidden";
+                            sidebarFooter.style.display = "none";
+                        }
+                        sidebarContainer.classList.add("collapsed");
+
+                        const onCollapseEnd = (e) => {
+                            if (e.propertyName === "width") {
+                                sidebarContainer.removeEventListener("transitionend", onCollapseEnd);
+                                isSidebarAnimating = false;
+                            }
+                        };
+                        sidebarContainer.addEventListener("transitionend", onCollapseEnd);
+
+                        closeLeftsidebarBtn.querySelector("span").classList.replace("icon-arrow-left-bold", "icon-arrow-right-bold");
+                    }, 150);
+                }
+
+            });
+        }
+    </script>
+    <!--tabs标签页-->
+    <!--下拉框-->
+    <script src="./module/CustomDropdown.js"></script>
+    <script>
+        const TabComponent = (function () {
+            const STORAGE_KEY = "tab_list_cache";
+            let tabList = [];
+            let activeTabId = "";
+            let draggingIndex = null;
+            let dropIndex = null;
+            const MOVE_DISTANCE = 100;
+
+            let tabsBar = null;
+            let onTabChangeCallback = null;
+
+            // 本地存储
+            function loadCache() {
+                try {
+                    const data = localStorage.getItem(STORAGE_KEY);
+                    if (data) {
+                        const parsed = JSON.parse(data);
+                        tabList = parsed.tabList || [];
+                        activeTabId = parsed.activeTabId;
+                    }
+                } catch (e) { }
+            }
+
+            // ======================
+            // ✅ 保存：顺序 + 全部数据
+            // ======================
+            function saveCache() {
+                localStorage.setItem(STORAGE_KEY, JSON.stringify({
+                    tabList: tabList,    // 保存完整数组（顺序+数据）
+                    activeTabId: activeTabId
+                }));
+            }
+
+            // 合并用户传入的 tabList
+            function mergeUserList(userList) {
+                if (tabList.length > 0) return;
+                tabList = userList.map(tab => ({
+                    ...tab,
+                    cache: {
+                        data: {},
+                        tabScroll: 0,
+                        tableScrollX: 0,
+                        tableScrollY: 0
+                    }
+                }));
+                activeTabId = tabList[0]?.id;
+            }
+
+            // 保存状态
+            function saveCurrentState() {
+                const tab = tabList.find(t => t.id === activeTabId);
+                if (!tab) return;
+
+                const formData = {};
+                document.querySelectorAll("[name]").forEach(el => {
+                    formData[el.name] = el.value;
+                });
+
+                const tableEl = document.querySelector(".table-box");
+
+                tab.cache = {
+                    data: formData,
+                    tabScroll: window.scrollY,
+                    tableScrollX: tableEl?.scrollLeft || 0,
+                    tableScrollY: tableEl?.scrollTop || 0
+                };
+                saveCache();
+            }
+
+            // 渲染标签栏
+            function renderTabBar() {
+                if (!tabsBar) return;
+                tabsBar.innerHTML = "";
+
+                // 左侧容器：tabs
+                const leftWrap = document.createElement("div");
+                leftWrap.className = "tabs-left";
+
+                // 右侧容器：按钮
+                const rightWrap = document.createElement("div");
+                rightWrap.className = "tabs-right";
+
+                // 清除缓存按钮
+                const clearBtn = document.createElement("button");
+                clearBtn.innerHTML = `<span class="icon icon-error"></span> Clear Cache`;
+                clearBtn.className = "frosted-button frosted-highlight mb-8 closeAllbutton sm-closeAllbutton";
+                clearBtn.onclick = () => TabComponent.clearAllTabsCache();
+                rightWrap.appendChild(clearBtn);
+
+                // 新增按钮 1（自行绑定事件）
+                const btn1 = document.createElement("button");
+                btn1.innerHTML = `<span class="icon icon-arrow-up-bold"></span>`;
+                btn1.className = "icon-nobtnclass icon-btn hover:bg-primary/10";
+                btn1.id = "closeHerderBtn";
+                btn1.onclick = () => TabComponent.closeHeaderbtn();
+                rightWrap.appendChild(btn1);
+
+                // 新增按钮 2（自行绑定事件）
+                const btn2 = document.createElement("button");
+                btn2.innerHTML = `<span class="icon icon-refresh"></span>`;
+                btn2.className = "icon-nobtnclass icon-btn hover:bg-primary/10";
+                rightWrap.appendChild(btn2);
+
+                // 渲染 tabs 到左侧
+                tabList.forEach((tab, index) => {
+                    const item = document.createElement("div");
+                    item.className = `tab-item ${tab.id === activeTabId ? "active" : ""}`;
+                    item.dataset.index = index;
+                    item.draggable = true;
+                    item.style.transition = "transform 0.5s ease";
+
+                    const closeBtn = tabList.length > 1
+                        ? `<span class="tab-close"><img class="closeSideBarClass" src="./images/close.png" alt="关闭"></span>`
+                        : "";
+
+                    item.innerHTML = `<span>${tab.title}</span>${closeBtn}`;
+                    leftWrap.appendChild(item);
+                });
+
+                tabsBar.appendChild(leftWrap);
+                tabsBar.appendChild(rightWrap);
+            }
+
+            // 绑定事件
+            function bindEvents() {
+                tabsBar.onclick = (e) => {
+                    const item = e.target.closest(".tab-item");
+                    if (!item) return;
+                    const index = +item.dataset.index;
+                    const tab = tabList[index];
+
+                    if (e.target.closest(".tab-close")) {
+                        closeTab(tab.id);
+                        return;
+                    }
+                    switchToTab(tab.id);
+                };
+
+                tabsBar.ondragstart = (e) => {
+                    const el = e.target.closest(".tab-item");
+                    if (!el) return;
+                    draggingIndex = +el.dataset.index;
+                    setTimeout(() => el.style.visibility = "hidden", 0);
+                };
+
+                tabsBar.ondragover = e => e.preventDefault();
+
+                tabsBar.ondragenter = (e) => {
+                    const el = e.target.closest(".tab-item");
+                    if (!el || draggingIndex == null) return;
+                    dropIndex = +el.dataset.index;
+                    animateAvoid(dropIndex);
+                };
+
+                tabsBar.ondrop = (e) => {
+                    e.preventDefault();
+                    const t = tabList[draggingIndex];
+                    tabList.splice(draggingIndex, 1);
+                    tabList.splice(dropIndex, 0, t);
+                    saveCache();
+                    resetDrag();
+                    renderTabBar();
+                };
+
+                tabsBar.ondragend = resetDrag;
+            }
+
+            function animateAvoid(target) {
+                tabsBar.querySelectorAll(".tab-item").forEach((el, i) => {
+                    if (i === draggingIndex) return;
+                    if (draggingIndex < target && i > draggingIndex && i <= target) {
+                        el.style.transform = `translateX(-${MOVE_DISTANCE}px)`;
+                    } else if (draggingIndex > target && i >= target && i < draggingIndex) {
+                        el.style.transform = `translateX(${MOVE_DISTANCE}px)`;
+                    } else {
+                        el.style.transform = "translateX(0)";
+                    }
+                });
+            }
+
+            function resetDrag() {
+                tabsBar.querySelectorAll(".tab-item").forEach(el => {
+                    el.style.visibility = "visible";
+                    el.style.transform = "translateX(0)";
+                    el.style.opacity = "1";
+                });
+                draggingIndex = null;
+                dropIndex = null;
+            }
+
+            // 切换 Tab
+            function switchToTab(id) {
+                saveCurrentState();
+                activeTabId = id;
+                saveCache();
+                renderTabBar();
+                triggerChange();
+                initRadioComponent()
+            }
+
+            function closeTab(id) {
+                if (tabList.length <= 1) return;
+                const idx = tabList.findIndex(t => t.id === id);
+                tabList.splice(idx, 1);
+                if (activeTabId === id) activeTabId = tabList[0].id;
+                saveCache();
+                renderTabBar();
+                triggerChange();
+            }
+
+            function triggerChange() {
+                const current = tabList.find(t => t.id === activeTabId);
+                onTabChangeCallback?.(current);
+            }
+
+            // 打开新Tab（给左侧菜单用）
+            function openTab(newTab) {
+                const exist = tabList.find(t => t.id === newTab.id);
+                if (exist) {
+                    switchToTab(newTab.id);
+                    return;
+                }
+
+                const tab = {
+                    ...newTab,
+                    cache: { data: {}, tabScroll: 0, tableScrollX: 0, tableScrollY: 0 }
+                };
+                tabList.push(tab);
+                saveCache();
+                renderTabBar();
+                switchToTab(tab.id);
+            }
+
+
+
+            // ======================
+            // ✅ 新增：一键清空所有Tabs缓存+重置
+            // ======================
+            function clearAllTabsCache() {
+
+                if (!confirm('确定要清空所有标签缓存吗？')) return;
+
+                // 1. 仅清除Tabs缓存，不破坏其他本地存储
+                localStorage.removeItem(STORAGE_KEY);
+                sessionStorage.clear();
+
+                // 2. 【修复】手动重置为默认标签，不调用mergeUserList（避免自动覆盖缓存）
+                tabList = myTabList.map(tab => ({
+                    ...tab,
+                    cache: { data: {}, tabScroll: 0, tableScrollX: 0, tableScrollY: 0 }
+                }));
+                activeTabId = tabList[0]?.id;
+
+                // 3. 保存并重新渲染
+                saveCache();
+                renderTabBar();
+                triggerChange();
+            }
+            // ======================
+            // ✅ 新增：手动保存当前Tab方法
+            // ======================
+            function saveCurrentTabManually() {
+                saveCurrentState(); // 复用原生保存逻辑，保存表单/滚动/表格所有数据
+                console.log('✅ 当前激活Tab已手动保存缓存');
+            }
+            // 暴露方法
+            function initTabs(selector, userTabList, callback) {
+                tabsBar = document.querySelector(selector);
+                onTabChangeCallback = callback;
+                loadCache();
+                mergeUserList(userTabList);
+                renderTabBar();
+                bindEvents();
+                triggerChange();
+            }
+
+            function closeHeaderbtn() {
+                // 绑定顶部导航栏折叠/展开事件
+                const closeHeaderBtn = document.getElementById("closeHerderBtn");
+                const headerEl = document.querySelector(".headerClass");
+                const sidebarViewEl = document.querySelector(".sidebarView");
+                const leftsidebarViewEl = document.getElementById("leftsidebarView");
+                const contentViewEl = document.querySelector(".contentView");
+                // 获取按钮内的SVG图标元素（假设SVG是按钮的子元素）
+                const svgIcon = closeHeaderBtn?.querySelector("span");//这里根据引用的svg形式用i或者svg或者span等标签进行选择
+
+                // 提前缓存元素，避免重复DOM查询
+                if (!closeHeaderBtn || !headerEl || !sidebarViewEl || !svgIcon || !leftsidebarViewEl || !contentViewEl) {
+                    return; // 元素不存在时直接退出，避免报错
+                }
+
+
+
+                // 1. 切换隐藏类
+                headerEl.classList.toggle("hidden-header");
+                const isHidden = headerEl.classList.contains("hidden-header");
+
+                // 2. 统一设置过渡（提前声明，避免过渡生效不及时）
+                [leftsidebarViewEl, contentViewEl, sidebarViewEl].forEach(el => {
+                    el.style.transition = "all 0.3s ease"; // 只声明一次过渡
+                });
+
+                if (isHidden) {
+                    // ========== 新增：检测contentViewEl的宽度（含边框/内边距） ==========
+                    // 获取contentViewEl的实际渲染宽度（包含padding/border）
+                    const contentViewWidth = document.querySelector('#leftsidebarBtns').offsetWidth;
+                    // 获取contentViewEl的计算样式（用于精准计算）
+                    const contentViewStyle = window.getComputedStyle(contentViewEl);
+                    // 可选：获取不含padding的宽度（根据需求选择）
+                    const contentViewClientWidth = contentViewEl.clientWidth;
+
+                    console.log("contentViewEl 宽度(含border/padding)：", contentViewWidth);
+                    console.log("contentViewEl 宽度(不含border/padding)：", contentViewClientWidth);
+                    // 隐藏导航栏：先位移+透明度隐藏（过渡），延迟后再display:none（避免布局抖动）
+                    leftsidebarViewEl.style.cssText = `
+            margin-left: -`+ contentViewWidth + `px;
+            opacity: 0; /* 先透明，再隐藏 */
+            pointer-events: none; /* 提前禁用交互，避免点击穿透 */
+            transition: all 0.3s ease; /* 平滑过渡 */
+        `;
+
+                    // ========== 优化：基于检测到的宽度计算向左移动后的宽度 ==========
+                    contentViewEl.style.cssText = `
+            width: 100vw; /* 全屏宽度 */
+            margin-left: 0 !important; /* 强制消除左侧空白，向左移动到最左 */
+            transform: translateX(0); /* 确保向左移动到位 */
+            transition: all 0.3s ease; /* 平滑过渡 */
+        `;
+
+                    sidebarViewEl.style.cssText = `
+            margin-top: -48px;
+            height: 100vh;
+            width: 100vw;
+            transition: all 0.3s ease; /* 平滑过渡 */
+        `;
+                    svgIcon.style.transform = "rotate(180deg)";
+
+                    // 延迟300ms（过渡完成后）再设置display:none，避免布局瞬间变化
+                    setTimeout(() => {
+                        leftsidebarViewEl.style.display = "none";
+                    }, 300);
+
+                } else {
+                    // 显示导航栏：先恢复display，再过渡位移/透明度
+                    leftsidebarViewEl.style.display = "block";
+                    // 强制触发重排（避免过渡不生效）
+                    void leftsidebarViewEl.offsetWidth;
+
+                    leftsidebarViewEl.style.cssText = `
+            margin-left: 0;
+            opacity: 1;
+            pointer-events: auto;
+            transition: all 0.3s ease; /* 平滑过渡 */
+        `;
+
+                    // ========== 优化：基于检测到的宽度恢复位置 ==========
+                    contentViewEl.style.cssText = `
+            width: calc(100vw - 40px); /* 恢复原宽度 */
+            margin-left: 0 !important; /* 恢复原间距，与左侧栏匹配 */
+            transform: translateX(0); /* 重置位移 */
+            transition: all 0.3s ease; /* 平滑过渡 */
+        `;
+
+                    sidebarViewEl.style.cssText = `
+            margin-top: 0;
+            height: calc(100vh - 48px);
+            transition: all 0.3s ease; /* 平滑过渡 */
+        `;
+                    svgIcon.style.transform = "rotate(0deg)";
+                }
+            }
+
+
+            // 初始化：给SVG添加基础样式（建议放在页面加载完成后执行）
+            document.addEventListener('DOMContentLoaded', function () {
+                const closeHeaderBtn = document.getElementById("closeHerderBtn");
+                const svgIcon = closeHeaderBtn?.querySelector("svg");
+                if (svgIcon) {
+                    // 设置旋转原点为按钮中心 + 过渡动画
+                    svgIcon.style.cssText = `
+            transform-origin: center center; /* 以中心为旋转原点 */
+            transition: transform 0.3s ease; /* 旋转动画平滑过渡 */
+            display: inline-block; /* 确保transform生效 */
+        `;
+                    // 给按钮也添加定位参考（防止SVG偏移）
+                    closeHeaderBtn.style.position = "relative";
+                }
+            });
+
+            return { initTabs, openTab, clearAllTabsCache, saveCurrentTabManually, closeHeaderbtn };
+        })();
+        /*
+         // 1. 初始化标签列表（用于检测重复）
+         let tabList = JSON.parse(localStorage.getItem('tabList')) || [];
+     
+         // 2. 左侧导航点击事件 - 检测重复 Tab
+         document.addEventListener('DOMContentLoaded', function () {
+           // 给所有左侧导航项绑定点击事件
+           const sidebarItems = document.querySelectorAll('.sidebar-item');
+           sidebarItems.forEach(item => {
+             item.addEventListener('click', function () {
+               // 获取当前导航项的唯一标识（建议给每个sidebar-item加data-id/data-name属性）
+               const tabId = this.dataset.tabId || this.textContent.trim();
+               const tabName = this.textContent.trim();
+     
+               // 检测是否已存在相同Tab
+               const isTabExist = tabList.some(tab => tab.id === tabId);
+               if (isTabExist) {
+                 // 存在则不添加，可额外处理：切换到该Tab
+                 console.log(`Tab [${tabName}] 已存在，无需重复添加`);
+                 return;
+               }
+     
+               // 不存在则添加到Tab列表
+               const newTab = {
+                 id: tabId,
+                 name: tabName,
+                 url: this.dataset.url || '#' // 导航项对应的链接
+               };
+               tabList.push(newTab);
+               localStorage.setItem('tabList', JSON.stringify(tabList));
+     
+               // 渲染新Tab（根据你的现有Tab渲染逻辑补充，示例：创建tab-item元素）
+               renderNewTab(newTab);
+             });
+           });
+     
+           // 3. 一键清除所有缓存和数据按钮事件
+           const clearCacheBtn = document.getElementById('clearAllCacheBtn');
+           if (clearCacheBtn) {
+             clearCacheBtn.addEventListener('click', function () {
+               // 确认清除
+               if (confirm('确定要清除所有缓存和数据吗？')) {
+                 // 清除本地缓存
+                 localStorage.clear();
+                 sessionStorage.clear();
+                 // 清空Tab列表
+                 tabList = [];
+                 // 清空渲染的Tab（根据你的Tab渲染逻辑调整）
+                 document.querySelectorAll('.tab-item:not(#clearAllCacheBtn)').forEach(tab => tab.remove());
+                 // 重置页面状态（可根据业务补充）
+                 document.querySelector('.contentView iframe').src = '';
+                 // 提示
+                 alert('所有缓存和数据已清除！');
+               }
+             });
+           }
+         });
+     
+        */
+        // 辅助函数：渲染新Tab（根据你的现有UI调整）
+        function renderNewTab(tab) {
+            const tabsBar = document.querySelector('.tabs-bar');
+            const tabItem = document.createElement('div');
+            tabItem.className = 'tab-item';
+            tabItem.dataset.tabId = tab.id;
+            tabItem.textContent = tab.name;
+            // 插入到清除按钮右侧
+            tabsBar.insertBefore(tabItem, tabsBar.firstChild.nextSibling);
+        }
+    </script>
+    <script src="./module/CrystalRadio.js"></script>
+    <script>
+        // 表格要记录横向与竖向滚动条位置需要提前打入class记录值  参考：class="table-box"  搜索查看代码
+        /*
+        const cache = currentTab.cache || {
+              data: {},  tabs记录from表单输入等数据
+              tabScroll: 0,  记录整个页面滚动位置
+              tableScrollX: 0,  记录表格横向滚动位置
+              tableScrollY: 0  记录表格竖向滚动位置
+            };
+        */
+        // ==============================================
+        // 你的数据源（动态、可扩展）
+        // ==============================================
+        const myTabList = [
+            {
+                id: "page1",
+                title: "Primary",
+                content: `<div style="width:100%;height:100%;padding:24px;display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-direction: column;">
+      <h2 style="text-align:center">PRAM Management Homepage</h2>
+      <p style="text-align:center">Production Resource and Material Management Platform</p>
+    </div>`
+            },
+            {
+                id: "page2",
+                title: "Secondary",
+                content: `<div style="padding:20px">
+      <input name="username" placeholder="Auto-save input content">
+      <div class="table-box" style="width:300px;height:300px;overflow:auto">
+        <div style="width:1000px;height:1000px;">Auto-save on table horizontal scroll</div>
+      </div>
+
+      <button onclick="TabComponent.saveCurrentTabManually();" class="frosted-button frosted-highlight mb-8" style="margin-top:20px;">
+        Click to trigger status save
+    </div>`
+            },
+            {
+                id: "page3",
+                title: "Success",
+                content: `<div style="padding:20px">Dynamic Page Content</div>`
+            }, {
+                id: "page4",
+                title: "Panel",
+                content: `
+<div class="panel-container" style="display: flex;flex-direction: row;">
+  <!-- 卡片1（已优化：搜索+列表+底部按钮） -->
+  <div class="noCardtransition frosted-card panel-item" id="panel1">
+    <div class="panel-header" style="border-bottom: none; padding: 8px 8px 0 0; justify-content: flex-end;">
+        <span style="color: var(--frosted-text-secondary); font-size: 13px; margin-right: auto;padding:8px 16px;font-weight: var(--font-weight-medium);
+    line-height: 1.5;">Parts</span>
+      <button class="panel-collapse-btn frosted-icon-herder" data-target="panel1" title="折叠/展开"><span class="icon icon-fullscreen-shrink"></span></button>
+    </div>
+    <div class="panel-body" style="padding: 12px 0 12px 12px; width: 100%; height: calc(100% - 24px); display: flex; flex-direction: column; gap: 12px;">
+      <div class="frosted-input" style="height: 32px; width: calc(100% - 12px);margin-right:12px;">
+        <img src="./images/seek.png" class="treesidebaricon" alt="" style="margin-left: 8px;">
+        <input id="card1Search" type="text" placeholder="Search material..." style="flex:1; background: transparent; border: none; outline: none; padding: 0 8px; color: var(--frosted-text-primary); font-size: 13px;">
+      </div>
+      <div id="card1List" style="flex: 1; overflow-y: auto; overflow-x: hidden; border-radius: 8px; background: rgba(0,0,0,0); padding: 4px 0;"></div>
+      <div class="panel-footer" style="display: flex; gap: 8px; padding-top: 8px;justify-content: center;">
+        <button class="frosted-button frosted-button-cyan text-sm" style="height: 30px; font-size: 13px;"><span><span class="icon icon-add"></span> New</span></button>
+        <button class="frosted-button text-sm" style="height: 30px; font-size: 13px;"><span>Duplicate</span></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 卡片2（纯列表版，无多余元素） -->
+  <div class="noCardtransition frosted-card panel-item" id="panel2">
+    <div class="panel-header" style="border-bottom: none; padding: 8px 8px 0 0; justify-content: flex-end;">
+        <span style="color: var(--frosted-text-secondary); font-size: 13px; margin-right: auto;padding:8px 16px;font-weight: var(--font-weight-medium);
+    line-height: 1.5;">Topics</span>
+      <button class="panel-collapse-btn frosted-icon-herder" data-target="panel2" title="折叠/展开"><span class="icon icon-fullscreen-shrink"></span></button>
+    </div>
+    <div class="panel-body" style="padding: 12px 0; height: calc(100% - 24px);width:100%;">
+      <div id="card2List" style="height: 100%; overflow-y: auto; border-radius: 8px; background: rgba(0,0,0,0)"></div>
+    </div>
+  </div>
+
+  <!-- 卡片3【最终版】：你的风格输入框 + 动态下划线 -->
+  <div class="noCardtransition frosted-card panel-item flex-fill" id="panel3">
+    <!-- 标题栏：编码 + 按钮 -->
+    <div class="panel-header" style="border-bottom: 1px solid var(--frosted-border-subtle); padding: 8px 12px; gap: 8px;display:flex;justify-content:space-between;align-items:center;">
+      <div>
+        <span class="icon icon-file"></span>
+        <span style="color: var(--frosted-text-secondary); font-size: 13px;">BUT-001</span>
+      </div>
+      <div style="display:flex;gap:8px;">
+        <button class="frosted-button text-sm" style="height: 30px; font-size: 13px;">Cancel</button>
+        <button class="frosted-button frosted-button-cyan text-sm" style="height: 30px; font-size: 13px;">Submit</button>
+      </div>
+    </div>
+
+    <!-- 表单内容：完全使用你的自定义输入框样式 -->
+    <div class="panel-body" style="padding: 16px; width: 100%; overflow-y: auto;">
+      <div class="form-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; row-gap: 16px;">
+        
+        <!-- 1. Active/Inactive 单选框（你的样式） -->
+      <div class="form-group">
+        <label class="form-label">Active/Inactive</label>
+        <div style="display:flex;gap:20px;align-items:center; margin-top:6px;">
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div id="radioActive"></div>
+            <span style="color:var(--frosted-text-primary);font-size:13px;">Active</span>
+          </div>
+          <div style="display:flex; align-items:center; gap:8px;">
+            <div id="radioInactive"></div>
+            <span style="color:var(--frosted-text-primary);font-size:13px;">Inactive</span>
+          </div>
+        </div>
+      </div>
+
+        <!-- 2. Part Number（你的输入框+动态线） -->
+        <div class="form-group">
+          <label class="form-label">Part Number</label>
+          <div class="text-input-wrapper">
+            <input type="text" class="text-input-field" value="YEA-001" readonly >
+            <div class="text-input-line"></div>
+          </div>
+        </div>
+
+        <!-- 3. Description -->
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <div class="text-input-wrapper">
+            <input type="text" class="text-input-field" placeholder="Enter description">
+            <div class="text-input-line"></div>
+          </div>
+        </div>
+
+        <!-- 4. Description1 -->
+        <div class="form-group">
+          <label class="form-label">Description1 (at web users view)</label>
+          <div class="text-input-wrapper">
+            <input type="text" class="text-input-field" placeholder="Enter description">
+            <div class="text-input-line"></div>
+          </div>
+        </div>
+
+        <!-- 5. Description2 -->
+        <div class="form-group">
+          <label class="form-label">Description2</label>
+          <div class="text-input-wrapper">
+            <input type="text" class="text-input-field" placeholder="Enter description">
+            <div class="text-input-line"></div>
+          </div>
+        </div>
+
+        <!-- 6. Enter vendor description -->
+        <div class="form-group">
+          <label class="form-label">Enter vendor description</label>
+          <div class="text-input-wrapper">
+            <input type="text" class="text-input-field" placeholder="Enter vendor description">
+            <div class="text-input-line"></div>
+          </div>
+        </div>
+
+        <!-- 7. Type 下拉框（套你的输入框结构） -->
+        <div class="form-group">
+          <label class="form-label">Type</label>
+          <div class="text-input-wrapper" id='myselectDropdown'>
+          
+          </div> 
+            <div class="text-input-line"></div>
+        </div>
+
+        <!-- 8. Description2 (used in Quotes) -->
+        <div class="form-group">
+          <label class="form-label">Description2 (used in Quotes)</label>
+          <div class="text-input-wrapper">
+            <input type="text" class="text-input-field" placeholder="Enter description">
+            <div class="text-input-line"></div>
+          </div>
+        </div>
+
+        <!-- 9. Product Category -->
+        <div class="form-group">
+          <label class="form-label">Product Category</label>
+          <div class="text-input-wrapper">
+            <input type="text" class="text-input-field" placeholder="Enter product category">
+            <div class="text-input-line"></div>
+          </div>
+        </div>
+
+        <!-- 10. UOM -->
+        <div class="form-group">
+          <label class="form-label">UOM</label>
+          <div class="text-input-wrapper">
+            <input type="text" class="text-input-field" placeholder="Enter unit of measure">
+            <div class="text-input-line"></div>
+          </div>
+        </div>
+
+        <!-- 11. Class Category -->
+        <div class="form-group">
+          <label class="form-label">Class Category</label>
+          <div class="text-input-wrapper">
+            <input type="text" class="text-input-field" placeholder="Enter class category">
+            <div class="text-input-line"></div>
+          </div>
+        </div>
+
+        <!-- 12. Country of Origin -->
+        <div class="form-group">
+          <label class="form-label">Country of Origin</label>
+          <div class="text-input-wrapper">
+            <input type="text" class="text-input-field" placeholder="Enter country of origin">
+            <div class="text-input-line"></div>
+          </div>
+        </div>
+
+        <!-- 13. HS Code -->
+        <div class="form-group">
+          <label class="form-label">HS Code</label>
+          <div class="text-input-wrapper">
+            <input type="text" class="text-input-field" placeholder="Enter HS code">
+            <div class="text-input-line"></div>
+          </div>
+        </div>
+
+        <!-- 14. Bin -->
+        <div class="form-group">
+          <label class="form-label">Bin</label>
+          <div class="text-input-wrapper">
+            <input type="text" class="text-input-field" placeholder="H2-1">
+            <div class="text-input-line"></div>
+          </div>
+        </div>
+
+        <!-- 15. Serial/Batch Track 复选框（你的样式） -->
+        <div class="form-group">
+          <label class="form-label">Serial/Batch Track</label>
+          <div id="formCbWrapper">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div id="formCbAgree"></div>
+              <span style="color:var(--frosted-text-secondary);font-size:13px;">Enable HS code</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 16. Description 只读 -->
+        <div class="form-group">
+          <label class="form-label">Description</label>
+          <div class="text-input-wrapper">
+            <input type="text" class="text-input-field" value="Medium Eggs (main material)" readonly>
+            <div class="text-input-line"></div>
+          </div>
+        </div>
+
+        <!-- 17. Global Share 复选框 -->
+        <div class="form-group">
+          <label class="form-label">Global Share</label>
+          <div id="formCbWrapper">
+            <div style="display:flex;align-items:center;gap:12px;">
+              <div id="formCbAgree"></div>
+              <span style="color:var(--frosted-text-secondary);font-size:13px;">Global Share</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 18. Unit -->
+        <div class="form-group">
+          <label class="form-label">Unit</label>
+          <div class="text-input-wrapper">
+            <input type="text" class="text-input-field" placeholder="gal">
+            <div class="text-input-line"></div>
+          </div>
+        </div>
+
+        <!-- 19. OGG -->
+        <div class="form-group">
+          <label class="form-label">OGG</label>
+          <div class="text-input-wrapper">
+            <input type="text" class="text-input-field" placeholder="Enter OGG">
+            <div class="text-input-line"></div>
+          </div>
+        </div>
+
+        <!-- 20. STK on Hand -->
+        <div class="form-group">
+          <label class="form-label">STK on Hand</label>
+          <div class="text-input-wrapper">
+            <input type="text" class="text-input-field" placeholder="STK on Hand">
+            <div class="text-input-line"></div>
+          </div>
+        </div>
+
+      </div>
+    </div>
+  </div>
+</div>
+`}
+        ];
+
+        // ==============================================
+        // 【唯一渲染方法】你要的：根据ID匹配 + 渲染缓存DOM
+        // ==============================================
+        function renderTabContent(currentTab) {
+            const container = document.getElementById('tabsContent');
+            if (!currentTab) return;
+
+            container.innerHTML = currentTab.content || '<div>无内容</div>';
+            // 初始化面板折叠/状态条控件（如果存在面板）
+            try { initPanelControls(); } catch (e) { /* ignore */
+
+            }
+
+            setTimeout(() => {
+                const cache = currentTab.cache || {
+                    data: {},
+                    tabScroll: 0,
+                    tableScrollX: 0,
+                    tableScrollY: 0
+                };
+
+                Object.keys(cache.data).forEach(name => {
+                    const el = document.querySelector(`[name="${name}"]`);
+                    if (el) el.value = cache.data[name];
+                });
+
+                window.scrollTo(0, cache.tabScroll);
+
+                const tableBox = document.querySelector('.table-box');
+                if (tableBox) {
+                    tableBox.scrollLeft = cache.tableScrollX;  // 横向
+                    tableBox.scrollTop = cache.tableScrollY;  // 👈 竖向（新增）
+                }
+            }, 0);
+        }
+
+        // 初始化面板头、折叠按钮与左侧状态条
+        function initPanelControls() {
+            const container = document.getElementById('tabsContent');
+            if (!container) return;
+
+            // 创建上下两个状态条容器（插入到 panel-container 内）
+            const panelContainer = container.querySelector('.panel-container');
+            let statusTop = document.getElementById('panelStatusBarTop');
+            let statusBottom = document.getElementById('panelStatusBarBottom');
+            if (!statusTop) {
+                statusTop = document.createElement('div');
+                statusTop.id = 'panelStatusBarTop';
+                statusTop.className = 'panel-status-bar top';
+                if (panelContainer) panelContainer.appendChild(statusTop); else document.body.appendChild(statusTop);
+            } else {
+                if (panelContainer && statusTop.parentElement !== panelContainer) panelContainer.appendChild(statusTop);
+            }
+            if (!statusBottom) {
+                statusBottom = document.createElement('div');
+                statusBottom.id = 'panelStatusBarBottom';
+                statusBottom.className = 'panel-status-bar bottom';
+                if (panelContainer) panelContainer.appendChild(statusBottom); else document.body.appendChild(statusBottom);
+            } else {
+                if (panelContainer && statusBottom.parentElement !== panelContainer) panelContainer.appendChild(statusBottom);
+            }
+
+            // 默认隐藏左右状态条，由 updateStatusBar 动态渲染对应顺序的图标
+            statusTop.style.display = 'none';
+            statusBottom.style.display = 'none';
+            statusTop.innerHTML = '';
+            statusBottom.innerHTML = '';
+
+            // 在两个状态容器间不再使用单一分隔，保持视觉间距由各自容器控制
+
+            // 折叠按钮绑定（使用动画切换）
+            container.querySelectorAll('.panel-collapse-btn').forEach(btn => {
+                btn.onclick = (e) => {
+                    const target = btn.dataset.target;
+                    togglePanel(target);
+                    e.stopPropagation();
+                };
+            });
+
+            // 初始状态更新
+            updateStatusBar();
+
+            // ======================
+            // 卡片1：搜索框 + 可选中列表（原生JS实现）
+            // ======================
+            // ======================
+            // 卡片1：截图同款搜索+列表（数据/样式完全匹配）
+            // ======================
+            function initCard1List() {
+                const listEl = document.getElementById('card1List');
+                const searchEl = document.getElementById('card1Search');
+                if (!listEl || !searchEl) return;
+
+                // 1. 直接使用你截图里的完整数据
+                const materialList = [
+                    { id: "FLR-001", name: "All-Purpose Flour (raw material)" },
+                    { id: "BUT-001", name: "Bread Flour (ingredient)" },
+                    { id: "SWG-001", name: "Cake Flour (auxiliary)" },
+                    { id: "EGG-001", name: "Pastry Flour (main material)" },
+                    { id: "CHC-001", name: "Whole Wheat Flour (raw material)" },
+                    { id: "VAN-001", name: "Unsalted Butter (ingredient)" },
+                    { id: "BAK-001", name: "Salted Butter (auxiliary)" },
+                    { id: "OIL-001", name: "European Butter (main material)" },
+                    { id: "SAL-001", name: "Whipped Butter (raw material)" },
+                    { id: "PEP-001", name: "Granulated Sugar (ingredient)" },
+                    { id: "CIN-001", name: "Brown Sugar (auxiliary)" },
+                    { id: "NUT-001", name: "Powdered Sugar (main material)" },
+                    { id: "HON-001", name: "Caster Sugar (raw material)" },
+                    { id: "MIL-001", name: "Demerara Sugar (ingredient)" },
+                    { id: "CRE-001", name: "Large Eggs (auxiliary)" },
+                    { id: "YEA-001", name: "Medium Eggs (main material)" },
+                    { id: "COC-001", name: "Organic Eggs (raw material)" },
+                    { id: "ALM-001", name: "Free-Range Eggs (ingredient)" },
+                    { id: "WAL-001", name: "Dark Chocolate (auxiliary)" },
+                    { id: "CAS-001", name: "Milk Chocolate (main material)" },
+                    { id: "FLR-001", name: "White Chocolate (raw material)" },
+                    { id: "BUT-001", name: "Cocoa Powder (ingredient)" },
+                    { id: "SWG-001", name: "Chocolate Chips (auxiliary)" },
+                    { id: "EGG-001", name: "Pure Vanilla Extract (main material)" },
+                    { id: "CHC-001", name: "Vanilla Bean (raw material)" },
+                    { id: "VAN-001", name: "Vanilla Paste (ingredient)" },
+                    { id: "BAK-001", name: "Baking Soda (auxiliary)" },
+                    { id: "OIL-001", name: "Baking Powder (main material)" },
+                    { id: "SAL-001", name: "Cornstarch (raw material)" },
+                    { id: "PEP-001", name: "Cream of Tartar (ingredient)" }
+                ];
+
+                // 2. 渲染列表（样式和截图1:1匹配）
+                function renderList(keyword = '') {
+                    listEl.innerHTML = '';
+                    keyword = keyword.toLowerCase().trim();
+
+                    // 过滤数据（支持模糊搜索：匹配ID或名称）
+                    const filteredList = materialList.filter(item =>
+                        !keyword ||
+                        item.id.toLowerCase().includes(keyword) ||
+                        item.name.toLowerCase().includes(keyword)
+                    );
+
+                    filteredList.forEach(item => {
+                        const itemEl = document.createElement('div');
+                        // 样式完全复刻截图：选中项左侧蓝线+浅蓝背景+文字变蓝
+                        itemEl.className = 'material-list-item';
+                        itemEl.dataset.id = item.id;
+                        itemEl.innerHTML = `
+        <div class="item-code">${item.id}</div>
+        <div class="item-name">${item.name}</div>
+      `;
+
+                        // 点击选中高亮（和截图选中效果一致）
+                        itemEl.onclick = () => {
+                            // 清除所有选中状态
+                            document.querySelectorAll('#card1List .material-list-item').forEach(el => {
+                                el.classList.remove('active');
+                            });
+                            // 给当前项添加选中样式
+                            itemEl.classList.add('active');
+                            console.log('选中物料：', item);
+                        };
+
+                        listEl.appendChild(itemEl);
+                    });
+                }
+
+                // 3. 绑定搜索事件（实时过滤）
+                searchEl.addEventListener('input', (e) => {
+                    renderList(e.target.value);
+                });
+
+                // 4. 初始化渲染
+                renderList();
+            }
+
+            // 调用初始化（如果initPanelControls里没有这行，直接加进去）
+            initCard1List();
+
+            // ======================
+            // 卡片2 纯列表（无搜索框，仅点击选中）
+            // ======================
+            function initCard2List() {
+                const listEl = document.getElementById('card2List');
+                if (!listEl) return;
+
+                // 卡片2列表数据（和你截图一致）
+                const card2Data = [
+                    { id: 1, text: "General", iconName: "icon-setting" },
+                    { id: 2, text: "Accounting", iconName: "icon-file-add" },
+                    { id: 3, text: "Purchasing", iconName: "icon-edit" },
+                    { id: 4, text: "Attributes", iconName: "icon-delete" },
+                    { id: 5, text: "Variants", iconName: "icon-search" }
+                ];
+
+                // 渲染列表
+                function renderList() {
+                    listEl.innerHTML = '';
+                    card2Data.forEach(item => {
+                        const itemEl = document.createElement('div');
+
+                        itemEl.className = 'card2-list-item';
+                        // ✅ 正确：给 DOM 元素设置 innerHTML
+                        itemEl.innerHTML = `<span style="margin-right:10px;width:13px;height:13px;" class="icon ${item.iconName}"></span><span>${item.text}</span>`;
+
+                        // 点击选中高亮
+                        itemEl.onclick = () => {
+                            document.querySelectorAll('#card2List .card2-list-item').forEach(el => el.classList.remove('active'));
+                            itemEl.classList.add('active');
+                            console.log('选中卡片2项：', item);
+                        };
+
+                        listEl.appendChild(itemEl);
+                    });
+                }
+
+                renderList();
+            }
+            // 初始化卡片2列表
+            initCard2List();
+
+            // 初始化更多图标下拉框（动态DOM专用）
+            function initMoreDropdown() {
+                const icon = document.getElementById('moreIcon');
+                const dropdown = document.getElementById('moreDropdown');
+                if (!icon || !dropdown) return;
+
+                // 点击图标切换下拉框
+                icon.onclick = (e) => {
+                    e.stopPropagation();
+                    dropdown.style.display = dropdown.style.display === 'block' ? 'none' : 'block';
+                };
+
+                // 点击选项后关闭
+                document.querySelectorAll('.dropdown-item').forEach(item => {
+                    item.onclick = () => {
+                        console.log('选中：', item.innerText);
+                        dropdown.style.display = 'none';
+                        document.getElementById("moreIconText").innerText = item.innerText; // 更新图标旁文本为选项内容
+                    };
+                });
+
+                // 点击外部关闭
+                document.addEventListener('click', () => {
+                    dropdown.style.display = 'none';
+                });
+                dropdown.addEventListener('click', (e) => e.stopPropagation());
+            }
+
+            // 执行初始化
+            initMoreDropdown();
+
+        }
+
+        // 记录隐藏顺序（先隐藏的在前）
+        const hiddenPanelsOrder = [];
+
+        function updateStatusBar() {
+            const p1 = document.getElementById('panel1');
+            const p2 = document.getElementById('panel2');
+            const statusTop = document.getElementById('panelStatusBarTop');
+            const statusBottom = document.getElementById('panelStatusBarBottom');
+            if (!statusTop || !statusBottom) return;
+
+            // 如果当前内容没有这两个面板（例如切换到其他 tab），隐藏状态容器
+            if (!p1 && !p2) {
+                statusTop.style.display = 'none';
+                statusBottom.style.display = 'none';
+                return;
+            }
+            const v1 = !!(p1 && p1.style.display !== 'none');
+            const v2 = !!(p2 && p2.style.display !== 'none');
+
+            // 仅参考 DOM 隐藏顺序：哪些面板当前是隐藏的
+            const currentlyHidden = [];
+            if (p1 && (p1.style.display === 'none' || p1.classList.contains('hidden-panel'))) currentlyHidden.push('panel1');
+            if (p2 && (p2.style.display === 'none' || p2.classList.contains('hidden-panel'))) currentlyHidden.push('panel2');
+
+            // 如果没有隐藏的面板，隐藏两侧容器
+            if (currentlyHidden.length === 0) {
+                statusTop.style.display = 'none';
+                statusBottom.style.display = 'none';
+                return;
+            }
+
+            // ==============================================
+            // 【核心修改】固定排序：panel1 永远优先在上
+            // ==============================================
+            const ordered = [];
+            // 先放卡片1（如果隐藏了）
+            if (currentlyHidden.includes('panel1')) {
+                ordered.push('panel1');
+            }
+            // 再放卡片2（如果隐藏了）
+            if (currentlyHidden.includes('panel2')) {
+                ordered.push('panel2');
+            }
+
+            // 渲染到 top / bottom（固定：1在上，2在下）
+            statusTop.innerHTML = '';
+            statusBottom.innerHTML = '';
+
+            // helper 创建按钮
+            const makeBtn = (id) => {
+                const btn = document.createElement('div');
+                btn.className = 'panel-status-icon';
+                btn.id = 'statusIcon_' + id;
+                btn.onclick = () => togglePanel(id);
+                const marker = id === 'panel1' ? '' : '';
+                const label = id === 'panel1' ? 'Parts' : 'Topics';
+                btn.innerHTML = `<div class="status-marker">${marker}</div><div class="status-label">${label}</div>`;
+                const panelExists = !!document.getElementById(id);
+                btn.classList.toggle('inactive', !panelExists);
+                return btn;
+            };
+
+            // top slot → 永远优先显示 卡片1
+            if (ordered[0]) {
+                statusTop.appendChild(makeBtn(ordered[0]));
+                statusTop.style.display = 'flex';
+                statusTop.style.flexDirection = 'row-reverse'; // 右对齐
+                statusTop.classList.add('minimized');
+            } else {
+                statusTop.style.display = 'none';
+            }
+
+            // bottom slot → 永远是 卡片2
+            if (ordered[1]) {
+                statusBottom.appendChild(makeBtn(ordered[1]));
+                statusBottom.style.display = 'flex';
+                statusBottom.style.flexDirection = 'row-reverse'; // 右对齐
+
+                statusBottom.classList.add('minimized');
+            } else {
+                statusBottom.style.display = 'none';
+            }
+        }
+        // 切换面板（带丝滑宽度过渡动画）
+        function togglePanel(panelId) {
+            const panel = document.getElementById(panelId);
+            if (!panel) return;
+            const isHidden = panel.classList.contains('hidden-panel') || panel.style.display === 'none';
+
+            // 保存原始尺寸（只保存一次）
+            if (!panel.dataset.originalWidth) {
+                panel.dataset.originalWidth = panel.offsetWidth + 'px';
+            }
+            const originalWidth = panel.dataset.originalWidth;
+            const originalMargin = window.getComputedStyle(panel).margin;
+
+            if (isHidden) {
+                // 显示：先移除隐藏状态，设置宽度为0，然后动画展开
+                panel.classList.remove('hidden-panel');
+                panel.style.display = '';
+                panel.style.width = '0px';
+                panel.style.opacity = '0';
+                panel.style.overflow = 'hidden';
+                panel.style.margin = '0px';
+
+                // 同步移动 panel3
+                updatePanel3Offset(true);
+
+                requestAnimationFrame(() => {
+                    panel.style.transition = 'width 320ms cubic-bezier(.2,.9,.2,1), opacity 280ms ease, margin 320ms cubic-bezier(.2,.9,.2,1)';
+                    panel.style.width = originalWidth;
+                    panel.style.opacity = '1';
+                    panel.style.margin = originalMargin;
+                });
+
+                panel.addEventListener('transitionend', function onEnd() {
+                    panel.style.transition = '';
+                    panel.style.width = '';
+                    panel.style.opacity = '';
+                    panel.style.overflow = '';
+                    panel.style.margin = '';
+                    panel.removeEventListener('transitionend', onEnd);
+                    updatePanel3Offset(false);
+                    const idx = hiddenPanelsOrder.indexOf(panelId);
+                    if (idx !== -1) hiddenPanelsOrder.splice(idx, 1);
+                    updateStatusBar();
+                });
+            } else {
+                // 隐藏：先收缩宽度，再设置 display:none
+                updatePanel3Offset(true, panelId);
+
+                panel.style.transition = 'width 320ms cubic-bezier(.2,.9,.2,1), opacity 280ms ease, margin 320ms cubic-bezier(.2,.9,.2,1)';
+                panel.style.width = '0px';
+                panel.style.opacity = '0';
+                panel.style.overflow = 'hidden';
+                panel.style.margin = '0px';
+
+                panel.addEventListener('transitionend', function onEnd() {
+                    panel.style.display = 'none';
+                    panel.classList.add('hidden-panel');
+                    panel.style.transition = '';
+                    panel.style.width = '';
+                    panel.style.opacity = '';
+                    panel.style.overflow = '';
+                    panel.style.margin = '';
+                    panel.removeEventListener('transitionend', onEnd);
+                    updatePanel3Offset(false);
+                    if (hiddenPanelsOrder.indexOf(panelId) === -1) hiddenPanelsOrder.push(panelId);
+                    updateStatusBar();
+                });
+            }
+            setTimeout(updateStatusBar, 20);
+        }
+
+        // 计算并设置 panel3 的偏移（当 panel1/2 隐藏时同步左移）
+        // animate: 是否带动画； skipPanelId: 当正要隐藏某个面板时，可传入该 id 使其宽度计算包含在偏移里
+        function updatePanel3Offset(animate = true, skipPanelId) {
+            const container = document.getElementById('tabsContent');
+            if (!container) return;
+            const panelContainer = container.querySelector('.panel-container');
+            if (!panelContainer) return;
+            const panel3 = panelContainer.querySelector('.panel-item.flex-fill');
+            if (!panel3) return;
+
+            const p1 = document.getElementById('panel1');
+            const p2 = document.getElementById('panel2');
+
+            let offset = 0;
+            // 如果某个面板当前是隐藏（display:none 或 hidden-panel），计入其宽度
+            const considerHidden = (p) => {
+                if (!p) return false;
+                return p.style.display === 'none' || p.classList.contains('hidden-panel');
+            };
+
+            if (p1 && (considerHidden(p1) || skipPanelId === 'panel1')) offset += p1.offsetWidth || 300;
+            if (p2 && (considerHidden(p2) || skipPanelId === 'panel2')) offset += p2.offsetWidth || 300;
+
+            // 计算目标宽度（始终以像素为单位以支持平滑从小到大的动画）
+            const containerWidth = panelContainer.clientWidth;
+            const visibleWidth = ((p1 && !(p1.style.display === 'none' || p1.classList.contains('hidden-panel'))) ? p1.offsetWidth : 0)
+                + ((p2 && !(p2.style.display === 'none' || p2.classList.contains('hidden-panel'))) ? p2.offsetWidth : 0);
+            const targetWidth = Math.max(0, containerWidth - visibleWidth);
+
+            panel3.style.flexBasis = targetWidth + 'px';
+
+            const bothVisible = (p1 && !(p1.style.display === 'none' || p1.classList.contains('hidden-panel'))) && (p2 && !(p2.style.display === 'none' || p2.classList.contains('hidden-panel')));
+            if (bothVisible) {
+                // 恢复为弹性布局
+                requestAnimationFrame(() => {
+                    panel3.style.flexBasis = '';
+                });
+            }
+        }
+
+        // ==============================================
+        // 初始化（无报错）
+        // ==============================================
+        // 不在全局 body 创建状态条，状态条会在 panel-container 内动态创建
+
+        TabComponent.initTabs('#tabsBar', myTabList, (activeTab) => {
+            renderTabContent(activeTab);
+        });
+
+
+    </script>
+
+    <!--左侧导航点击事件渲染tabs-->
+    <script>
+        // ==============================================
+        // 【左侧菜单点击调用】
+        // 菜单传给你什么数据，你直接丢进来
+        // ==============================================
+        function openTabFromMenu(menuItem) {
+            // menuItem 必须包含: id, title, content(可选)
+            TabComponent.openTab({
+                id: menuItem.id,
+                title: menuItem.title,
+                content: menuItem.content || `<div>页面内容</div>`
+            });
+        }
+        // 示例：页面刷新/关闭前，自动保存当前Tab
+        window.addEventListener('beforeunload', function () {
+            TabComponent.saveCurrentTabManually();
+        });
+    </script>
+    <!--演示默认四号tabs-->
+    <script>
+        // ======================
+        // 卡片边框拖拽调节（无拖动条 · 极简版）
+        // ======================
+        document.addEventListener('DOMContentLoaded', () => {
+            let isResizing = false;
+            let currentPanel = null;
+            let startX = 0;
+            let startWidth = 0;
+
+            // 监听卡片右侧边框拖拽
+            document.addEventListener('mousedown', (e) => {
+                const panel1 = document.getElementById('panel1');
+                const panel2 = document.getElementById('panel2');
+                if (!panel1 || !panel2) return;
+
+                const rect1 = panel1.getBoundingClientRect();
+                const rect2 = panel2.getBoundingClientRect();
+
+                // 判断是否点击在 卡片1/2 的右侧拖拽热区
+                const onPanel1Edge = e.clientX >= rect1.right - 4 && e.clientX <= rect1.right + 4;
+                const onPanel2Edge = e.clientX >= rect2.right - 4 && e.clientX <= rect2.right + 4;
+
+                if (onPanel1Edge || onPanel2Edge) {
+                    isResizing = true;
+                    currentPanel = onPanel1Edge ? panel1 : panel2;
+                    currentPanel.classList.add('resizing');
+                    startX = e.clientX;
+                    startWidth = currentPanel.offsetWidth;
+                    document.body.style.cursor = 'col-resize';
+                    e.preventDefault();
+                }
+            });
+
+            // 拖拽调整宽度
+            document.addEventListener('mousemove', (e) => {
+                if (!isResizing || !currentPanel) return;
+                const newWidth = startWidth + (e.clientX - startX);
+                if (newWidth >= 200) { // 最小宽度限制
+                    currentPanel.style.width = `${newWidth}px`;
+                }
+            });
+
+            // 结束拖拽
+            document.addEventListener('mouseup', () => {
+                if (isResizing && currentPanel) {
+                    currentPanel.classList.remove('resizing');
+                }
+                isResizing = false;
+                currentPanel = null;
+                document.body.style.cursor = '';
+            });
+        });
+
+        // 等待动态DOM渲染完成后，初始化单选框（终极稳定版）
+        function initRadioComponent() {
+            const checkDOM = setInterval(() => {
+                const radio1 = document.getElementById('radioActive');
+                const radio2 = document.getElementById('radioInactive');
+
+                // DOM存在则初始化组件
+                if (radio1 && radio2) {
+                    clearInterval(checkDOM);
+
+                    const radioGroup = new CrystalRadioGroup({
+                        containerIds: ['radioActive', 'radioInactive'],
+                        labels: ['Active', 'Inactive'],
+                        defaultSelected: 'radioActive',
+                        onChange: (selectedId) => {
+                            console.log('当前选中：', selectedId);
+                        }
+                    });
+                    radioGroup.init();
+                    // 初始化下拉框（在你的页面渲染完成后调用）
+                    const dropdown = new AutocompleteDropdown({
+                        containerId: 'myselectDropdown',    // 🔥 外部传入DOM ID
+                        options: [                   // 🔥 外部传入下拉数据
+                            { label: 'Option A', value: 'A' },
+                            { label: 'Option B', value: 'B' },
+                            { label: 'Option C', value: 'C' },
+                            { label: 'Option D', value: 'D' }
+                        ],
+                        defaultValue: 'B',            // 🔥 外部传入初始选中值
+                        onChange: (item) => {             // 🔥 外部传入选项变化回调
+                            console.log('Selected:', item);
+                        }
+                    });
+                    dropdown.init();
+                }
+            }, 50); // 每50ms检测一次DOM
+
+            // 超时保护（1秒后停止检测）
+            setTimeout(() => clearInterval(checkDOM), 1000);
+        }
+
+        // 执行初始化
+        initRadioComponent();
+
+
+
+
+
+    </script>
+
+    <script>
+        /*
+        切换主题逻辑（独立，直接调用）
+        */
+        (function () {
+            const toggleBtn = document.getElementById('fmThemeToggle');
+            const themeIcon = toggleBtn?.querySelector('.theme-icon');
+
+            if (toggleBtn && themeIcon) toggleBtn.addEventListener('click', () => {
+                const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
+                document.documentElement.setAttribute('data-theme', isDark ? 'light' : 'dark');
+                themeIcon.className = 'icon ' + (isDark ? 'icon-theme-dark' : 'icon-theme-light') + ' theme-icon';
+            });
+        })();
+    </script>
+</body>
+
+</html>
